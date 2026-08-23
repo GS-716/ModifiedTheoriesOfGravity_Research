@@ -1,0 +1,256 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{amsmath,amssymb,mathtools}
+\usepackage[a4paper,margin=1.8cm]{geometry}
+\usepackage{graphicx}
+\usepackage{longtable,array,booktabs}
+\setlength{\parindent}{0pt}
+\allowdisplaybreaks
+
+\begin{document}
+
+\begin{center}
+{\Large\bfseries Resumen de la derivación simbólica para teorías \(f(R)\)}\\[0.5em]
+{\small Generado directamente a partir de los objetos calculados en el notebook}
+\end{center}
+
+\section*{Lagrangiano usado}
+\[
+\boxed{L_{\mathrm{input}} = R}
+\]
+
+
+\section*{Entrada y derivadas escalares}
+
+\noindent\texttt{S[L\_input]}
+
+\[
+\boxed{L = R}
+\]
+
+
+\noindent\texttt{S[f\_R]}
+
+\[
+\boxed{f_R = 1}
+\]
+
+
+\noindent\texttt{S[f\_RR]}
+
+\[
+\boxed{f_{RR} = 0}
+\]
+
+
+\noindent\texttt{S[f\_RRR]}
+
+\[
+\boxed{f_{RRR} = 0}
+\]
+
+
+\section*{Objetos geométricos calculados}
+
+\noindent\texttt{S[dR\_dRiemann]}
+
+\[
+\boxed{\dfrac{\partial R}{\partial R_{abcd}} = -\frac{1}{2}\mathrm{g}{}^{ad}\mathrm{g}{}^{bc} + \frac{1}{2}\mathrm{g}{}^{ac}\mathrm{g}{}^{bd}}
+\]
+
+
+\noindent\texttt{S[P\_abcd]}
+
+\[
+\boxed{P^{abcd} = -\frac{1}{2}\mathrm{g}{}^{ad}\mathrm{g}{}^{bc} + \frac{1}{2}\mathrm{g}{}^{ac}\mathrm{g}{}^{bd}}
+\]
+
+
+\noindent\texttt{S[P\_metric\_ab]}
+
+\[
+\boxed{P^{ab} = -2\mathrm{R}{}^{piq}{}_{i}}
+\]
+
+
+\noindent\texttt{S[Rcal\_down\_ab]}
+
+\[
+\boxed{\mathcal{R}_{ab} = \mathrm{R}{}_{a}{}^{i}{}_{bi}}
+\]
+
+
+\section*{Derivada de Lie por las dos rutas}
+
+\noindent\texttt{S[Lie\_L\_route\_1]}
+
+\[
+\boxed{\left(\mathcal{L}_{\xi}L\right)_{\mathrm{ruta\ 1}} = -\frac{1}{2}\nabla \mathrm{R}{}^{ijk}{}_{kj}\xi{}_{i} + \frac{1}{2}\nabla \mathrm{R}{}^{ijk}{}_{jk}\xi{}_{i}}
+\]
+
+
+\noindent\texttt{S[Lie\_L\_route\_2]}
+
+\[
+\boxed{\left(\mathcal{L}_{\xi}L\right)_{\mathrm{ruta\ 2}} = -\frac{1}{2}\nabla \mathrm{R}{}^{ijk}{}_{kj}\xi{}_{i} + \frac{1}{2}\nabla \mathrm{R}{}^{ijk}{}_{jk}\xi{}_{i}}
+\]
+
+
+\section*{Variación antes de integrar por partes}
+
+\noindent\texttt{S[delta\_L\_total\_unsplit]}
+
+\[
+\boxed{\delta L = 2\delta \mathrm{g}{}^{ij}\mathrm{R}{}_{i}{}^{k}{}_{jk} + \delta \mathrm{R}{}^{ij}{}_{ij}}
+\]
+
+
+\noindent\texttt{S[delta\_density\_unsplit]}
+
+\[
+\boxed{\delta\!\left(\sqrt{-g}L\right) = -\frac{1}{2}R\sqrt{-g}\delta \mathrm{g}{}^{i}{}_{i} + 2\sqrt{-g}\delta \mathrm{g}{}^{ij}\mathrm{R}{}_{i}{}^{k}{}_{jk} + \sqrt{-g}\delta \mathrm{R}{}^{ij}{}_{ij}}
+\]
+
+
+\noindent\texttt{S[delta\_R\_split\_metric\_piece]}
+
+\[
+\boxed{\left(P\,\delta R\right)_{\mathrm{pieza\ métrica}} = -\delta \mathrm{g}{}^{ij}\mathrm{R}{}_{i}{}^{k}{}_{jk}}
+\]
+
+
+\noindent\texttt{S[delta\_R\_split\_connection\_piece]}
+
+\[
+\boxed{\left(P\,\delta R\right)_{\mathrm{pieza\ conexión}} = -\frac{1}{2}\delta \mathrm{R}_{\mathrm{mix}}{}^{ij}{}_{ji} + \frac{1}{2}\delta \mathrm{R}_{\mathrm{mix}}{}^{ij}{}_{ij}}
+\]
+
+
+\section*{Palatini y sustitución de la conexión}
+
+\noindent\texttt{S[palatini\_sum]}
+
+\[
+\boxed{\left(P\,\delta R\right)_{\mathrm{Palatini}} = -\nabla\delta\Gamma{}^{ij}{}_{ij} + \nabla\delta\Gamma{}^{i}{}_{i}{}^{j}{}_{j}}
+\]
+
+
+\noindent\texttt{S[palatini\_metric\_second\_derivative]}
+
+\[
+\boxed{\left(P\,\delta R\right)_{\delta\Gamma\ \mathrm{sustituido}} = -\nabla\nabla\delta \mathrm{g}{}^{i}{}_{i}{}^{j}{}_{j} + \nabla\nabla\delta \mathrm{g}{}^{ij}{}_{ij}}
+\]
+
+
+\section*{Primera y segunda integración por partes}
+
+\noindent\texttt{S[ibp\_start]}
+
+\[
+\boxed{I_{\mathrm{inicio}} = -\nabla\nabla\delta \mathrm{g}{}^{i}{}_{i}{}^{j}{}_{j} + \nabla\nabla\delta \mathrm{g}{}^{ij}{}_{ij}}
+\]
+
+
+\noindent\texttt{S[ibp1\_divergence]}
+
+\[
+\boxed{\nabla_j B_1^{\,j} = -\nabla\nabla\delta \mathrm{g}{}^{i}{}_{i}{}^{j}{}_{j} + \nabla\nabla\delta \mathrm{g}{}^{ij}{}_{ij}}
+\]
+
+
+\noindent\texttt{S[ibp1\_residual\_positive]}
+
+\[
+\boxed{R_1 = 0}
+\]
+
+
+\noindent\texttt{S[ibp2\_divergence]}
+
+\[
+\boxed{\nabla_j B_2^{\,j} = 0}
+\]
+
+
+\noindent\texttt{S[ibp2\_bulk\_Hup]}
+
+\[
+\boxed{I_{\mathrm{bulk}} = 0}
+\]
+
+
+\noindent\texttt{S[delta\_v\_vector]}
+
+\[
+\boxed{\delta v^{\,j} = -\nabla\delta \mathrm{g}{}^{ji}{}_{i} + \nabla\delta \mathrm{g}{}^{ij}{}_{i}}
+\]
+
+
+\section*{Resultado final}
+
+\noindent\texttt{S[minus2\_double\_divergence\_P\_ab]}
+
+\[
+\boxed{-2\nabla^m\nabla^n P_{amnb} = 0}
+\]
+
+
+\noindent\texttt{S[E\_ab\_raw]}
+
+\[
+\boxed{E_{ab} = -\frac{1}{2}R\mathrm{g}{}_{ab} + \mathrm{R}{}_{a}{}^{i}{}_{bi}}
+\]
+
+
+\noindent\texttt{S[delta\_action\_bulk\_integrand]}
+
+\[
+\boxed{\sqrt{-g}\,E_{ab}\,\delta g^{ab} = -\frac{1}{2}R\sqrt{-g}\delta \mathrm{g}{}^{i}{}_{i} + \sqrt{-g}\delta \mathrm{g}{}^{ij}\mathrm{R}{}_{i}{}^{k}{}_{jk}}
+\]
+
+
+\noindent\texttt{S[divergence\_P\_bcd]}
+
+\[
+\boxed{\nabla_a P^{abcd} = 0}
+\]
+
+
+\section*{Verificaciones automáticas}
+\noindent Total de identidades comprobadas: 22. \textbf{Todas dieron cero.}
+\begin{longtable}{p{0.78\textwidth}c}
+\toprule
+\textbf{Verificación} & \textbf{Resultado}\\
+\midrule
+\endfirsthead
+\toprule
+\textbf{Verificación} & \textbf{Resultado}\\
+\midrule
+\endhead
+\texttt{check\_P\_antisym\_ab} & $0$\\
+\texttt{check\_P\_antisym\_cd} & $0$\\
+\texttt{check\_P\_pair\_exchange} & $0$\\
+\texttt{check\_P\_metric\_symmetry} & $0$\\
+\texttt{check\_lie\_curv\_term\_2\_equals\_1} & $0$\\
+\texttt{check\_lie\_curv\_term\_3\_equals\_1} & $0$\\
+\texttt{check\_lie\_curv\_term\_4\_equals\_1} & $0$\\
+\texttt{check\_two\_Lie\_routes} & $0$\\
+\texttt{check\_main\_identity} & $0$\\
+\texttt{check\_Rcal\_symmetry} & $0$\\
+\texttt{check\_metric\_variation\_equals\_2Rcal} & $0$\\
+\texttt{check\_split\_metric\_piece} & $0$\\
+\texttt{check\_palatini\_two\_terms\_equal} & $0$\\
+\texttt{check\_palatini\_sum\_is\_twice} & $0$\\
+\texttt{check\_dGamma\_piece\_1\_vanishes} & $0$\\
+\texttt{check\_dGamma\_piece\_2\_equals\_3} & $0$\\
+\texttt{check\_after\_dGamma\_reduction} & $0$\\
+\texttt{check\_ibp1} & $0$\\
+\texttt{check\_residual\_renaming} & $0$\\
+\texttt{check\_ibp2} & $0$\\
+\texttt{check\_ibp\_bulk\_equals\_double\_divergence} & $0$\\
+\texttt{check\_double\_divergence\_chain\_rule} & $0$\\
+\bottomrule
+\end{longtable}
+
+\end{document}

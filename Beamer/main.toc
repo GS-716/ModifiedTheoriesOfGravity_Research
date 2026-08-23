@@ -1,0 +1,9 @@
+\babel@toc {spanish}{}\relax 
+\beamer@sectionintoc {1}{Derivada de Lie e identidad principal (LL)}{5}{0}{1}
+\beamer@sectionintoc {2}{Variación de la acción (LL)}{25}{0}{2}
+\beamer@sectionintoc {3}{Condición de segundo orden}{43}{0}{3}
+\beamer@sectionintoc {4}{Generalización con campo escalar}{47}{0}{4}
+\beamer@sectionintoc {5}{Estudio de casos}{59}{0}{5}
+\beamer@subsectionintoc {5}{1}{Gauss - Bonet}{60}{0}{5}
+\beamer@subsectionintoc {5}{2}{Lagrangiano especial}{61}{0}{5}
+\beamer@sectionintoc {6}{Discusión de resultados}{83}{0}{6}
