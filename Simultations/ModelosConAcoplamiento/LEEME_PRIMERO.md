@@ -2,26 +2,51 @@
 
 ## 1. Qué hace este proyecto
 
-Este proyecto reconstruye de forma simbólica y auditable la variación de
+Este proyecto reconstruye de forma simbólica y auditable la variación de un
+lagrangiano general:
 
-\[
-L=L(g^{ab},R_{abcd},\phi,\nabla_a\phi),
-\]
+```text
+L = L(g^{ab}, R_{abcd}, phi, nabla_a phi)
+```
 
-y luego la especializa a los Casos 0, 1 y 2 de `Papers/Draft_4.pdf`:
+Después lo especializa a los Casos 0, 1 y 2 de `Papers/Draft_4.pdf`:
 
-- **Caso 0:** \(L_0=R+2/\ell^2\), con \(\alpha_1=\beta_0=0\).
-- **Caso 1:** \(L_1=R+2/\ell^2-\alpha_1(\nabla\phi)^2\), con \(\beta_0=0\).
-- **Caso 2:** \(L_2=R+2/\ell^2+\ell^2\beta_0[3R_{ab}u^au^b-Ru^2]\),
-  con \(u_a=\nabla_a\phi\), \(\alpha_1=0\) y \(\beta_0\neq0\).
+```text
+Caso 0: L_0 = R + 2/ell²
+        alpha_1 = beta_0 = 0
 
-La meta no es imprimir únicamente \(f(r)\). Se conserva la historia completa:
-momentos, variación, frontera, ecuaciones de Euler-Lagrange, Bianchi-Noether,
-geometría del ansatz, ecuaciones radiales, soluciones e invariantes.
+Caso 1: L_1 = R + 2/ell² - alpha_1 (nabla phi)²
+        beta_0 = 0
+
+Caso 2: L_2 = R + 2/ell²
+              + ell² beta_0 [3 R_ab u^a u^b - R u²]
+        u_a = nabla_a phi,  alpha_1 = 0,  beta_0 != 0
+```
+
+La meta no es obtener únicamente `f(r)`. Se conserva la historia completa:
+momentos, variación, términos de frontera, ecuaciones de Euler-Lagrange,
+Bianchi-Noether, geometría del ansatz, ecuaciones radiales, soluciones e
+invariantes.
 
 El notebook `derivacion_modelos_con_acoplamiento_MAIN.ipynb` es solo el **main
 narrativo**. La física y los algoritmos viven en archivos `.py`, para que puedan
 probarse y reutilizarse sin depender de Jupyter.
+
+### Convención de escritura de esta guía
+
+Todas las fórmulas se muestran como texto monoespaciado. No se necesita MathJax,
+KaTeX ni ninguna extensión de LaTeX para leerlas desde GitHub.
+
+Los índices elevados se escriben con `^` y los inferiores con `_`. Por ejemplo:
+
+```text
+u^a       índice elevado
+u_a       índice inferior
+R_{abcd}  cuatro índices inferiores
+ell²      ell al cuadrado
+f'        primera derivada respecto de r
+f''       segunda derivada respecto de r
+```
 
 ---
 
@@ -31,7 +56,7 @@ probarse y reutilizarse sin depender de Jupyter.
 L(g, R, phi, nabla phi)
         |
         v
-Definir P, M, J y F
+Definir los cuatro momentos P, M, J y F
         |
         v
 Variar: medida + Palatini + integraciones por partes
@@ -66,10 +91,10 @@ Notebook -> LaTeX -> PDF + JSON de residuos
 
 Hay dos niveles deliberadamente separados:
 
-1. **Tensorial, sin ansatz:** \(g_{ab}\) y \(\phi\) son arbitrarios. Aquí se
-   obtienen los momentos y las ecuaciones covariantes de cada teoría.
-2. **Coordenado, con ansatz:** se fija la métrica circular, el perfil escalar, se
-   calculan componentes, se resuelve \(f(r)\) y se sustituye la solución.
+1. **Tensorial, sin ansatz:** `g_ab` y `phi` son arbitrarios. Aquí se obtienen
+   los momentos y las ecuaciones covariantes de cada teoría.
+2. **Coordenado, con ansatz:** se fija la métrica circular y el perfil escalar,
+   se calculan componentes, se resuelve `f(r)` y se sustituye la solución.
 
 Así no se confunde una identidad general con una simplificación accidental de
 una métrica particular.
@@ -78,36 +103,41 @@ una métrica particular.
 
 ## 3. Ruta de lectura recomendada
 
-1. `mc_core.py`: qué es `ctx` y cómo se registra un cálculo.
-2. `mc_general.py`: derivación física para el lagrangiano general.
-3. `mc_geometry.py`: traducción de geometría diferencial a álgebra SymPy.
-4. `mc_case0.py`: línea base Einstein-AdS y construcción de la geometría común.
-5. `mc_case1.py`: escalar cinético y rama logarítmica.
-6. `mc_case2.py`: acoplamiento con curvatura, doble divergencia y rama racional.
-7. `mc_pipeline.py`: orden exacto de integración.
-8. `test_symbolic.py`: propiedades que el proyecto protege.
-9. `mc_export.py`: transformación de la historia en LaTeX, PDF y JSON.
-10. Notebook main: la misma secuencia presentada para lectura humana.
+1. `mc_core.py`: entender qué es `ctx` y cómo se registra un cálculo.
+2. `mc_general.py`: seguir la derivación física del lagrangiano general.
+3. `mc_geometry.py`: ver cómo la geometría diferencial se vuelve álgebra SymPy.
+4. `mc_case0.py`: estudiar Einstein-AdS y la geometría común.
+5. `mc_case1.py`: añadir el escalar cinético y obtener la rama logarítmica.
+6. `mc_case2.py`: estudiar la doble divergencia y la rama racional.
+7. `mc_pipeline.py`: comprobar el orden de integración.
+8. `test_symbolic.py`: conocer las propiedades protegidas por pruebas.
+9. `mc_export.py`: entender la producción de LaTeX, PDF y JSON.
+10. Notebook main: recorrer la misma secuencia de forma interactiva.
 
 ---
 
 ## 4. Diccionario físico-computacional
 
-| Física | Código |
+| Objeto físico | Objeto en el código |
 |---|---|
-| \(g_{ab}\), \(g^{ab}\) | `geo.g`, `geo.g_inv` |
-| \(R^a{}_{bcd}\), \(R_{abcd}\) | `geo.Riemann_up`, `geo.Riemann_down` |
-| \(R_{ab}\), \(R\), \(G_{ab}\) | `geo.Ricci`, `geo.Rscalar`, `geo.Einstein` |
-| \(u_a=\nabla_a\phi\), \(u^a\), \(X=u^au_a\) | `u_cov`, `u_up`, `X` |
-| \(P^{abcd}\) | diccionario con claves `(a,b,c,d)` |
-| \(M_{ab}\), \(\mathcal R_{ab}\), \(E_{ab}\) | matrices SymPy |
-| \(J^a\) | vector columna SymPy |
-| \(F_\phi\), \(E_\phi\) | expresiones SymPy |
-| \(f(r)\) aún no resuelta | `sp.Function("f")(r)` |
+| `g_ab`, `g^ab` | `geo.g`, `geo.g_inv` |
+| `R^a_{bcd}`, `R_abcd` | `geo.Riemann_up`, `geo.Riemann_down` |
+| `R_ab`, `R`, `G_ab` | `geo.Ricci`, `geo.Rscalar`, `geo.Einstein` |
+| `u_a = nabla_a phi` | `u_cov` |
+| `u^a` | `u_up` |
+| `X = u^a u_a` | `X` |
+| `P^abcd` | diccionario con claves `(a,b,c,d)` |
+| `M_ab`, `Rcal_ab`, `E_ab` | matrices SymPy |
+| `J^a` | vector columna SymPy |
+| `F_phi`, `E_phi` | expresiones SymPy |
+| `f(r)` aún no resuelta | `sp.Function("f")(r)` |
 
-La teoría tensorial abstracta se registra como LaTeX legible. Los cálculos
+`Rcal_ab` representa el Ricci generalizado, escrito como `mathcal R_ab` en el
+informe LaTeX.
+
+La teoría tensorial abstracta se registra como cadenas legibles. Los cálculos
 coordenados y las comprobaciones se conservan como objetos SymPy exactos. Esta
-división evita atribuir a SymPy una derivada funcional tensorial que requeriría
+separación evita atribuir a SymPy una derivada funcional tensorial que requeriría
 convenciones adicionales.
 
 ---
@@ -120,99 +150,117 @@ Cada `Step` es una igualdad o verificación exportable:
 
 - `key`: identificador único, por ejemplo `case2_final_M`;
 - `title`: título humano;
-- `lhs`, `rhs`: igualdad escrita en LaTeX;
+- `lhs` y `rhs`: lados de la igualdad;
 - `group`: sección y subsección de la historia;
 - `note`: explicación adicional;
 - `check`: residuo simbólico opcional.
 
 ### `CouplingContext`
 
-Una corrida se guarda en un único `ctx` con tres almacenes:
+Una corrida completa se guarda en un único objeto `ctx`:
 
 - `ctx.steps`: historia ordenada para notebook y PDF;
-- `ctx.objects`: objetos SymPy reutilizables por etapas posteriores;
+- `ctx.objects`: objetos SymPy reutilizables;
 - `ctx.checks`: residuos exactos de las verificaciones.
 
-Las operaciones centrales son:
+Sus operaciones centrales son:
 
-- `ctx.add(...)`: incorpora un paso visible. Si recibe `check`, simplifica el
+- `ctx.add(...)`: agrega un paso visible. Si recibe `check`, simplifica el
   residuo y detiene la ejecución si no es cero.
-- `ctx.put(...)`: conserva un objeto para otros módulos.
+- `ctx.put(...)`: guarda un objeto para otra etapa.
 - `ctx.show(...)`: presenta pasos seleccionados en Jupyter.
 - `latex_expr(...)`: convierte expresiones y matrices SymPy a LaTeX.
 
-El ciclo normal es calcular un objeto, guardarlo con `put`, registrarlo con
-`add` y, si representa una identidad, adjuntar un residuo. El exportador no
-recalcula la física: recorre esa historia ya construida y verificada.
+El ciclo normal de un resultado es:
+
+```python
+# 1. Construir el objeto simbólico.
+E = (...).applyfunc(sp.simplify)
+
+# 2. Guardarlo para cálculos posteriores.
+ctx.put("E_case2_ansatz", E)
+
+# 3. Agregarlo a la historia visible.
+ctx.add("case2_ansatz_E", "Tensor métrico", lhs, latex_expr(E), group)
+
+# 4. Si es una identidad, registrar también su residuo.
+ctx.add(..., check=residuo)
+```
+
+El exportador no recalcula la física. Recorre una historia que ya fue construida
+y, en los pasos con `check`, verificada.
 
 ---
 
 ## 6. Primer acto: `mc_general.py`
 
-`build_general_theory(ctx)` construye el esqueleto covariante heredado por los
-tres casos. Parte de
+`build_general_theory(ctx)` crea el esqueleto covariante de los tres casos.
 
-\[
-S=\kappa\int d^Dx\sqrt{-g}\,L(g^{ab},R_{abcd},\phi,u_a),
-\qquad u_a=\nabla_a\phi.
-\]
+### Acción y momentos
 
-### Los cuatro momentos
+```text
+S = kappa integral[d^D x sqrt(-g) L(g^ab, R_abcd, phi, u_a)]
+u_a = nabla_a phi
+```
 
-\[
-P^{abcd}=\frac{\partial L}{\partial R_{abcd}},\quad
-M_{ab}=\frac{\partial L}{\partial g^{ab}},\quad
-J^a=\frac{\partial L}{\partial u_a},\quad
-F_\phi=\frac{\partial L}{\partial\phi}.
-\]
+Se definen cuatro momentos distintos:
 
-Se mantienen nombres distintos para el momento de curvatura y el métrico. El
-código registra también las simetrías de Riemann heredadas por \(P^{abcd}\).
+```text
+P^abcd = partial L / partial R_abcd    momento de curvatura
+M_ab   = partial L / partial g^ab      momento métrico
+J^a    = partial L / partial u_a       momento del gradiente escalar
+F_phi  = partial L / partial phi       dependencia escalar explícita
+```
+
+`P^abcd` hereda las simetrías de Riemann. Mantener nombres distintos para `P`
+y `M` permite ver qué derivada parcial produce cada término.
 
 ### Variación
 
-La regla de la cadena es
+```text
+delta L = M_ab delta g^ab
+        + P^abcd delta R_abcd
+        + F_phi delta phi
+        + J^a nabla_a delta phi
+```
 
-\[
-\delta L=M_{ab}\delta g^{ab}+P^{abcd}\delta R_{abcd}
-+F_\phi\delta\phi+J^a\nabla_a\delta\phi.
-\]
+Después se incorporan:
 
-Después se añaden la variación de \(\sqrt{-g}\), Palatini, la variación de la
-conexión Levi-Civita, dos integraciones por partes en el sector de curvatura y
-una en el sector escalar. Así se separan bulk y frontera.
+- la variación de `sqrt(-g)`;
+- la identidad de Palatini;
+- la variación de la conexión Levi-Civita;
+- dos integraciones por partes en el sector de curvatura;
+- una integración por partes en el sector escalar.
 
-Se define
+El Ricci generalizado se define como:
 
-\[
-\mathcal R_{ab}=P_a{}^{cde}R_{bcde},
-\]
+```text
+Rcal_ab = P_a^{cde} R_bcde
+```
 
-y la covariancia da la identidad de momentos
+La covariancia produce la identidad algebraica de momentos:
 
-\[
-M_{ab}=2\mathcal R_{(ab)}+\frac12J_{(a}u_{b)}.
-\]
+```text
+M_ab = 2 Rcal_(ab) + (1/2) J_(a u_b)
+```
 
-La ecuación métrica reducida y la escalar quedan
+Las ecuaciones de campo generales quedan:
 
-\[
-E_{ab}=\mathcal R_{(ab)}-\frac12g_{ab}L
--2\nabla^m\nabla^nP_{(a|mn|b)}+\frac12J_{(a}u_{b)},
-\]
+```text
+E_ab = Rcal_(ab) - (1/2) g_ab L
+       - 2 nabla^m nabla^n P_(a|mn|b)
+       + (1/2) J_(a u_b)
 
-\[
-E_\phi=F_\phi-\nabla_aJ^a.
-\]
+E_phi = F_phi - nabla_a J^a
+```
 
-El cierre es la identidad off-shell
+El cierre estructural es Bianchi-Noether off-shell:
 
-\[
-2\nabla^aE_{ab}+E_\phi u_b\equiv0.
-\]
+```text
+2 nabla^a E_ab + E_phi u_b = 0
+```
 
-“Off-shell” significa que todavía no se imponen las ecuaciones de campo. Esta
-identidad es luego una prueba estructural de las especializaciones.
+“Off-shell” significa que todavía no se impusieron `E_ab = 0` ni `E_phi = 0`.
 
 ---
 
@@ -222,36 +270,37 @@ identidad es luego una prueba estructural de las especializaciones.
 coordenados. El constructor calcula, en orden:
 
 1. métrica inversa;
-2. Christoffel;
+2. símbolos de Christoffel;
 3. Riemann con un índice elevado;
-4. Riemann covariante;
+4. Riemann completamente covariante;
 5. Ricci;
 6. escalar de Ricci;
 7. Einstein.
 
-La convención de Riemann está escrita en `_riemann_up`; un cambio de signo allí
-se propagaría por todo el proyecto.
+La convención de Riemann está implementada en `_riemann_up`. Un cambio de signo
+allí se propagaría a todos los momentos, ecuaciones e invariantes.
 
-Métodos relevantes:
+Métodos principales:
 
 - `_christoffel`, `_riemann_up`, `_riemann_down`, `_ricci`, `_einstein`:
-  implementan las definiciones por sumas de índices.
-- `divergence_cov2(T)`: calcula \(\nabla^aT_{ab}\) para Bianchi.
-- `scalar_gradient_cov(phi)`: construye \(u_a\).
-- `scalar_laplacian(phi)`: calcula \(\Box\phi\).
+  implementan las definiciones mediante sumas de índices.
+- `divergence_cov2(T)`: calcula `nabla^a T_ab` para Bianchi.
+- `scalar_gradient_cov(phi)`: construye `u_a`.
+- `scalar_laplacian(phi)`: calcula `Box phi`.
 - `nonzero_christoffel`, `independent_riemann` e
   `independent_einstein_hilbert_momentum`: eliminan ceros y redundancias de la
-  salida, sin alterar el tensor.
+  presentación, sin modificar el tensor.
 - `kretschmann`: implementa la contracción completa del Riemann.
 
-La geometría común es
+Los tres casos comparten la métrica:
 
-\[
-ds^2=-f(r)d\tau^2+\frac{dr^2}{f(r)}+r^2d\varphi^2.
-\]
+```text
+ds² = -f(r) d tau² + dr²/f(r) + r² d varphi²
+```
 
-Se construye una vez en el Caso 0 y se guarda en `ctx.objects["geometry"]`.
-Los Casos 1 y 2 la reutilizan, garantizando idénticas coordenadas y convención.
+Se construye una vez en el Caso 0 y se guarda como
+`ctx.objects["geometry"]`. Los Casos 1 y 2 reutilizan exactamente la misma
+geometría y convención.
 
 ---
 
@@ -259,35 +308,54 @@ Los Casos 1 y 2 la reutilizan, garantizando idénticas coordenadas y convención
 
 ### `build_case0(ctx)`
 
-Mantiene todo tensorial y registra Einstein-AdS:
+Registra Einstein-AdS antes de elegir coordenadas:
 
-\[
-P_0^{abcd}=\frac12(g^{ac}g^{bd}-g^{ad}g^{bc}),\qquad
-M^{(0)}_{ab}=2R_{ab},\qquad J_0^a=F_\phi^{(0)}=0.
-\]
+```text
+P_0^abcd = (1/2) (g^ac g^bd - g^ad g^bc)
+M_ab^(0) = 2 R_ab
+J_0^a = 0
+F_phi^(0) = 0
+Rcal_ab^(0) = R_ab
+```
 
-Como \(\nabla P_0=0\), la doble divergencia desaparece y
-\(E^{(0)}_{ab}=G_{ab}-\ell^{-2}g_{ab}\). También se registran Bianchi y el
-término Gibbons-Hawking-York. Es el control básico del motor.
+Como `nabla P_0 = 0`, la doble divergencia desaparece:
+
+```text
+E_ab^(0) = G_ab - g_ab/ell²
+```
+
+También se registran Bianchi y el término Gibbons-Hawking-York. Este caso es el
+control básico del motor.
 
 ### `evaluate_btz_ansatz(ctx)`
 
-Introduce coordenadas, `ell`, `lambda` y `f(r)`, crea `CoordinateGeometry` y
-guarda todo en `ctx`. Con \(f\) arbitraria calcula momentos, Christoffel,
-Riemann, Ricci, \(R\), Einstein y \(E^{(0)}_{ab}[f]\).
+Introduce `tau`, `r`, `varphi`, `ell`, `lambda` y `f(r)`. Crea
+`CoordinateGeometry` y guarda estos objetos en `ctx`.
 
-Las componentes dan
+Con `f(r)` arbitraria calcula momentos, Christoffel, Riemann, Ricci, `R`,
+Einstein y `E_ab^(0)[f]`. Las componentes independientes dan:
 
-\[
-f'=2r/\ell^2,\qquad f''=2/\ell^2,
-\]
+```text
+f'(r)  = 2r/ell²
+f''(r) = 2/ell²
 
-y por tanto \(f_{(0)}=r^2/\ell^2-\lambda\). `subs_btz` sustituye a la vez `f`,
-`f'` y `f''`; sustituir solo `f` dejaría derivadas simbólicas antiguas dentro de
-los tensores.
+f_(0)(r) = r²/ell² - lambda
+```
 
-Después reconstruye todos los momentos finales y verifica Ricci, \(R\),
-Einstein, ecuaciones de campo, curvatura constante, Kretschmann y Bianchi.
+`subs_btz` sustituye simultáneamente `f`, `f'` y `f''`. Sustituir solo `f`
+dejaría derivadas simbólicas antiguas dentro de los tensores.
+
+Después se reconstruyen los momentos finales y se verifica:
+
+```text
+R_ab = -2 g_ab/ell²
+R    = -6/ell²
+G_ab = g_ab/ell²
+E_ab^(0) = 0
+R_abcd R^abcd = 12/ell⁴
+```
+
+También se comprueban curvatura constante y Bianchi.
 
 ---
 
@@ -295,112 +363,141 @@ Einstein, ecuaciones de campo, curvatura constante, Kretschmann y Bianchi.
 
 ### `build_case1(ctx)`
 
-Para \(L_1=R+2/\ell^2-\alpha_1X\) obtiene
+Para `L_1 = R + 2/ell² - alpha_1 X` obtiene:
 
-\[
-M^{(1)}_{ab}=2R_{ab}-\alpha_1u_au_b,qquad
-J_1^a=-2\alpha_1u^a,qquad F_\phi^{(1)}=0.
-\]
+```text
+M_ab^(1) = 2 R_ab - alpha_1 u_a u_b
+J_1^a    = -2 alpha_1 u^a
+F_phi^(1) = 0
+```
 
-`F=0` expresa simetría de desplazamiento. Se forman el tensor cinético,
-\(E^{(1)}_{ab}\), \(E_\phi^{(1)}=2\alpha_1\Box\phi\), Bianchi y frontera.
+`F_phi = 0` expresa simetría de desplazamiento. El módulo forma el tensor
+cinético, `E_ab^(1)`, `E_phi^(1) = 2 alpha_1 Box(phi)`, Bianchi y frontera.
 
 ### `evaluate_case1_ansatz(ctx)`
 
-Recupera la geometría del Caso 0 e impone \(\phi=p\varphi\). Calcula \(u_a\),
-\(u^a\), \(X\), el tensor cinético, \(\Box\phi\), todos los momentos y
-\(E^{(1)}_{ab}[f]\). El perfil angular satisface \(\Box\phi=0\) para cualquier
-\(f(r)\) de este ansatz.
+Recupera la geometría del Caso 0 e impone:
 
-La ecuación radial es
+```text
+phi = p varphi
+```
 
-\[
-f'=\frac{2r}{\ell^2}-\frac{\alpha_1p^2}{r}.
-\]
+Calcula `u_a`, `u^a`, `X`, el tensor cinético, `Box(phi)`, todos los momentos y
+`E_ab^(1)[f]`. El perfil angular satisface `Box(phi) = 0` para cualquier `f(r)`
+de este ansatz.
 
-El código usa `sp.integrate` y verifica la primitiva antes de construir
+La ecuación radial es:
 
-\[
-f_{(1)}=\frac{r^2}{\ell^2}-\lambda
--\alpha_1p^2\log(r/r_0).
-\]
+```text
+f'(r) = 2r/ell² - alpha_1 p²/r
+```
+
+El código usa `sp.integrate` y verifica la primitiva antes de construir:
+
+```text
+f_(1)(r) = r²/ell² - lambda - alpha_1 p² log(r/r_0)
+```
 
 Luego sustituye `f`, `f'` y `f''` en momentos, curvatura y ecuaciones. Comprueba
-ecuación métrica, escalar, Bianchi-Noether, invariantes y flujo normal al borde.
-Además guarda `p` en `ctx`; el Caso 2 reutiliza el mismo símbolo.
+la ecuación métrica, la escalar, Bianchi-Noether, invariantes y el flujo normal
+al borde. También guarda `p` en `ctx`; el Caso 2 reutiliza el mismo símbolo.
 
 ---
 
 ## 10. Quinto acto: `mc_case2.py`
 
-Es el módulo más técnico porque \(P_2^{abcd}\) no es covariantemente constante
-y su doble divergencia contribuye a la ecuación métrica.
+Es el módulo más técnico porque `P_2^abcd` no es covariantemente constante y su
+doble divergencia contribuye realmente a la ecuación métrica.
 
-### Auxiliares
+### Funciones auxiliares
 
-- `_curvature_momentum`: construye \(P^{abcd}\) para un sector \(C^{ab}R_{ab}\).
+- `_curvature_momentum`: construye `P^abcd` para un sector `C^ab R_ab`.
 - `_independent_rank4`: selecciona componentes independientes no nulas.
-- `_lower_rank4`: baja los cuatro índices de \(P\).
-- `_generalized_ricci`: contrae \(P_a{}^{cde}R_{bcde}\).
-- `_double_divergence`: calcula dos derivadas covariantes sucesivas, incluyendo
-  todas las correcciones de Christoffel.
-- `_vector_divergence`: calcula \(\nabla_aJ^a\).
-- `_momentum_latex` y `_diagonal_tensor_latex`: hacen legible el resultado.
+- `_lower_rank4`: baja los cuatro índices de `P`.
+- `_generalized_ricci`: contrae `P_a^{cde} R_bcde`.
+- `_double_divergence`: calcula dos derivadas covariantes sucesivas, con todas
+  las correcciones de Christoffel.
+- `_vector_divergence`: calcula `nabla_a J^a`.
+- `_momentum_latex` y `_diagonal_tensor_latex`: hacen legible la salida.
+
+`_double_divergence` debe leerse lentamente: baja índices, simetriza en `a,b`,
+calcula una derivada covariante de rango cuatro, contrae y calcula la segunda
+derivada covariante. No usa una simple derivada parcial.
 
 ### `build_case2(ctx)`
 
-Define
+Organiza el acoplamiento mediante:
 
-\[
-H^{ab}=3u^au^b-Xg^{ab},\qquad
-C^{ab}=g^{ab}+\ell^2\beta_0H^{ab},
-\]
+```text
+H^ab = 3 u^a u^b - X g^ab
+C^ab = g^ab + ell² beta_0 H^ab
+```
 
-para escribir el sector de curvatura como \(C^{ab}R_{ab}\). De allí obtiene
+Así el sector de curvatura es `C^ab R_ab`, y se obtiene:
 
-\[
-P_2^{abcd}=\frac14(C^{ac}g^{bd}-C^{ad}g^{bc}-C^{bc}g^{ad}+C^{bd}g^{ac}).
-\]
+```text
+P_2^abcd = (1/4) [C^ac g^bd - C^ad g^bc
+                   - C^bc g^ad + C^bd g^ac]
+```
 
-También registra \(M_2\), \(J_2\), \(F_2=0\), \(\mathcal R_2\), la divergencia
-de \(P_2\), ecuaciones, Bianchi-Noether y la acción de frontera mejorada.
+También registra `M_2`, `J_2`, `F_2 = 0`, `Rcal_2`, la divergencia de `P_2`,
+las ecuaciones, Bianchi-Noether y la acción de frontera mejorada.
 
 ### `evaluate_case2_ansatz(ctx)`
 
-Recupera geometría, coordenadas, `ell`, `lambda` y `f` del Caso 0, y `p` del
-Caso 1. Con \(\phi=p\varphi\) calcula, en orden:
+Recupera `geometry`, coordenadas, `ell`, `lambda` y `f` del Caso 0, y `p` del
+Caso 1. Con `phi = p varphi` calcula, en orden:
 
-1. \(u_a\), \(u^a\), \(X\), \(R^{ab}\) y \(R_{ab}u^au^b\);
-2. \(H^{ab}\), \(C^{ab}\) y el tensor completo \(P^{abcd}\);
-3. \(\mathcal R_{ab}\), \(J^a\), \(F_\phi\) y \(M_{ab}\);
+1. `u_a`, `u^a`, `X`, `R^ab` y `R_ab u^a u^b`;
+2. `H^ab`, `C^ab` y el tensor completo `P^abcd`;
+3. `Rcal_ab`, `J^a`, `F_phi` y `M_ab`;
 4. la identidad algebraica entre los momentos;
-5. la doble divergencia de \(P\);
-6. el lagrangiano, \(E_\phi\) y \(E_{ab}\).
+5. la doble divergencia de `P`;
+6. el lagrangiano, `E_phi` y `E_ab`.
 
-En esta primera pasada \(f(r)\) sigue siendo arbitraria. Por eso el informe
-muestra todos los momentos después del ansatz y antes de resolver la métrica.
+En esta primera pasada `f(r)` sigue siendo arbitraria. Por eso el informe puede
+mostrar todos los momentos después del ansatz pero antes de resolver la métrica.
 
-Para resolver se introduce
+### Reducción radial
 
-\[
-H(r)=1+\frac{\beta_0p^2\ell^2}{r^2},\qquad N(r)=H(r)f(r),
-\]
+```text
+H(r) = 1 + beta_0 p² ell²/r²
+N(r) = H(r) f(r)
 
-con \(N'=2r/\ell^2\), \(N''=2/\ell^2\). La solución es
+N'(r)  = 2r/ell²
+N''(r) = 2/ell²
+```
 
-\[
-f_{(2)}(r)=\frac{r^2/\ell^2-\lambda}
-{1+\beta_0p^2\ell^2/r^2}.
-\]
+La solución racional es:
 
-Como la doble divergencia puede generar hasta `f''''`, la sustitución final
-incluye `f`, `f'`, `f''`, `f'''` y `f''''`. Después se reconstruyen
-`P_case2_final`, `M_case2_final`, `J_case2_final`, `F_case2_final` y
-`Rcal_case2_final`. Ninguno conserva la función abstracta `f(r)`.
+```text
+                    r²/ell² - lambda
+f_(2)(r) = -----------------------------------
+            1 + beta_0 p² ell²/r²
+```
 
-Finalmente se verifican ecuaciones métricas y escalares, Bianchi,
-Bianchi-Noether, Ricci, \(R\), \(R_{ab}R^{ab}\), Kretschmann y el flujo escalar
-en el borde.
+El código verifica exactamente:
+
+```text
+H(r) f_(2)(r) - [r²/ell² - lambda] = 0
+```
+
+### Momentos completamente explícitos
+
+La doble divergencia puede generar hasta `f''''`. Por eso el diccionario final
+incluye `f`, `f'`, `f''`, `f'''` y `f''''`.
+
+Después se reconstruyen:
+
+- `P_case2_final`;
+- `M_case2_final`;
+- `J_case2_final`;
+- `F_case2_final`;
+- `Rcal_case2_final`.
+
+Ninguno conserva la función abstracta `f(r)`. Finalmente se verifican las
+ecuaciones métricas y escalares, Bianchi, Bianchi-Noether, Ricci, `R`,
+`R_ab R^ab`, Kretschmann y el flujo escalar en el borde.
 
 ---
 
@@ -419,7 +516,7 @@ evaluate_case2_ansatz(ctx)
 ```
 
 Los cuatro primeros llamados registran teoría abstracta. Los tres últimos hacen
-la evaluación coordenada. Las dependencias son:
+la evaluación coordenada. Las dependencias reales son:
 
 ```text
 evaluate_btz_ansatz
@@ -434,14 +531,14 @@ evaluate_case2_ansatz
   reutiliza geometry, f, lambda, ell y p
 ```
 
-El orden es parte de la arquitectura, no una preferencia estética. Es una forma
-explícita de inyección de dependencias mediante `ctx`, sin variables globales.
+El orden es parte de la arquitectura. Funciona como inyección explícita de
+dependencias mediante `ctx`, sin variables globales ocultas.
 
 ---
 
 ## 12. El notebook como main
 
-El notebook repite el pipeline por etapas para poder mostrar cada acto:
+El notebook repite el pipeline por etapas para mostrar cada acto:
 
 1. importa módulos y crea `ctx`;
 2. construye y muestra la teoría general;
@@ -458,13 +555,13 @@ la física: decide qué fragmento de la historia mostrar en cada sección.
 
 ## 13. Exportación: `mc_export.py`
 
-`build_latex(ctx)` recorre los pasos en orden. Un `group` de la forma
+`build_latex(ctx)` recorre los pasos en orden. Un grupo con formato
 `Sección::Subsección` se convierte automáticamente en estructura LaTeX. Para
 cada paso imprime título, clave, igualdad y nota.
 
-`_equation` ajusta fórmulas extensas al ancho del texto. Las matrices largas del
-Caso 2 llegan ya separadas por componentes. Luego se agrega una tabla con los
-residuos de `ctx.checks`: `OK` significa cero exacto, no una prueba numérica.
+`_equation` ajusta fórmulas extensas. Las matrices largas del Caso 2 llegan ya
+separadas por componentes. Luego se agrega una tabla de residuos: `OK` significa
+cero simbólico exacto, no una comprobación numérica en puntos elegidos.
 
 `export_results` genera:
 
@@ -472,44 +569,43 @@ residuos de `ctx.checks`: `OK` significa cero exacto, no una prueba numérica.
 - `salidas/derivacion_modelos_con_acoplamiento_casos0_2.pdf`;
 - `salidas/verificaciones_simbolicas.json`.
 
-Intenta `latexmk` si también existe Perl; en caso contrario usa `pdflatex` dos
-veces para resolver índice y referencias.
+Intenta usar `latexmk` si también existe Perl. Como respaldo ejecuta `pdflatex`
+dos veces para resolver correctamente el índice y las referencias.
 
 ---
 
 ## 14. Pruebas: `test_symbolic.py`
 
-La prueba reconstruye todo mediante `run_pipeline()`. Exige:
+La prueba reconstruye todo mediante `run_pipeline()` y exige:
 
 - un mínimo de pasos y que todos los residuos sean cero;
-- ecuaciones métricas finales nulas para los tres casos;
+- ecuaciones métricas finales nulas en los tres casos;
 - ecuaciones escalares correctas;
-- \(R_{BTZ}=-6/\ell^2\) y la forma esperada de \(J_1^\varphi\);
+- `R_BTZ = -6/ell²` y la forma esperada de `J_1^varphi`;
 - ausencia de `f(r)` en los momentos finales de los tres casos;
-- \(H(r)f_{(2)}(r)=r^2/\ell^2-\lambda\).
+- `H(r) f_(2)(r) = r²/ell² - lambda`.
 
-La prueba de ausencia de `f` distingue entre mostrar una fórmula parcialmente
-sustituida y haber usado realmente la solución explícita en todos los momentos.
+La prueba de ausencia de `f` distingue entre una fórmula parcialmente sustituida
+y haber usado realmente la solución explícita en todos los momentos.
 
 ---
 
-## 15. Cómo rastrear un resultado
+## 15. Cómo rastrear un resultado concreto
 
 Ejemplo: momento métrico final del Caso 2.
 
-1. `mc_general.py` define \(M_{ab}=\partial L/\partial g^{ab}\).
+1. `mc_general.py` define `M_ab = partial L / partial g^ab`.
 2. `build_case2` registra su forma tensorial.
-3. `evaluate_case2_ansatz` construye `M` con la geometría y \(u_a\).
-4. `M_case2_ansatz` lo guarda con \(f(r)\) arbitraria.
-5. Se obtiene `f_case2_solution` mediante \(N=Hf\).
+3. `evaluate_case2_ansatz` construye `M` con la geometría y `u_a`.
+4. `M_case2_ansatz` lo conserva con `f(r)` arbitraria.
+5. Se obtiene `f_case2_solution` mediante `N = H f`.
 6. `M_final` sustituye la solución y todas sus derivadas.
 7. `M_case2_final` conserva el objeto explícito.
 8. `case2_final_M` lo incorpora a la narración por componentes.
 9. `test_symbolic.py` verifica que ya no contiene `f`.
 10. El notebook lo muestra y el exportador lo escribe en el PDF.
 
-El mismo patrón se repite para \(P\), \(J\), \(F\), \(\mathcal R\), ecuaciones
-de campo e invariantes.
+El patrón se repite para `P`, `J`, `F`, `Rcal`, ecuaciones e invariantes.
 
 ---
 
@@ -517,7 +613,7 @@ de campo e invariantes.
 
 1. Crear `build_caseN(ctx)` para el nivel tensorial.
 2. Registrar truncamiento, lagrangiano, acción y cuatro momentos.
-3. Construir \(\mathcal R\), ecuaciones, Bianchi y frontera.
+3. Construir `Rcal`, ecuaciones, Bianchi y frontera.
 4. Crear `evaluate_caseN_ansatz(ctx)`.
 5. Evaluar todos los momentos manteniendo `f(r)` simbólica.
 6. Resolver las ecuaciones radiales.
@@ -539,8 +635,8 @@ covariante de la solución particular.
 ```
 
 La primera orden reconstruye y prueba la cadena. La segunda ejecuta el notebook
-y genera el informe. `requirements.txt` fija las dependencias Python; para el
-PDF se requiere una instalación LaTeX con `latexmk` o `pdflatex`.
+y genera el informe. `requirements.txt` fija las dependencias Python; el PDF
+requiere una instalación LaTeX con `latexmk` o `pdflatex`.
 
 ---
 
