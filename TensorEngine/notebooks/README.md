@@ -3,6 +3,12 @@
 Esta carpeta contendrá interfaces de investigación y ejemplos reproducibles.
 Los notebooks llamarán al motor; no contendrán su lógica esencial.
 
+Ejemplo mínimo ejecutable:
+
+- `01_quickstart_tensor_engine.ipynb`: cuatro celdas para compilar
+  `R-X/2-V(phi)`, proyectar sobre FLRW, validar con Wolfram/xAct y exportar el
+  bundle reproducible.
+
 Desde la fase 10, la interfaz recomendada es:
 
 ```python
