@@ -8,6 +8,8 @@ from mc_core import CouplingContext, latex_expr
 from mc_geometry import CoordinateGeometry
 
 
+'''ACÁ NO CALCULAMOS NADA, SÓLO DEFINIMOS LOS PASOS DE LA TEORÍA GENERAL Y DEL CASO-0.
+   EN TEORÍA, SE PODRÍA OMITIR SIN PROBLEMA, LOS CÁLCULOS SIMBÓLICOS SE REALIZAN ABAJO.'''
 def build_case0(ctx: CouplingContext) -> CouplingContext:
     group = "Casos I: formulacion tensorial sin ansatz::Caso-0"
     ctx.add(

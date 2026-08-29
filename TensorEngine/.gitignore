@@ -1,0 +1,16 @@
+__pycache__/
+*.py[cod]
+.ipynb_checkpoints/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Resultados generados: conservar solamente la descripción de la carpeta.
+outputs/*
+!outputs/README.md
+
+# Temporales de Wolfram/Mathematica.
+*.mx
+*.wxf
+*.nb~
+

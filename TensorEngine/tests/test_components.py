@@ -1,0 +1,189 @@
+from __future__ import annotations
+
+import json
+import unittest
+
+import sympy as sp
+
+from tensor_engine import (
+    CoordinateGeometry,
+    ComponentEvaluation,
+    ComponentFieldEquations,
+    CovariantDerivative,
+    DimensionSpec,
+    Function,
+    FunctionDerivative,
+    GeometryAnsatz,
+    Index,
+    ModelBuilder,
+    ModelSpec,
+    ModelValidationError,
+    Number,
+    Scalar,
+    SympyComponentBackend,
+    Tensor,
+    Variance,
+    evaluate_field_equations,
+    ir_scalar_to_sympy,
+    mul,
+    spatially_flat_flrw_ansatz,
+    sympy_scalar_to_ir,
+)
+
+
+class AnsatzContractTests(unittest.TestCase):
+    def test_flrw_ansatz_json_roundtrip(self) -> None:
+        ansatz = spatially_flat_flrw_ansatz()
+        encoded = json.loads(json.dumps(ansatz.to_data()))
+        self.assertEqual(GeometryAnsatz.from_data(encoded), ansatz)
+
+    def test_component_stage_requires_concrete_matching_dimension(self) -> None:
+        ansatz = spatially_flat_flrw_ansatz()
+        symbolic = ModelSpec("symbolic", Number(1))
+        with self.assertRaises(ModelValidationError):
+            ansatz.validate_for_model(symbolic)
+        concrete = ModelSpec("concrete", Number(1), dimension=DimensionSpec(3))
+        with self.assertRaises(ModelValidationError):
+            ansatz.validate_for_model(concrete)
+
+    def test_rejects_nonsymmetric_metric(self) -> None:
+        data = spatially_flat_flrw_ansatz().to_data()
+        data["metric_covariant"][0][1] = Number(1).to_data()
+        with self.assertRaises(ModelValidationError):
+            GeometryAnsatz.from_data(data)
+
+
+class ScalarTranslationTests(unittest.TestCase):
+    def test_function_derivative_roundtrip(self) -> None:
+        t = Scalar("t")
+        expression = FunctionDerivative("F", (2,), (Function("phi", (t,)),))
+        translated = ir_scalar_to_sympy(expression)
+        self.assertEqual(sympy_scalar_to_ir(translated), expression)
+
+    def test_elementary_functions_are_evaluated(self) -> None:
+        theta = Scalar("theta")
+        expression = Function("sin", (theta,))
+        translated = ir_scalar_to_sympy(expression)
+        self.assertEqual(sp.diff(translated, sp.Symbol("theta")), sp.cos(sp.Symbol("theta")))
+
+
+class CoordinateGeometryTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.geometry = CoordinateGeometry.build(spatially_flat_flrw_ansatz())
+        cls.t = cls.geometry.coordinates[0]
+        cls.a = sp.Function("a")(cls.t)
+        cls.phi = sp.Function("phi")(cls.t)
+
+    def test_inverse_and_determinant(self) -> None:
+        identity = sp.simplify(self.geometry.metric_covariant * self.geometry.metric_contravariant)
+        self.assertEqual(identity, sp.eye(4))
+        self.assertEqual(sp.simplify(self.geometry.determinant + self.a**6), 0)
+
+    def test_flrw_christoffel(self) -> None:
+        gamma = self.geometry.nonzero_christoffel()
+        expected = {
+            (0, 1, 1): self.a * sp.diff(self.a, self.t),
+            (0, 2, 2): self.a * sp.diff(self.a, self.t),
+            (0, 3, 3): self.a * sp.diff(self.a, self.t),
+            (1, 0, 1): sp.diff(self.a, self.t) / self.a,
+            (1, 1, 0): sp.diff(self.a, self.t) / self.a,
+            (2, 0, 2): sp.diff(self.a, self.t) / self.a,
+            (2, 2, 0): sp.diff(self.a, self.t) / self.a,
+            (3, 0, 3): sp.diff(self.a, self.t) / self.a,
+            (3, 3, 0): sp.diff(self.a, self.t) / self.a,
+        }
+        self.assertEqual(gamma, expected)
+
+    def test_flrw_ricci_and_einstein(self) -> None:
+        adot = sp.diff(self.a, self.t)
+        addot = sp.diff(self.a, (self.t, 2))
+        self.assertEqual(sp.simplify(self.geometry.ricci_covariant[0, 0] + 3 * addot / self.a), 0)
+        self.assertEqual(
+            sp.simplify(self.geometry.ricci_covariant[1, 1] - self.a * addot - 2 * adot**2),
+            0,
+        )
+        expected_scalar = 6 * (self.a * addot + adot**2) / self.a**2
+        self.assertEqual(sp.simplify(self.geometry.ricci_scalar - expected_scalar), 0)
+        self.assertEqual(
+            sp.simplify(self.geometry.einstein_covariant[0, 0] - 3 * adot**2 / self.a**2),
+            0,
+        )
+
+    def test_homogeneous_scalar_laplacian(self) -> None:
+        expected = -sp.diff(self.phi, (self.t, 2)) - (
+            3 * sp.diff(self.a, self.t) * sp.diff(self.phi, self.t) / self.a
+        )
+        self.assertEqual(sp.simplify(self.geometry.scalar_laplacian() - expected), 0)
+
+
+class AbstractProjectionTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.backend = SympyComponentBackend(spatially_flat_flrw_ansatz())
+        cls.up = staticmethod(lambda name: Index(name, Variance.UP))
+        cls.down = staticmethod(lambda name: Index(name, Variance.DOWN))
+
+    def ricci_covariant(self):
+        return mul(
+            Tensor("g", (self.up("c"), self.up("d"))),
+            Tensor(
+                "Riemann",
+                (self.down("c"), self.down("a"), self.down("d"), self.down("b")),
+            ),
+        )
+
+    def ricci_scalar(self):
+        return mul(
+            Tensor("g", (self.up("a"), self.up("b"))),
+            self.ricci_covariant(),
+        )
+
+    def test_abstract_ricci_scalar_projects_to_coordinate_result(self) -> None:
+        projected = self.backend.evaluate_sympy(self.ricci_scalar()).scalar
+        self.assertEqual(sp.simplify(projected - self.backend.geometry.ricci_scalar), 0)
+
+    def test_abstract_scalar_laplacian_projects_to_coordinate_result(self) -> None:
+        a, b = self.down("a"), self.down("b")
+        expression = mul(
+            Tensor("g", (a.flipped(), b.flipped())),
+            CovariantDerivative(a, CovariantDerivative(b, Scalar("phi"))),
+        )
+        projected = self.backend.evaluate_sympy(expression).scalar
+        self.assertEqual(sp.simplify(projected - self.backend.geometry.scalar_laplacian()), 0)
+
+    def test_einstein_equation_projection_and_independent_selection(self) -> None:
+        a, b = self.down("a"), self.down("b")
+        metric_euler = self.ricci_covariant() - mul(
+            Number(1, 2),
+            Tensor("g", (a, b)),
+            self.ricci_scalar(),
+        )
+        equations = evaluate_field_equations(metric_euler, Number(0), self.backend)
+        projected = self.backend.evaluate_sympy(metric_euler)
+        for row in range(4):
+            for column in range(4):
+                self.assertEqual(
+                    sp.simplify(
+                        projected.component(row, column)
+                        - self.backend.geometry.einstein_covariant[row, column]
+                    ),
+                    0,
+                )
+        self.assertEqual(len(equations.independent_metric), 10)
+        self.assertEqual(equations.scalar.scalar, Number(0))
+        encoded = json.loads(json.dumps(equations.to_data()))
+        self.assertEqual(ComponentFieldEquations.from_data(encoded), equations)
+        self.assertEqual(
+            ComponentEvaluation.from_data(equations.metric.to_data()),
+            equations.metric,
+        )
+
+    def test_model_bound_backend(self) -> None:
+        model = ModelSpec("reference", Number(1), dimension=DimensionSpec(4))
+        backend = SympyComponentBackend.from_model(model, spatially_flat_flrw_ansatz())
+        self.assertEqual(backend.geometry.dimension, 4)
+
+
+if __name__ == "__main__":
+    unittest.main()

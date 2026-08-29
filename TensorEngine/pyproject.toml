@@ -1,0 +1,24 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "tensor-engine"
+version = "0.14.0"
+description = "Motor tensorial y variacional para L(g,R,phi,nabla phi)"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = ["sympy>=1.13,<2"]
+
+[project.optional-dependencies]
+dev = ["pytest>=8,<10"]
+
+[project.scripts]
+tensor-engine = "tensor_engine.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]

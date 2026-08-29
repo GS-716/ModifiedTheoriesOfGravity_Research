@@ -1,0 +1,1755 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[spanish,es-noquoting]{babel}
+\usepackage{amsmath,amssymb,mathtools,bm}
+\usepackage[a4paper,margin=1.8cm]{geometry}
+\usepackage{graphicx,longtable,array,booktabs,xcolor,hyperref}
+\hypersetup{colorlinks=true,linkcolor=blue!50!black,urlcolor=blue!60!black}
+\setcounter{tocdepth}{2}
+\setcounter{secnumdepth}{3}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0.45em}
+\allowdisplaybreaks
+\newcommand{\Rcal}{\mathcal R}
+\begin{document}
+\hypersetup{pageanchor=false}
+\begin{titlepage}
+\centering
+\vspace*{2.4cm}
+{\Huge\bfseries Modelos con acoplamiento\par}
+\vspace{0.7cm}
+{\Large Derivación simbólica de $L(g,R,\phi,\nabla\phi)$\par}
+\vspace{0.35cm}
+{\large Casos 0--2 y generalización a lagrangianos EQT configurables\par}
+\vfill
+{\large Guillermo Jordan A.\par}
+\vspace{0.4cm}
+{\small Motor reproducible en Python/SymPy; notebook usado solo como orquestador.\par}
+\vfill
+{\today\par}
+\end{titlepage}
+\hypersetup{pageanchor=true}
+\pagenumbering{roman}
+
+\tableofcontents
+\clearpage
+\pagenumbering{arabic}
+
+\section{Alcance, convenciones y trazabilidad}
+Se adopta una conexion de Levi--Civita, firma $(-,+,+)$ y
+\[
+R^\rho{}_{\sigma\mu\nu}=\partial_\mu\Gamma^\rho{}_{\nu\sigma}
+-\partial_\nu\Gamma^\rho{}_{\mu\sigma}
++\Gamma^\rho{}_{\mu\lambda}\Gamma^\lambda{}_{\nu\sigma}
+-\Gamma^\rho{}_{\nu\lambda}\Gamma^\lambda{}_{\mu\sigma}.
+\]
+La cadena abstracta reproduce la sección ``Generalización con campo escalar'' del
+BEAMER del proyecto. Las especializaciones y la base EQT usan las ecuaciones
+(1)--(138) de \texttt{Papers/Draft\_4.pdf}. Se distingue el momento métrico $M_{ab}$ del momento
+de curvatura $P^{abcd}$ para evitar la colision de notacion presente en algunos
+desarrollos manuales.
+
+\paragraph{Que se calcula realmente.}
+Las identidades tensoriales abstractas se almacenan como pasos LaTeX auditables.
+La geometría del ansatz se calcula componente por componente con SymPy desde
+$g_{ab}$: inversa, conexion, Riemann, Ricci, $R$, Einstein, divergencia covariante
+y ecuaciones de campo. Las filas ``OK'' al final son residuos simbólicos que el
+programa simplificó exactamente a cero.
+
+\section{Teoria general L(g,R,phi,nabla phi)}
+
+\subsection{Accion y variables independientes}
+
+\noindent\texttt{general\_action}\par\nopagebreak[4]
+
+\[
+S[g,\phi] = \kappa\int_V d^Dx\,\sqrt{-g}\,L(g^{ab},R_{abcd},\phi,u_a),\quad u_a\equiv\nabla_a\phi
+\]
+
+\begin{quote}\small La conexion es Levi-Civita y el Riemann se toma completamente covariante.\end{quote}
+
+\subsection{Cuatro momentos del lagrangiano}
+
+\noindent\texttt{general\_momenta}\par\nopagebreak[4]
+
+\[
+\resizebox{\textwidth}{!}{$\displaystyle (P^{abcd},\,M_{ab},\,J^a,\,F_\phi) = \left(\frac{\partial L}{\partial R_{abcd}},\,\frac{\partial L}{\partial g^{ab}},\,\frac{\partial L}{\partial u_a},\,\frac{\partial L}{\partial\phi}\right)$}
+\]
+
+\begin{quote}\small En cada derivada parcial se mantienen fijos los otros tres argumentos.\end{quote}
+
+\subsection{Simetrias heredadas por el momento de curvatura}
+
+\noindent\texttt{riemann\_symmetries}\par\nopagebreak[4]
+
+\[
+P^{abcd} = -P^{bacd}=-P^{abdc}=P^{cdab},\qquad P^{a[bcd]}=0
+\]
+
+\begin{quote}\small Solo la proyeccion con las simetrias del Riemann contribuye a \(P^{abcd}\,\delta R_{abcd}\).\end{quote}
+
+\subsection{Regla de la cadena funcional}
+
+\noindent\texttt{delta\_L}\par\nopagebreak[4]
+
+\[
+\delta L = M_{ab}\delta g^{ab}+P^{abcd}\delta R_{abcd}+F_\phi\delta\phi+J^a\nabla_a\delta\phi
+\]
+
+\begin{quote}\small Para un escalar, \(\delta(\nabla_a\phi)=\nabla_a\delta\phi\).\end{quote}
+
+\subsection{Variacion de la medida}
+
+\noindent\texttt{delta\_measure}\par\nopagebreak[4]
+
+\[
+\delta\sqrt{-g} = -\frac12\sqrt{-g}\,g_{ab}\delta g^{ab}
+\]
+
+\subsection{Identidad de Palatini}
+
+\noindent\texttt{palatini}\par\nopagebreak[4]
+
+\[
+\delta R^a{}_{bcd} = \nabla_c\delta\Gamma^a{}_{db}-\nabla_d\delta\Gamma^a{}_{cb}
+\]
+
+\subsection{Variacion de la conexion Levi-Civita}
+
+\noindent\texttt{delta\_connection}\par\nopagebreak[4]
+
+\[
+\delta\Gamma^a{}_{bc} = \frac12g^{ad}(\nabla_b\delta g_{dc}+\nabla_c\delta g_{db}-\nabla_d\delta g_{bc})
+\]
+
+\subsection{Sector de curvatura tras dos integraciones por partes}
+
+\noindent\texttt{curvature\_ibp}\par\nopagebreak[4]
+
+\[
+P^{abcd}\delta R_{abcd} = -[\mathcal R_{(ab)}+2\nabla^m\nabla^nP_{(a|mn|b)}]\delta g^{ab}+\nabla_a\delta v_P^a
+\]
+
+\begin{quote}\small Se define \(\mathcal R_{ab}=P_a{}^{cde}R_{bcde}\). Solo la parte simetrica acopla a \(\delta g^{ab}\).\end{quote}
+
+\subsection{Potencial de borde metrico}
+
+\noindent\texttt{boundary\_vector}\par\nopagebreak[4]
+
+\[
+\delta v_P^j = 2P^{ibjd}\nabla_b\delta g_{di}-2\delta g_{di}\nabla_cP^{ijcd}
+\]
+
+\subsection{Integracion por partes del sector escalar}
+
+\noindent\texttt{scalar\_ibp}\par\nopagebreak[4]
+
+\[
+J^a\nabla_a\delta\phi = -(\nabla_aJ^a)\delta\phi+\nabla_a(J^a\delta\phi)
+\]
+
+\subsection{Identidad algebraica por covariancia}
+
+\noindent\texttt{diffeo\_moment\_identity}\par\nopagebreak[4]
+
+\[
+M_{ab} = 2\mathcal R_{(ab)}+\frac12J_{(a}u_{b)}
+\]
+
+\begin{quote}\small Se obtiene comparando dos rutas para la derivada de Lie de L.\end{quote}
+
+\subsection{Tensor metrico antes de usar la identidad algebraica}
+
+\noindent\texttt{metric\_euler\_raw}\par\nopagebreak[4]
+
+\[
+E_{ab} = M_{ab}-\frac12g_{ab}L-\mathcal R_{(ab)}-2\nabla^m\nabla^nP_{(a|mn|b)}
+\]
+
+\subsection{Tensor metrico en funcion de los momentos}
+
+\noindent\texttt{metric\_euler\_reduced}\par\nopagebreak[4]
+
+\[
+E_{ab} = \mathcal R_{(ab)}-\frac12g_{ab}L-2\nabla^m\nabla^nP_{(a|mn|b)}+\frac12J_{(a}u_{b)}
+\]
+
+\begin{quote}\small Esta forma se reduce a la formula de Padmanabhan cuando \(J^a=0\).\end{quote}
+
+\subsection{Ecuacion de Euler-Lagrange escalar}
+
+\noindent\texttt{scalar\_euler}\par\nopagebreak[4]
+
+\[
+E_\phi = F_\phi-\nabla_aJ^a
+\]
+
+\subsection{Variacion completa de la accion}
+
+\noindent\texttt{full\_variation}\par\nopagebreak[4]
+
+\[
+\delta S = \kappa\int_V d^Dx\sqrt{-g}\,[E_{ab}\delta g^{ab}+E_\phi\delta\phi+\nabla_a\Theta^a]
+\]
+
+\subsection{Potencial de borde total}
+
+\noindent\texttt{symplectic\_potential}\par\nopagebreak[4]
+
+\[
+\Theta^a = \delta v_P^a+J^a\delta\phi
+\]
+
+\subsection{Identidad de Bianchi-Noether off-shell}
+
+\noindent\texttt{general\_bianchi}\par\nopagebreak[4]
+
+\[
+2\nabla^aE_{ab}+E_\phi u_b = 0
+\]
+
+\begin{quote}\small No se imponen ecuaciones de campo. Si \(E_\phi=0\), entonces \(\nabla^aE_{ab}=0\).\end{quote}
+
+\subsection{Caso con simetria de desplazamiento}
+
+\noindent\texttt{shift\_symmetric}\par\nopagebreak[4]
+
+\[
+F_\phi=0 = E_\phi=-\nabla_aJ^a,\qquad 2\nabla^aE_{ab}-(\nabla_aJ^a)u_b\equiv0
+\]
+
+\subsection{Ecuaciones de campo generales}
+
+\noindent\texttt{field\_equations\_general}\par\nopagebreak[4]
+
+\[
+(E_{ab},E_\phi) = (0,0)
+\]
+
+\section{Casos I: formulacion tensorial sin ansatz}
+
+En esta primera seccion de casos no se elige una metrica coordenada, no se reemplaza $f(r)$ y tampoco se fija un perfil para $\phi$. Todos los momentos y las ecuaciones se mantienen a nivel tensorial.
+
+\subsection{Caso-0}
+
+\subsubsection{Truncamiento del Draft4}
+
+\noindent\texttt{case0\_truncation}\par\nopagebreak[4]
+
+\[
+\alpha_{n\ge2}=\beta_{m\ge1}=\beta_0=\alpha_1 = 0
+\]
+
+\begin{quote}\small El campo escalar desaparece de la accion y queda desacoplado.\end{quote}
+
+\subsubsection{Lagrangiano sobreviviente}
+
+\noindent\texttt{case0\_lagrangian}\par\nopagebreak[4]
+
+\[
+L_0 = R+\frac{2}{\ell^2}
+\]
+
+\subsubsection{Accion bulk}
+
+\noindent\texttt{case0\_action}\par\nopagebreak[4]
+
+\[
+I_0 = \frac{1}{16\pi G}\int_M d^3x\sqrt{-g}\left(R+\frac{2}{\ell^2}\right)
+\]
+
+\subsubsection{Momento de curvatura}
+
+\noindent\texttt{case0\_P}\par\nopagebreak[4]
+
+\[
+P_0^{abcd} = \frac12\left(g^{ac}g^{bd}-g^{ad}g^{bc}\right)
+\]
+
+\subsubsection{Momento metrico}
+
+\noindent\texttt{case0\_M}\par\nopagebreak[4]
+
+\[
+M^{(0)}_{ab} = 2R_{ab}
+\]
+
+\begin{quote}\small La derivada se toma a \(R_{abcd}\) covariante fijo; \(2/\ell^2\) no depende de la metrica.\end{quote}
+
+\subsubsection{Momentos escalares}
+
+\noindent\texttt{case0\_scalar\_momenta}\par\nopagebreak[4]
+
+\[
+(J_0^a,F_\phi^{(0)}) = (0,0)
+\]
+
+\subsubsection{Ricci generalizado}
+
+\noindent\texttt{case0\_Rcal}\par\nopagebreak[4]
+
+\[
+\mathcal R^{(0)}_{ab}=P^{(0)}_a{}^{cde}R_{bcde} = R_{ab}
+\]
+
+\subsubsection{Divergencia del momento de curvatura}
+
+\noindent\texttt{case0\_divP}\par\nopagebreak[4]
+
+\[
+\nabla_aP_0^{abcd} = 0
+\]
+
+\begin{quote}\small Consecuencia directa de la compatibilidad metrica.\end{quote}
+
+\subsubsection{Doble divergencia}
+
+\noindent\texttt{case0\_doubledivP}\par\nopagebreak[4]
+
+\[
+-2\nabla^m\nabla^nP^{(0)}_{amnb} = 0
+\]
+
+\subsubsection{Ecuacion metrica del caso-0}
+
+\noindent\texttt{case0\_Eab}\par\nopagebreak[4]
+
+\[
+E^{(0)}_{ab} = R_{ab}-\frac12g_{ab}\left(R+\frac{2}{\ell^2}\right)=G_{ab}-\frac{1}{\ell^2}g_{ab}
+\]
+
+\subsubsection{Ecuacion escalar del caso-0}
+
+\noindent\texttt{case0\_Ephi}\par\nopagebreak[4]
+
+\[
+E^{(0)}_\phi = 0
+\]
+
+\begin{quote}\small No es una ecuacion dinamica: phi no aparece en la accion.\end{quote}
+
+\subsubsection{Bianchi-Noether especializado}
+
+\noindent\texttt{case0\_bianchi}\par\nopagebreak[4]
+
+\[
+2\nabla^aE^{(0)}_{ab} = 2\nabla^aG_{ab}-\frac{2}{\ell^2}\nabla^ag_{ab}=0
+\]
+
+\subsubsection{Accion mejorada para Dirichlet}
+
+\noindent\texttt{case0\_boundary}\par\nopagebreak[4]
+
+\[
+I^{(0)}_{\mathrm{tot}} = I_0+\frac{1}{8\pi G}\int_{\partial M}d^2x\sqrt{|h|}\,K
+\]
+
+\begin{quote}\small El termino GHY cancela el residuo \(-2\delta K\). Para AdS se suma \(-\frac{1}{8\pi G\ell}\int\sqrt{|h|}\).\end{quote}
+
+\subsection{Caso-1}
+
+\subsubsection{Truncamiento del Draft4}
+
+\noindent\texttt{case1\_truncation}\par\nopagebreak[4]
+
+\[
+\alpha_{n\ge2}=\beta_{m\ge1}=\beta_0 = 0,\qquad \alpha_1\ne0
+\]
+
+\subsubsection{Lagrangiano antes de imponer el ansatz}
+
+\noindent\texttt{case1\_lagrangian}\par\nopagebreak[4]
+
+\[
+L_1[g,\phi] = R+\frac{2}{\ell^2}-\alpha_1X,\qquad X\equiv u^au_a,\quad u_a\equiv\nabla_a\phi
+\]
+
+\subsubsection{Accion bulk}
+
+\noindent\texttt{case1\_action}\par\nopagebreak[4]
+
+\[
+I_1 = \frac{1}{16\pi G}\int_Md^3x\sqrt{-g}\left(R+\frac{2}{\ell^2}-\alpha_1X\right)
+\]
+
+\subsubsection{Momento de curvatura}
+
+\noindent\texttt{case1\_P}\par\nopagebreak[4]
+
+\[
+P_1^{abcd}=\frac{\partial L_1}{\partial R_{abcd}} = \frac12\left(g^{ac}g^{bd}-g^{ad}g^{bc}\right)
+\]
+
+\subsubsection{Momento metrico}
+
+\noindent\texttt{case1\_M}\par\nopagebreak[4]
+
+\[
+M^{(1)}_{ab}=\frac{\partial L_1}{\partial g^{ab}} = 2R_{ab}-\alpha_1u_au_b
+\]
+
+\begin{quote}\small La derivada se toma manteniendo fijos \(R_{abcd}\), \(u_a\) y \(\phi\).\end{quote}
+
+\subsubsection{Momento escalar}
+
+\noindent\texttt{case1\_J}\par\nopagebreak[4]
+
+\[
+J_1^a=\frac{\partial L_1}{\partial u_a} = -2\alpha_1u^a
+\]
+
+\subsubsection{Derivada escalar explicita}
+
+\noindent\texttt{case1\_F}\par\nopagebreak[4]
+
+\[
+F_\phi^{(1)}=\frac{\partial L_1}{\partial\phi} = 0
+\]
+
+\begin{quote}\small El Caso-1 conserva la simetria de desplazamiento del campo escalar.\end{quote}
+
+\subsubsection{Ricci generalizado}
+
+\noindent\texttt{case1\_Rcal}\par\nopagebreak[4]
+
+\[
+\mathcal R^{(1)}_{ab}=P^{(1)}_a{}^{cde}R_{bcde} = R_{ab}
+\]
+
+\subsubsection{Divergencia del momento de curvatura}
+
+\noindent\texttt{case1\_divP}\par\nopagebreak[4]
+
+\[
+\nabla_aP_1^{abcd} = 0
+\]
+
+\subsubsection{Doble divergencia}
+
+\noindent\texttt{case1\_doubledivP}\par\nopagebreak[4]
+
+\[
+-2\nabla^m\nabla^nP^{(1)}_{amnb} = 0
+\]
+
+\subsubsection{Tensor cinetico del escalar}
+
+\noindent\texttt{case1\_stress}\par\nopagebreak[4]
+
+\[
+T^{(\phi)}_{ab} = u_au_b-\frac12g_{ab}X
+\]
+
+\subsubsection{Ecuacion metrica sin ansatz}
+
+\noindent\texttt{case1\_Eab}\par\nopagebreak[4]
+
+\[
+E^{(1)}_{ab} = G_{ab}-\frac{1}{\ell^2}g_{ab}-\alpha_1\left(u_au_b-\frac12g_{ab}X\right)
+\]
+
+\subsubsection{Ecuacion escalar sin ansatz}
+
+\noindent\texttt{case1\_Ephi}\par\nopagebreak[4]
+
+\[
+E^{(1)}_\phi=F_\phi^{(1)}-\nabla_aJ_1^a = 2\alpha_1\Box\phi
+\]
+
+\subsubsection{Bianchi-Noether off-shell del Caso-1}
+
+\noindent\texttt{case1\_bianchi}\par\nopagebreak[4]
+
+\[
+2\nabla^aE^{(1)}_{ab}+E^{(1)}_\phi u_b = 0
+\]
+
+\subsubsection{Termino de frontera escalar}
+
+\noindent\texttt{case1\_boundary\_scalar}\par\nopagebreak[4]
+
+\[
+n_a\Theta^a_{(\phi)} = -2\alpha_1(n^au_a)\,\delta\phi
+\]
+
+\begin{quote}\small Se anula genericamente con Dirichlet \(\delta\phi|_{\partial M}=0\).\end{quote}
+
+\subsubsection{Accion mejorada para Dirichlet}
+
+\noindent\texttt{case1\_boundary\_action}\par\nopagebreak[4]
+
+\[
+I^{(1)}_{\mathrm{tot}} = I_1+\frac{1}{8\pi G}\int_{\partial M}d^2x\sqrt{|h|}\,K
+\]
+
+\begin{quote}\small No se requiere un contratermino escalar para el principio variacional; la renormalizacion on-shell de la rama lenta es un problema adicional.\end{quote}
+
+\subsection{Caso-2}
+
+\subsubsection{Truncamiento del Draft4}
+
+\noindent\texttt{case2\_truncation}\par\nopagebreak[4]
+
+\[
+\alpha_{n\ge2}=\beta_{m\ge1}=\alpha_1 = 0,\qquad \beta_0\ne0
+\]
+
+\subsubsection{Lagrangiano antes de imponer el ansatz}
+
+\noindent\texttt{case2\_lagrangian}\par\nopagebreak[4]
+
+\[
+L_2[g,\phi] = R+\frac{2}{\ell^2}+\ell^2\beta_0\left(3R_{ab}u^au^b-RX\right),\quad X=u^au_a
+\]
+
+\subsubsection{Accion bulk}
+
+\noindent\texttt{case2\_action}\par\nopagebreak[4]
+
+\[
+I_2 = \frac{1}{16\pi G}\int_Md^3x\sqrt{-g}\,L_2
+\]
+
+\subsubsection{Tensor coeficiente de Ricci}
+
+\noindent\texttt{case2\_C}\par\nopagebreak[4]
+
+\[
+C^{ab} = g^{ab}+\ell^2\beta_0H^{ab},\qquad H^{ab}=3u^au^b-Xg^{ab}
+\]
+
+\begin{quote}\small El sector de curvatura puede escribirse como \(C^{ab}R_{ab}\).\end{quote}
+
+\subsubsection{Momento de curvatura}
+
+\noindent\texttt{case2\_P}\par\nopagebreak[4]
+
+\[
+P_2^{abcd} = \frac14\left(C^{ac}g^{bd}-C^{ad}g^{bc}-C^{bc}g^{ad}+C^{bd}g^{ac}\right)
+\]
+
+\subsubsection{Momento metrico}
+
+\noindent\texttt{case2\_M}\par\nopagebreak[4]
+
+\[
+M^{(2)}_{ab} = 2R_{ab}+\ell^2\beta_0\left\{3\left[R_{(a|c|b)d}u^cu^d+2R_{c(a}u_{b)}u^c\right]-2XR_{ab}-Ru_au_b\right\}
+\]
+
+\subsubsection{Momento de gradiente escalar}
+
+\noindent\texttt{case2\_J}\par\nopagebreak[4]
+
+\[
+J_2^a = 2\ell^2\beta_0\left(3R^{ab}-Rg^{ab}\right)u_b
+\]
+
+\subsubsection{Momento escalar explicito}
+
+\noindent\texttt{case2\_F}\par\nopagebreak[4]
+
+\[
+F_\phi^{(2)} = 0
+\]
+
+\begin{quote}\small El Caso-2 conserva la simetria de desplazamiento del escalar.\end{quote}
+
+\subsubsection{Ricci generalizado}
+
+\noindent\texttt{case2\_Rcal}\par\nopagebreak[4]
+
+\[
+\mathcal R^{(2)}_{ab} = P^{(2)}_a{}^{cde}R_{bcde}
+\]
+
+\subsubsection{Divergencia del momento de curvatura}
+
+\noindent\texttt{case2\_divP}\par\nopagebreak[4]
+
+\[
+\nabla_aP_2^{abcd} = \frac{\ell^2\beta_0}{4}\nabla_a\left(H^{ac}g^{bd}-H^{ad}g^{bc}-H^{bc}g^{ad}+H^{bd}g^{ac}\right)
+\]
+
+\subsubsection{Ecuacion metrica sin ansatz}
+
+\noindent\texttt{case2\_Eab}\par\nopagebreak[4]
+
+\[
+E^{(2)}_{ab} = \mathcal R^{(2)}_{(ab)}-\frac12g_{ab}L_2-2\nabla^m\nabla^nP^{(2)}_{(a|mn|b)}+\frac12J^{(2)}_{(a}u_{b)}
+\]
+
+\subsubsection{Ecuacion escalar sin ansatz}
+
+\noindent\texttt{case2\_Ephi}\par\nopagebreak[4]
+
+\[
+E^{(2)}_\phi = -\nabla_aJ_2^a=-2\ell^2\beta_0\nabla_a\left[(3R^{ab}-Rg^{ab})u_b\right]
+\]
+
+\subsubsection{Bianchi-Noether off-shell del Caso-2}
+
+\noindent\texttt{case2\_bianchi}\par\nopagebreak[4]
+
+\[
+2\nabla^aE^{(2)}_{ab}+E^{(2)}_\phi u_b = 0
+\]
+
+\subsubsection{Termino de frontera escalar}
+
+\noindent\texttt{case2\_boundary\_scalar}\par\nopagebreak[4]
+
+\[
+n_aJ_2^a\,\delta\phi = 2\ell^2\beta_0n_a(3R^{ab}-Rg^{ab})u_b\,\delta\phi
+\]
+
+\begin{quote}\small Se anula genericamente con Dirichlet; sobre el ansatz diagonal se anula automaticamente.\end{quote}
+
+\subsubsection{Residuo metrico bajo Dirichlet}
+
+\noindent\texttt{case2\_boundary\_metric}\par\nopagebreak[4]
+
+\[
+\Theta_{(g)}\big|_{\delta h=0} = -2\delta K+2\ell^2\beta_0X\,\delta K-3\ell^2\beta_0u^au^b\delta K_{ab}
+\]
+
+\subsubsection{Accion mejorada para Dirichlet}
+
+\noindent\texttt{case2\_boundary\_action}\par\nopagebreak[4]
+
+\[
+I^{(2)}_{\mathrm{tot}} = I_2+\frac{1}{16\pi G}\int_{\partial M}d^2x\sqrt{|h|}\left(2K-2\ell^2\beta_0XK+3\ell^2\beta_0K_{ij}D^i\phi D^j\phi\right)
+\]
+
+\section{Generalizacion EQT I: lagrangiano e invariantes}
+
+Se declara una suma finita arbitraria de invariantes de las torres $\alpha_n$ y $\beta_m$. Las reglas se componen por linealidad antes de elegir la funcion metrica.
+
+\subsection{Base de invariantes soportados}
+
+\noindent\texttt{eqt\_supported\_basis}\par\nopagebreak[4]
+
+\[
+(X,Y,\mathcal A_n,\mathcal B_m) = \left(u^au_a,\,R_{ab}u^au^b,\,-\ell^{2(n-1)}X^n,\,\ell^{2(m+1)}X^m[(3+2m)Y-XR]\right)
+\]
+
+\begin{quote}\small La especificacion elige cualquier subconjunto finito de las dos torres EQT.\end{quote}
+
+\subsection{Lagrangiano configurado}
+
+\noindent\texttt{eqt\_selected\_model}\par\nopagebreak[4]
+
+\[
+L_{\mathrm{EQT}} = \frac{\ell^{2} \left(R - X^{2} \alpha_{2} \ell^{2} - X \alpha_{1} - X \beta_{1} \ell^{4} \left(R X - 5 Y\right)\right) + 2}{\ell^{2}}
+\]
+
+\begin{quote}\small Ordenes activos: alpha=(1, 2), beta=(1,).\end{quote}
+
+\subsection{Regla de composicion}
+
+\noindent\texttt{eqt\_linearity}\par\nopagebreak[4]
+
+\[
+(P,M,J,F_\phi)[L_1+L_2] = (P,M,J,F_\phi)[L_1]+(P,M,J,F_\phi)[L_2]
+\]
+
+\begin{quote}\small La linealidad permite sumar contribuciones invariantes antes de evaluar el ansatz.\end{quote}
+
+\subsection{Regla variacional del invariante alpha-1}
+
+\noindent\texttt{eqt\_alpha\_1\_rule}\par\nopagebreak[4]
+
+\[
+\mathcal A_{1} = -\alpha_{1}\ell^{0}X^{1},\quad P^{abcd}=0,\quad F_\phi=0,\quad J^a=-2(1)\alpha_{1}\ell^{0}X^{0}u^a
+\]
+
+\begin{quote}\small El momento metrico se reconstruye con la identidad de difeomorfismos.\end{quote}
+
+\subsection{Regla variacional del invariante alpha-2}
+
+\noindent\texttt{eqt\_alpha\_2\_rule}\par\nopagebreak[4]
+
+\[
+\mathcal A_{2} = -\alpha_{2}\ell^{2}X^{2},\quad P^{abcd}=0,\quad F_\phi=0,\quad J^a=-2(2)\alpha_{2}\ell^{2}X^{1}u^a
+\]
+
+\begin{quote}\small El momento metrico se reconstruye con la identidad de difeomorfismos.\end{quote}
+
+\subsection{Regla variacional del invariante beta-1}
+
+\noindent\texttt{eqt\_beta\_1\_rule}\par\nopagebreak[4]
+
+\[
+\mathcal B_{1} = \beta_{1}\ell^{4}X^{1}\left[(5)R_{ab}u^au^b-XR\right]
+\]
+
+\begin{quote}\small Su momento de curvatura se genera desde el coeficiente de $R_{ab}$; $J^a$ se obtiene derivando tanto $X^m$ como las contracciones con $u^a$.\end{quote}
+
+\subsection{Reconstruccion covariante del momento metrico}
+
+\noindent\texttt{eqt\_moment\_reconstruction}\par\nopagebreak[4]
+
+\[
+M_{ab} = 2\mathcal R_{(ab)}+\frac12J_{(a}u_{b)}
+\]
+
+\begin{quote}\small Se aplica despues de componer P y J de todos los invariantes.\end{quote}
+
+\section{Casos II: sustitucion completa del ansatz}
+
+Solo en esta segunda seccion se imponen la metrica circular y el perfil escalar correspondiente. A partir de las componentes se resuelve $f(r)$ y se vuelven a comprobar las ecuaciones de campo y Bianchi.
+
+\subsection{Caso-0}
+
+\subsubsection{Ansatz circular estatico}
+
+\noindent\texttt{ansatz\_metric}\par\nopagebreak[4]
+
+\[
+ds^2 = -f(r)d\tau^2+\frac{dr^2}{f(r)}+r^2d\varphi^2
+\]
+
+\subsubsection{Metrica y metrica inversa}
+
+\noindent\texttt{ansatz\_metric\_matrix}\par\nopagebreak[4]
+
+\[
+\resizebox{\textwidth}{!}{$\displaystyle (g_{ab},g^{ab}) = \left(\left[\begin{matrix}- f{\left(r \right)} & 0 & 0\\0 & \frac{1}{f{\left(r \right)}} & 0\\0 & 0 & r^{2}\end{matrix}\right],\,\left[\begin{matrix}- \frac{1}{f{\left(r \right)}} & 0 & 0\\0 & f{\left(r \right)} & 0\\0 & 0 & \frac{1}{r^{2}}\end{matrix}\right]\right)$}
+\]
+
+\subsubsection{Momento de curvatura sobre el ansatz}
+
+\noindent\texttt{case0\_ansatz\_P}\par\nopagebreak[4]
+
+\[
+\resizebox{\textwidth}{!}{$\displaystyle \{P_0^{abcd}\}_{\mathrm{indep}}\big|_{g[f]} = \left\{P_0^{{\tau}{r}{\tau}{r}}=- \frac{1}{2},\;P_0^{{\tau}{\varphi}{\tau}{\varphi}}=- \frac{1}{2 r^{2} f{\left(r \right)}},\;P_0^{{r}{\varphi}{r}{\varphi}}=\frac{f{\left(r \right)}}{2 r^{2}}\right\}$}
+\]
+
+\subsubsection{Momento metrico sobre el ansatz}
+
+\noindent\texttt{case0\_ansatz\_M}\par\nopagebreak[4]
+
+\[
+\resizebox{\textwidth}{!}{$\displaystyle M^{(0)}_{ab}\big|_{g[f]} = \left[\begin{matrix}\frac{\left(r \frac{d^{2}}{d r^{2}} f{\left(r \right)} + \frac{d}{d r} f{\left(r \right)}\right) f{\left(r \right)}}{r} & 0 & 0\\0 & \frac{- r \frac{d^{2}}{d r^{2}} f{\left(r \right)} - \frac{d}{d r} f{\left(r \right)}}{r f{\left(r \right)}} & 0\\0 & 0 & - 2 r \frac{d}{d r} f{\left(r \right)}\end{matrix}\right]$}
+\]
+
+\subsubsection{Momento de gradiente escalar sobre el ansatz}
+
+\noindent\texttt{case0\_ansatz\_J}\par\nopagebreak[4]
+
+\[
+J_0^a\big|_{g[f]} = \left[\begin{matrix}0\\0\\0\end{matrix}\right]
+\]
+
+\subsubsection{Momento escalar explicito sobre el ansatz}
+
+\noindent\texttt{case0\_ansatz\_F}\par\nopagebreak[4]
+
+\[
+F_\phi^{(0)}\big|_{g[f]} = 0
+\]
+
+\subsubsection{Ricci generalizado sobre el ansatz}
+
+\noindent\texttt{case0\_ansatz\_Rcal}\par\nopagebreak[4]
+
+\[
+\resizebox{\textwidth}{!}{$\displaystyle \mathcal R^{(0)}_{ab}\big|_{g[f]} = \left[\begin{matrix}\frac{\left(r \frac{d^{2}}{d r^{2}} f{\left(r \right)} + \frac{d}{d r} f{\left(r \right)}\right) f{\left(r \right)}}{2 r} & 0 & 0\\0 & \frac{- r \frac{d^{2}}{d r^{2}} f{\left(r \right)} - \frac{d}{d r} f{\left(r \right)}}{2 r f{\left(r \right)}} & 0\\0 & 0 & - r \frac{d}{d r} f{\left(r \right)}\end{matrix}\right]$}
+\]
+
+\subsubsection{Simbolos de Christoffel no nulos}
+
+\noindent\texttt{ansatz\_christoffel}\par\nopagebreak[4]
+
+\[
+\resizebox{\textwidth}{!}{$\displaystyle \{\Gamma^a{}_{bc}\}_{\mathrm{indep}} = \left\{\Gamma^{\tau}_{{\tau}{r}}=\frac{\frac{d}{d r} f{\left(r \right)}}{2 f{\left(r \right)}},\;\Gamma^{r}_{{\tau}{\tau}}=\frac{f{\left(r \right)} \frac{d}{d r} f{\left(r \right)}}{2},\;\Gamma^{r}_{{r}{r}}=- \frac{\frac{d}{d r} f{\left(r \right)}}{2 f{\left(r \right)}},\;\Gamma^{r}_{{\varphi}{\varphi}}=- r f{\left(r \right)},\;\Gamma^{\varphi}_{{r}{\varphi}}=\frac{1}{r}\right\}$}
+\]
+
+\subsubsection{Riemann covariante independiente}
+
+\noindent\texttt{ansatz\_riemann}\par\nopagebreak[4]
+
+\[
+\resizebox{\textwidth}{!}{$\displaystyle \{R_{abcd}\}_{\mathrm{indep}} = \left\{R_{{\tau}{r}{\tau}{r}}=\frac{\frac{d^{2}}{d r^{2}} f{\left(r \right)}}{2},\;R_{{\tau}{\varphi}{\tau}{\varphi}}=\frac{r f{\left(r \right)} \frac{d}{d r} f{\left(r \right)}}{2},\;R_{{r}{\varphi}{r}{\varphi}}=- \frac{r \frac{d}{d r} f{\left(r \right)}}{2 f{\left(r \right)}}\right\}$}
+\]
+
+\subsubsection{Tensor de Ricci}
+
+\noindent\texttt{ansatz\_ricci}\par\nopagebreak[4]
+
+\[
+\resizebox{\textwidth}{!}{$\displaystyle R_{ab} = \left[\begin{matrix}\frac{\left(r \frac{d^{2}}{d r^{2}} f{\left(r \right)} + \frac{d}{d r} f{\left(r \right)}\right) f{\left(r \right)}}{2 r} & 0 & 0\\0 & \frac{- r \frac{d^{2}}{d r^{2}} f{\left(r \right)} - \frac{d}{d r} f{\left(r \right)}}{2 r f{\left(r \right)}} & 0\\0 & 0 & - r \frac{d}{d r} f{\left(r \right)}\end{matrix}\right]$}
+\]
+
+\subsubsection{Escalar de Ricci}
+
+\noindent\texttt{ansatz\_R}\par\nopagebreak[4]
+
+\[
+R = - \frac{d^{2}}{d r^{2}} f{\left(r \right)} - \frac{2 \frac{d}{d r} f{\left(r \right)}}{r}
+\]
+
+\subsubsection{Tensor de Einstein}
+
+\noindent\texttt{ansatz\_Einstein}\par\nopagebreak[4]
+
+\[
+\resizebox{\textwidth}{!}{$\displaystyle G_{ab} = \left[\begin{matrix}- \frac{f{\left(r \right)} \frac{d}{d r} f{\left(r \right)}}{2 r} & 0 & 0\\0 & \frac{\frac{d}{d r} f{\left(r \right)}}{2 r f{\left(r \right)}} & 0\\0 & 0 & \frac{r^{2} \frac{d^{2}}{d r^{2}} f{\left(r \right)}}{2}\end{matrix}\right]$}
+\]
+
+\subsubsection{Tensor de campo antes de resolver f}
+
+\noindent\texttt{ansatz\_field\_tensor}\par\nopagebreak[4]
+
+\[
+\resizebox{\textwidth}{!}{$\displaystyle E^{(0)}_{ab}=G_{ab}-\ell^{-2}g_{ab} = \left[\begin{matrix}- \frac{f{\left(r \right)} \frac{d}{d r} f{\left(r \right)}}{2 r} + \frac{f{\left(r \right)}}{\ell^{2}} & 0 & 0\\0 & \frac{\frac{\ell^{2} \frac{d}{d r} f{\left(r \right)}}{2} - r}{\ell^{2} r f{\left(r \right)}} & 0\\0 & 0 & \frac{r^{2} \frac{d^{2}}{d r^{2}} f{\left(r \right)}}{2} - \frac{r^{2}}{\ell^{2}}\end{matrix}\right]$}
+\]
+
+\subsubsection{Ecuaciones independientes para f(r)}
+
+\noindent\texttt{ansatz\_odes}\par\nopagebreak[4]
+
+\[
+E_{\tau\tau}=E_{rr}=E_{\varphi\varphi}=0 = f'(r)=\frac{2r}{\ell^2},\qquad f''(r)=\frac{2}{\ell^2}
+\]
+
+\subsubsection{Solucion integrada}
+
+\noindent\texttt{ansatz\_solution}\par\nopagebreak[4]
+
+\[
+f(r) = \frac{r^2}{\ell^2}-\lambda
+\]
+
+\begin{quote}\small La constante -lambda se identifica con el parametro de masa BTZ del Draft4.\end{quote}
+
+\subsubsection{Momento de curvatura final}
+
+\noindent\texttt{case0\_final\_P}\par\nopagebreak[4]
+
+\[
+\resizebox{\textwidth}{!}{$\displaystyle \{P_0^{abcd}\}_{\mathrm{indep}}\big|_{f=f_{(0)}} = \begin{aligned}&P_0^{{\tau}{r}{\tau}{r}}=- \frac{1}{2},\\[2pt]&P_0^{{\tau}{\varphi}{\tau}{\varphi}}=\frac{\ell^{2}}{2 r^{2} \left(\ell^{2} \lambda - r^{2}\right)},\\[2pt]&P_0^{{r}{\varphi}{r}{\varphi}}=- \frac{\lambda}{2 r^{2}} + \frac{1}{2 \ell^{2}}\end{aligned}$}
+\]
+
+\begin{quote}\small Aqui y en los cuatro bloques siguientes ya se uso \(f_{(0)}(r)=r^2/\ell^2-\lambda\).\end{quote}
+
+\subsubsection{Momento metrico final}
+
+\noindent\texttt{case0\_final\_M}\par\nopagebreak[4]
+
+\[
+\resizebox{\textwidth}{!}{$\displaystyle M^{(0)}_{ab}\big|_{f=f_{(0)}} = \left[\begin{matrix}\frac{4 \left(- \ell^{2} \lambda + r^{2}\right)}{\ell^{4}} & 0 & 0\\0 & \frac{4}{\ell^{2} \lambda - r^{2}} & 0\\0 & 0 & - \frac{4 r^{2}}{\ell^{2}}\end{matrix}\right]$}
+\]
+
+\subsubsection{Momento de gradiente escalar final}
+
+\noindent\texttt{case0\_final\_J}\par\nopagebreak[4]
+
+\[
+J_0^a\big|_{f=f_{(0)}} = \left[\begin{matrix}0\\0\\0\end{matrix}\right]
+\]
+
+\subsubsection{Momento escalar explicito final}
+
+\noindent\texttt{case0\_final\_F}\par\nopagebreak[4]
+
+\[
+F_\phi^{(0)}\big|_{f=f_{(0)}} = 0
+\]
+
+\subsubsection{Ricci generalizado final}
+
+\noindent\texttt{case0\_final\_Rcal}\par\nopagebreak[4]
+
+\[
+\resizebox{\textwidth}{!}{$\displaystyle \mathcal R^{(0)}_{ab}\big|_{f=f_{(0)}} = \left[\begin{matrix}\frac{2 \left(- \ell^{2} \lambda + r^{2}\right)}{\ell^{4}} & 0 & 0\\0 & \frac{2}{\ell^{2} \lambda - r^{2}} & 0\\0 & 0 & - \frac{2 r^{2}}{\ell^{2}}\end{matrix}\right]$}
+\]
+
+\subsubsection{Chequeo coordenado de Bianchi}
+
+\noindent\texttt{ansatz\_bianchi}\par\nopagebreak[4]
+
+\[
+\nabla^aE^{(0)}_{ab} = \left[\begin{matrix}0\\0\\0\end{matrix}\right]
+\]
+
+\begin{quote}\small Se anula identicamente para una funcion f(r) arbitraria.\end{quote}
+
+\subsubsection{Ricci sobre la solucion BTZ}
+
+\noindent\texttt{btz\_ricci}\par\nopagebreak[4]
+
+\[
+R_{ab}\big|_{\mathrm{BTZ}} = -\frac{2}{\ell^2}g_{ab}
+\]
+
+\subsubsection{Curvatura escalar BTZ}
+
+\noindent\texttt{btz\_R}\par\nopagebreak[4]
+
+\[
+R\big|_{\mathrm{BTZ}} = - \frac{6}{\ell^{2}}
+\]
+
+\subsubsection{Einstein sobre la solucion BTZ}
+
+\noindent\texttt{btz\_einstein}\par\nopagebreak[4]
+
+\[
+G_{ab}\big|_{\mathrm{BTZ}} = \frac{1}{\ell^2}g_{ab}
+\]
+
+\subsubsection{Verificacion final de las ecuaciones de campo}
+
+\noindent\texttt{btz\_field\_equations}\par\nopagebreak[4]
+
+\[
+E^{(0)}_{ab}\big|_{\mathrm{BTZ}} = \left[\begin{matrix}0 & 0 & 0\\0 & 0 & 0\\0 & 0 & 0\end{matrix}\right]
+\]
+
+\subsubsection{Forma de curvatura constante}
+
+\noindent\texttt{btz\_constant\_curvature}\par\nopagebreak[4]
+
+\[
+R_{abcd}\big|_{\mathrm{BTZ}} = -\frac{1}{\ell^2}(g_{ac}g_{bd}-g_{ad}g_{bc})
+\]
+
+\subsubsection{Invariante de Kretschmann}
+
+\noindent\texttt{btz\_kretschmann}\par\nopagebreak[4]
+
+\[
+R_{abcd}R^{abcd}\big|_{\mathrm{BTZ}} = \frac{12}{\ell^4}
+\]
+
+\begin{quote}\small Se usa la forma de curvatura constante ya verificada; evita una contraccion de ocho bucles en cada corrida.\end{quote}
+
+\subsection{Caso-1}
+
+\subsubsection{Sustitucion simultanea de metrica y escalar}
+
+\noindent\texttt{case1\_ansatz\_data}\par\nopagebreak[4]
+
+\[
+(ds^2,\phi) = \left(-f(r)d\tau^2+\frac{dr^2}{f(r)}+r^2d\varphi^2,\;p\varphi\right)
+\]
+
+\subsubsection{Gradiente escalar y contraccion cinetica}
+
+\noindent\texttt{case1\_ansatz\_gradient}\par\nopagebreak[4]
+
+\[
+(u_a,u^a,X) = \left(\left[\begin{matrix}0\\0\\p\end{matrix}\right],\,\left[\begin{matrix}0\\0\\\frac{p}{r^{2}}\end{matrix}\right],\,\frac{p^{2}}{r^{2}}\right)
+\]
+
+\subsubsection{Momento de curvatura sobre el ansatz}
+
+\noindent\texttt{case1\_ansatz\_P}\par\nopagebreak[4]
+
+\[
+\resizebox{\textwidth}{!}{$\displaystyle \{P_1^{abcd}\}_{\mathrm{indep}}\big|_{g[f],\phi=p\varphi} = \left\{P_1^{{\tau}{r}{\tau}{r}}=- \frac{1}{2},\;P_1^{{\tau}{\varphi}{\tau}{\varphi}}=- \frac{1}{2 r^{2} f{\left(r \right)}},\;P_1^{{r}{\varphi}{r}{\varphi}}=\frac{f{\left(r \right)}}{2 r^{2}}\right\}$}
+\]
+
+\subsubsection{Momento metrico sobre el ansatz}
+
+\noindent\texttt{case1\_ansatz\_M}\par\nopagebreak[4]
+
+\[
+\resizebox{\textwidth}{!}{$\displaystyle M^{(1)}_{ab}\big|_{g[f],\phi=p\varphi} = \left[\begin{matrix}\frac{\left(r \frac{d^{2}}{d r^{2}} f{\left(r \right)} + \frac{d}{d r} f{\left(r \right)}\right) f{\left(r \right)}}{r} & 0 & 0\\0 & \frac{- r \frac{d^{2}}{d r^{2}} f{\left(r \right)} - \frac{d}{d r} f{\left(r \right)}}{r f{\left(r \right)}} & 0\\0 & 0 & - \alpha_{1} p^{2} - 2 r \frac{d}{d r} f{\left(r \right)}\end{matrix}\right]$}
+\]
+
+\subsubsection{Momento de gradiente escalar sobre el ansatz}
+
+\noindent\texttt{case1\_ansatz\_J}\par\nopagebreak[4]
+
+\[
+J_1^a\big|_{g[f],\phi=p\varphi} = \left[\begin{matrix}0\\0\\- \frac{2 \alpha_{1} p}{r^{2}}\end{matrix}\right]
+\]
+
+\subsubsection{Momento escalar explicito sobre el ansatz}
+
+\noindent\texttt{case1\_ansatz\_F}\par\nopagebreak[4]
+
+\[
+F_\phi^{(1)}\big|_{g[f],\phi=p\varphi} = 0
+\]
+
+\subsubsection{Ricci generalizado sobre el ansatz}
+
+\noindent\texttt{case1\_ansatz\_Rcal}\par\nopagebreak[4]
+
+\[
+\resizebox{\textwidth}{!}{$\displaystyle \mathcal R^{(1)}_{ab}\big|_{g[f],\phi=p\varphi} = \left[\begin{matrix}\frac{\left(r \frac{d^{2}}{d r^{2}} f{\left(r \right)} + \frac{d}{d r} f{\left(r \right)}\right) f{\left(r \right)}}{2 r} & 0 & 0\\0 & \frac{- r \frac{d^{2}}{d r^{2}} f{\left(r \right)} - \frac{d}{d r} f{\left(r \right)}}{2 r f{\left(r \right)}} & 0\\0 & 0 & - r \frac{d}{d r} f{\left(r \right)}\end{matrix}\right]$}
+\]
+
+\subsubsection{Tensor escalar evaluado}
+
+\noindent\texttt{case1\_ansatz\_stress}\par\nopagebreak[4]
+
+\[
+\resizebox{\textwidth}{!}{$\displaystyle T^{(\phi)}_{ab}\big|_{\mathrm{ansatz}} = \left[\begin{matrix}\frac{p^{2} f{\left(r \right)}}{2 r^{2}} & 0 & 0\\0 & - \frac{p^{2}}{2 r^{2} f{\left(r \right)}} & 0\\0 & 0 & \frac{p^{2}}{2}\end{matrix}\right]$}
+\]
+
+\subsubsection{Ecuacion de Klein-Gordon sobre el ansatz}
+
+\noindent\texttt{case1\_ansatz\_box}\par\nopagebreak[4]
+
+\[
+\Box\phi\big|_{\phi=p\varphi} = 0
+\]
+
+\begin{quote}\small El perfil angular satisface la ecuacion escalar para cualquier f(r).\end{quote}
+
+\subsubsection{Tensor metrico antes de resolver f(r)}
+
+\noindent\texttt{case1\_ansatz\_E}\par\nopagebreak[4]
+
+\[
+\resizebox{\textwidth}{!}{$\displaystyle E^{(1)}_{ab}\big|_{g[f],\phi=p\varphi} = \left[\begin{matrix}- \frac{\alpha_{1} p^{2} f{\left(r \right)}}{2 r^{2}} - \frac{f{\left(r \right)} \frac{d}{d r} f{\left(r \right)}}{2 r} + \frac{f{\left(r \right)}}{\ell^{2}} & 0 & 0\\0 & \frac{\alpha_{1} p^{2}}{2 r^{2} f{\left(r \right)}} + \frac{\frac{d}{d r} f{\left(r \right)}}{2 r f{\left(r \right)}} - \frac{1}{\ell^{2} f{\left(r \right)}} & 0\\0 & 0 & - \frac{\alpha_{1} p^{2}}{2} + \frac{r^{2} \frac{d^{2}}{d r^{2}} f{\left(r \right)}}{2} - \frac{r^{2}}{\ell^{2}}\end{matrix}\right]$}
+\]
+
+\subsubsection{Ecuaciones independientes para f(r)}
+
+\noindent\texttt{case1\_ansatz\_odes}\par\nopagebreak[4]
+
+\[
+E_{\tau\tau}=E_{rr}=E_{\varphi\varphi}=0 = f'(r)=\frac{2r}{\ell^2}-\frac{\alpha_1p^2}{r},\qquad f''(r)=\frac{2}{\ell^2}+\frac{\alpha_1p^2}{r^2}
+\]
+
+\subsubsection{Integracion simbolica de la ecuacion radial}
+
+\noindent\texttt{case1\_integrate\_f}\par\nopagebreak[4]
+
+\[
+\int dr\left(\frac{2r}{\ell^2}-\frac{\alpha_1p^2}{r}\right) = - \alpha_{1} p^{2} \log{\left(r \right)} + \frac{r^{2}}{\ell^{2}}
+\]
+
+\subsubsection{Rama logaritmica del Draft4}
+
+\noindent\texttt{case1\_f\_solution}\par\nopagebreak[4]
+
+\[
+f_{(1)}(r) = - \alpha_{1} p^{2} \log{\left(\frac{r}{r_{0}} \right)} - \lambda + \frac{r^{2}}{\ell^{2}}
+\]
+
+\subsubsection{Momento de curvatura final}
+
+\noindent\texttt{case1\_final\_P}\par\nopagebreak[4]
+
+\[
+\resizebox{\textwidth}{!}{$\displaystyle \{P_1^{abcd}\}_{\mathrm{indep}}\big|_{f=f_{(1)},\phi=p\varphi} = \begin{aligned}&P_1^{{\tau}{r}{\tau}{r}}=- \frac{1}{2},\\[2pt]&P_1^{{\tau}{\varphi}{\tau}{\varphi}}=\frac{\ell^{2}}{2 r^{2} \left(\ell^{2} \left(\alpha_{1} p^{2} \log{\left(\frac{r}{r_{0}} \right)} + \lambda\right) - r^{2}\right)},\\[2pt]&P_1^{{r}{\varphi}{r}{\varphi}}=\frac{- \ell^{2} \left(\alpha_{1} p^{2} \log{\left(\frac{r}{r_{0}} \right)} + \lambda\right) + r^{2}}{2 \ell^{2} r^{2}}\end{aligned}$}
+\]
+
+\begin{quote}\small Aqui y en los cuatro bloques siguientes ya se uso la rama logaritmica explicita \(f_{(1)}(r)\).\end{quote}
+
+\subsubsection{Momento metrico final}
+
+\noindent\texttt{case1\_final\_M}\par\nopagebreak[4]
+
+\[
+\resizebox{\textwidth}{!}{$\displaystyle M^{(1)}_{ab}\big|_{f=f_{(1)},\phi=p\varphi} = \left[\begin{matrix}\frac{4 \left(- \ell^{2} \left(\alpha_{1} p^{2} \log{\left(\frac{r}{r_{0}} \right)} + \lambda\right) + r^{2}\right)}{\ell^{4}} & 0 & 0\\0 & \frac{4}{\ell^{2} \left(\alpha_{1} p^{2} \log{\left(\frac{r}{r_{0}} \right)} + \lambda\right) - r^{2}} & 0\\0 & 0 & \alpha_{1} p^{2} - \frac{4 r^{2}}{\ell^{2}}\end{matrix}\right]$}
+\]
+
+\subsubsection{Momento de gradiente escalar final}
+
+\noindent\texttt{case1\_final\_J}\par\nopagebreak[4]
+
+\[
+J_1^a\big|_{f=f_{(1)},\phi=p\varphi} = \left[\begin{matrix}0\\0\\- \frac{2 \alpha_{1} p}{r^{2}}\end{matrix}\right]
+\]
+
+\subsubsection{Momento escalar explicito final}
+
+\noindent\texttt{case1\_final\_F}\par\nopagebreak[4]
+
+\[
+F_\phi^{(1)}\big|_{f=f_{(1)},\phi=p\varphi} = 0
+\]
+
+\subsubsection{Ricci generalizado final}
+
+\noindent\texttt{case1\_final\_Rcal}\par\nopagebreak[4]
+
+\[
+\resizebox{\textwidth}{!}{$\displaystyle \mathcal R^{(1)}_{ab}\big|_{f=f_{(1)},\phi=p\varphi} = \left[\begin{matrix}\frac{2 \left(- \ell^{2} \left(\alpha_{1} p^{2} \log{\left(\frac{r}{r_{0}} \right)} + \lambda\right) + r^{2}\right)}{\ell^{4}} & 0 & 0\\0 & \frac{2}{\ell^{2} \left(\alpha_{1} p^{2} \log{\left(\frac{r}{r_{0}} \right)} + \lambda\right) - r^{2}} & 0\\0 & 0 & \alpha_{1} p^{2} - \frac{2 r^{2}}{\ell^{2}}\end{matrix}\right]$}
+\]
+
+\subsubsection{Bianchi metrico antes de resolver f(r)}
+
+\noindent\texttt{case1\_bianchi\_ansatz}\par\nopagebreak[4]
+
+\[
+\nabla^aE^{(1)}_{ab}\big|_{g[f],\phi=p\varphi} = \left[\begin{matrix}0\\0\\0\end{matrix}\right]
+\]
+
+\subsubsection{Identidad Bianchi-Noether completa}
+
+\noindent\texttt{case1\_noether\_ansatz}\par\nopagebreak[4]
+
+\[
+2\nabla^aE^{(1)}_{ab}+E^{(1)}_\phi u_b = \left[\begin{matrix}0\\0\\0\end{matrix}\right]
+\]
+
+\subsubsection{Verificacion final de la ecuacion metrica}
+
+\noindent\texttt{case1\_field\_solution}\par\nopagebreak[4]
+
+\[
+E^{(1)}_{ab}\big|_{f=f_{(1)},\phi=p\varphi} = \left[\begin{matrix}0 & 0 & 0\\0 & 0 & 0\\0 & 0 & 0\end{matrix}\right]
+\]
+
+\subsubsection{Verificacion final de la ecuacion escalar}
+
+\noindent\texttt{case1\_scalar\_solution}\par\nopagebreak[4]
+
+\[
+E^{(1)}_\phi\big|_{f=f_{(1)},\phi=p\varphi} = 0
+\]
+
+\subsubsection{Escalar de Ricci de la rama logaritmica}
+
+\noindent\texttt{case1\_R\_solution}\par\nopagebreak[4]
+
+\[
+R\big|_{f=f_{(1)}} = \frac{\alpha_{1} p^{2}}{r^{2}} - \frac{6}{\ell^{2}}
+\]
+
+\subsubsection{Tensor de Ricci de la rama logaritmica}
+
+\noindent\texttt{case1\_Ricci\_solution}\par\nopagebreak[4]
+
+\[
+\resizebox{\textwidth}{!}{$\displaystyle R_{ab}\big|_{f=f_{(1)}} = \left[\begin{matrix}\frac{2 \left(- \ell^{2} \left(\alpha_{1} p^{2} \log{\left(\frac{r}{r_{0}} \right)} + \lambda\right) + r^{2}\right)}{\ell^{4}} & 0 & 0\\0 & \frac{2}{\ell^{2} \left(\alpha_{1} p^{2} \log{\left(\frac{r}{r_{0}} \right)} + \lambda\right) - r^{2}} & 0\\0 & 0 & \alpha_{1} p^{2} - \frac{2 r^{2}}{\ell^{2}}\end{matrix}\right]$}
+\]
+
+\subsubsection{Invariante cuadratico de Ricci}
+
+\noindent\texttt{case1\_Ricci2\_solution}\par\nopagebreak[4]
+
+\[
+R_{ab}R^{ab}\big|_{f=f_{(1)}} = \frac{\alpha_{1}^{2} p^{4}}{r^{4}} - \frac{4 \alpha_{1} p^{2}}{\ell^{2} r^{2}} + \frac{12}{\ell^{4}}
+\]
+
+\subsubsection{Invariante de Kretschmann en tres dimensiones}
+
+\noindent\texttt{case1\_K\_solution}\par\nopagebreak[4]
+
+\[
+R_{abcd}R^{abcd}\big|_{f=f_{(1)}} = \frac{3 \alpha_{1}^{2} p^{4}}{r^{4}} - \frac{4 \alpha_{1} p^{2}}{\ell^{2} r^{2}} + \frac{12}{\ell^{4}}
+\]
+
+\begin{quote}\small Se usa la identidad tridimensional \(R_{abcd}R^{abcd}=4R_{ab}R^{ab}-R^2\).\end{quote}
+
+\subsubsection{Flujo escalar normal al borde radial}
+
+\noindent\texttt{case1\_boundary\_ansatz}\par\nopagebreak[4]
+
+\[
+n^au_a\big|_{\phi=p\varphi,\,r=\mathrm{cte}} = 0
+\]
+
+\begin{quote}\small El gradiente es puramente tangencial; el termino de frontera escalar se anula sobre este fondo.\end{quote}
+
+\subsection{Caso-2}
+
+\subsubsection{Sustitucion simultanea de metrica y escalar}
+
+\noindent\texttt{case2\_ansatz\_data}\par\nopagebreak[4]
+
+\[
+(ds^2,\phi) = \left(-f(r)d\tau^2+\frac{dr^2}{f(r)}+r^2d\varphi^2,\;p\varphi\right)
+\]
+
+\subsubsection{Gradiente escalar y contraccion cinetica}
+
+\noindent\texttt{case2\_ansatz\_gradient}\par\nopagebreak[4]
+
+\[
+(u_a,u^a,X) = \left(\left[\begin{matrix}0\\0\\p\end{matrix}\right],\,\left[\begin{matrix}0\\0\\\frac{p}{r^{2}}\end{matrix}\right],\,\frac{p^{2}}{r^{2}}\right)
+\]
+
+\subsubsection{Coeficiente de Ricci sobre el ansatz}
+
+\noindent\texttt{case2\_ansatz\_C}\par\nopagebreak[4]
+
+\[
+\resizebox{\textwidth}{!}{$\displaystyle C^{ab}\big|_{g[f],\phi=p\varphi} = \left[\begin{matrix}\frac{\beta_{0} \ell^{2} p^{2} - r^{2}}{r^{2} f{\left(r \right)}} & 0 & 0\\0 & \frac{\left(- \beta_{0} \ell^{2} p^{2} + r^{2}\right) f{\left(r \right)}}{r^{2}} & 0\\0 & 0 & \frac{2 \beta_{0} \ell^{2} p^{2} + r^{2}}{r^{4}}\end{matrix}\right]$}
+\]
+
+\subsubsection{Momento de curvatura sobre el ansatz}
+
+\noindent\texttt{case2\_ansatz\_P}\par\nopagebreak[4]
+
+\[
+\resizebox{\textwidth}{!}{$\displaystyle \{P_2^{abcd}\}_{\mathrm{indep}}\big|_{g[f],\phi=p\varphi} = \begin{aligned}&P_2^{{\tau}{r}{\tau}{r}}=\frac{\beta_{0} \ell^{2} p^{2} - r^{2}}{2 r^{2}},\\[2pt]&P_2^{{\tau}{\varphi}{\tau}{\varphi}}=\frac{- \beta_{0} \ell^{2} p^{2} - 2 r^{2}}{4 r^{4} f{\left(r \right)}},\\[2pt]&P_2^{{r}{\varphi}{r}{\varphi}}=\frac{\left(\beta_{0} \ell^{2} p^{2} + 2 r^{2}\right) f{\left(r \right)}}{4 r^{4}}\end{aligned}$}
+\]
+
+\subsubsection{Momento metrico sobre el ansatz}
+
+\noindent\texttt{case2\_ansatz\_M}\par\nopagebreak[4]
+
+\[
+\resizebox{\textwidth}{!}{$\displaystyle \{M^{(2)}_{aa}\}_{\rm diag}\big|_{g[f],\phi=p\varphi} = \begin{aligned}&M^{(2)}_{\tau\tau}=- \frac{\left(\beta_{0} \ell^{2} p^{2} \left(2 r \frac{d^{2}}{d r^{2}} f{\left(r \right)} - \frac{d}{d r} f{\left(r \right)}\right) - 2 r^{2} \left(r \frac{d^{2}}{d r^{2}} f{\left(r \right)} + \frac{d}{d r} f{\left(r \right)}\right)\right) f{\left(r \right)}}{2 r^{3}},\\[4pt]&M^{(2)}_{rr}=\frac{\beta_{0} \ell^{2} p^{2} \left(2 r \frac{d^{2}}{d r^{2}} f{\left(r \right)} - \frac{d}{d r} f{\left(r \right)}\right) - 2 r^{2} \left(r \frac{d^{2}}{d r^{2}} f{\left(r \right)} + \frac{d}{d r} f{\left(r \right)}\right)}{2 r^{3} f{\left(r \right)}},\\[4pt]&M^{(2)}_{\varphi\varphi}=\frac{\beta_{0} \ell^{2} p^{2} \left(r \frac{d^{2}}{d r^{2}} f{\left(r \right)} - 2 \frac{d}{d r} f{\left(r \right)}\right) - 2 r^{2} \frac{d}{d r} f{\left(r \right)}}{r}\end{aligned}$}
+\]
+
+\subsubsection{Momento de gradiente escalar sobre el ansatz}
+
+\noindent\texttt{case2\_ansatz\_J}\par\nopagebreak[4]
+
+\[
+\resizebox{\textwidth}{!}{$\displaystyle J_2^a\big|_{g[f],\phi=p\varphi} = \left[\begin{matrix}0\\0\\\frac{2 \beta_{0} \ell^{2} p \left(r \frac{d^{2}}{d r^{2}} f{\left(r \right)} - \frac{d}{d r} f{\left(r \right)}\right)}{r^{3}}\end{matrix}\right]$}
+\]
+
+\subsubsection{Momento escalar explicito sobre el ansatz}
+
+\noindent\texttt{case2\_ansatz\_F}\par\nopagebreak[4]
+
+\[
+F_\phi^{(2)}\big|_{g[f],\phi=p\varphi} = 0
+\]
+
+\subsubsection{Ricci generalizado sobre el ansatz}
+
+\noindent\texttt{case2\_ansatz\_Rcal}\par\nopagebreak[4]
+
+\[
+\resizebox{\textwidth}{!}{$\displaystyle \{\mathcal R^{(2)}_{aa}\}_{\rm diag}\big|_{g[f],\phi=p\varphi} = \begin{aligned}&\mathcal R^{(2)}_{\tau\tau}=- \frac{\left(2 r \left(\beta_{0} \ell^{2} p^{2} - r^{2}\right) \frac{d^{2}}{d r^{2}} f{\left(r \right)} - \left(\beta_{0} \ell^{2} p^{2} + 2 r^{2}\right) \frac{d}{d r} f{\left(r \right)}\right) f{\left(r \right)}}{4 r^{3}},\\[4pt]&\mathcal R^{(2)}_{rr}=\frac{2 r \left(\beta_{0} \ell^{2} p^{2} - r^{2}\right) \frac{d^{2}}{d r^{2}} f{\left(r \right)} - \left(\beta_{0} \ell^{2} p^{2} + 2 r^{2}\right) \frac{d}{d r} f{\left(r \right)}}{4 r^{3} f{\left(r \right)}},\\[4pt]&\mathcal R^{(2)}_{\varphi\varphi}=- \frac{\left(\beta_{0} \ell^{2} p^{2} + 2 r^{2}\right) \frac{d}{d r} f{\left(r \right)}}{2 r}\end{aligned}$}
+\]
+
+\subsubsection{Chequeo de la identidad algebraica de momentos}
+
+\noindent\texttt{case2\_moment\_identity}\par\nopagebreak[4]
+
+\[
+M^{(2)}_{ab}-2\mathcal R^{(2)}_{(ab)}-\frac12J^{(2)}_{(a}u_{b)} = \left[\begin{matrix}0 & 0 & 0\\0 & 0 & 0\\0 & 0 & 0\end{matrix}\right]
+\]
+
+\subsubsection{Doble divergencia del momento de curvatura}
+
+\noindent\texttt{case2\_ansatz\_doubledivP}\par\nopagebreak[4]
+
+\[
+\resizebox{\textwidth}{!}{$\displaystyle \nabla^m\nabla^nP^{(2)}_{(a|mn|b)}\big|_{g[f],\phi=p\varphi} = \left[\begin{matrix}\frac{\beta_{0} \ell^{2} p^{2} \left(r \frac{d}{d r} f{\left(r \right)} - 4 f{\left(r \right)}\right) f{\left(r \right)}}{8 r^{4}} & 0 & 0\\0 & \frac{\beta_{0} \ell^{2} p^{2} \left(- r \frac{d}{d r} f{\left(r \right)} + 4 f{\left(r \right)}\right)}{8 r^{4} f{\left(r \right)}} & 0\\0 & 0 & \frac{\beta_{0} \ell^{2} p^{2} \left(r \frac{d}{d r} f{\left(r \right)} - 3 f{\left(r \right)}\right)}{2 r^{2}}\end{matrix}\right]$}
+\]
+
+\subsubsection{Ecuacion escalar sobre el ansatz}
+
+\noindent\texttt{case2\_ansatz\_Ephi}\par\nopagebreak[4]
+
+\[
+E^{(2)}_\phi\big|_{g[f],\phi=p\varphi} = 0
+\]
+
+\subsubsection{Tensor metrico antes de resolver f(r)}
+
+\noindent\texttt{case2\_ansatz\_E}\par\nopagebreak[4]
+
+\[
+\resizebox{\textwidth}{!}{$\displaystyle \{E^{(2)}_{aa}\}_{\rm diag}\big|_{g[f],\phi=p\varphi} = \begin{aligned}&E^{(2)}_{\tau\tau}=\frac{\left(- \beta_{0} \ell^{4} p^{2} r \frac{d}{d r} f{\left(r \right)} + 2 \beta_{0} \ell^{4} p^{2} f{\left(r \right)} - \ell^{2} r^{3} \frac{d}{d r} f{\left(r \right)} + 2 r^{4}\right) f{\left(r \right)}}{2 \ell^{2} r^{4}},\\[4pt]&E^{(2)}_{rr}=\frac{\beta_{0} \ell^{2} p^{2} \frac{d}{d r} f{\left(r \right)}}{2 r^{3} f{\left(r \right)}} - \frac{\beta_{0} \ell^{2} p^{2}}{r^{4}} + \frac{\frac{d}{d r} f{\left(r \right)}}{2 r f{\left(r \right)}} - \frac{1}{\ell^{2} f{\left(r \right)}},\\[4pt]&E^{(2)}_{\varphi\varphi}=\frac{- 2 \beta_{0} \ell^{4} p^{2} r \frac{d}{d r} f{\left(r \right)} + 3 \beta_{0} \ell^{4} p^{2} f{\left(r \right)} + \frac{\ell^{2} r^{2} \left(\beta_{0} \ell^{2} p^{2} + r^{2}\right) \frac{d^{2}}{d r^{2}} f{\left(r \right)}}{2} - r^{4}}{\ell^{2} r^{2}}\end{aligned}$}
+\]
+
+\subsubsection{Ecuaciones radiales en la variable N=Hf}
+
+\noindent\texttt{case2\_radial\_equations}\par\nopagebreak[4]
+
+\[
+N(r)=H(r)f(r),\qquad E^{(2)}_{ab}=0 = N'(r)=\frac{2r}{\ell^2},\qquad N''(r)=\frac{2}{\ell^2}
+\]
+
+\subsubsection{Solucion racional del Draft4}
+
+\noindent\texttt{case2\_f\_solution}\par\nopagebreak[4]
+
+\[
+f_{(2)}(r) = \frac{r^{2} \left(- \ell^{2} \lambda + r^{2}\right)}{\ell^{2} \left(\beta_{0} \ell^{2} p^{2} + r^{2}\right)}
+\]
+
+\subsubsection{Momento de curvatura final}
+
+\noindent\texttt{case2\_final\_P}\par\nopagebreak[4]
+
+\[
+\resizebox{\textwidth}{!}{$\displaystyle \{P_2^{abcd}\}_{\mathrm{indep}}\big|_{f=f_{(2)},\phi=p\varphi} = \begin{aligned}&P_2^{{\tau}{r}{\tau}{r}}=\frac{\beta_{0} \ell^{2} p^{2} - r^{2}}{2 r^{2}},\\[2pt]&P_2^{{\tau}{\varphi}{\tau}{\varphi}}=\frac{\ell^{2} \left(\beta_{0} \ell^{2} p^{2} + r^{2}\right) \left(\beta_{0} \ell^{2} p^{2} + 2 r^{2}\right)}{4 r^{6} \left(\ell^{2} \lambda - r^{2}\right)},\\[2pt]&P_2^{{r}{\varphi}{r}{\varphi}}=- \frac{\left(\ell^{2} \lambda - r^{2}\right) \left(\beta_{0} \ell^{2} p^{2} + 2 r^{2}\right)}{4 \ell^{2} r^{2} \left(\beta_{0} \ell^{2} p^{2} + r^{2}\right)}\end{aligned}$}
+\]
+
+\begin{quote}\small Aqui y en los cuatro bloques siguientes ya se uso la solucion racional explicita \(f_{(2)}(r)\).\end{quote}
+
+\subsubsection{Momento metrico final}
+
+\noindent\texttt{case2\_final\_M}\par\nopagebreak[4]
+
+\[
+\resizebox{\textwidth}{!}{$\displaystyle \{M^{(2)}_{aa}\}_{\rm diag}\big|_{f=f_{(2)},\phi=p\varphi} = \begin{aligned}&M^{(2)}_{\tau\tau}=- \frac{\left(\ell^{2} \lambda - r^{2}\right) \left(\beta_{0}^{3} \ell^{8} \lambda p^{6} - 10 \beta_{0}^{3} \ell^{6} p^{6} r^{2} - 11 \beta_{0}^{2} \ell^{6} \lambda p^{4} r^{2} + 13 \beta_{0}^{2} \ell^{4} p^{4} r^{4} + 4 \beta_{0} \ell^{4} \lambda p^{2} r^{4} + 11 \beta_{0} \ell^{2} p^{2} r^{6} + 4 r^{8}\right)}{\ell^{4} \left(\beta_{0} \ell^{2} p^{2} + r^{2}\right)^{4}},\\[4pt]&M^{(2)}_{rr}=\frac{\beta_{0}^{3} \ell^{8} \lambda p^{6} - 10 \beta_{0}^{3} \ell^{6} p^{6} r^{2} - 11 \beta_{0}^{2} \ell^{6} \lambda p^{4} r^{2} + 13 \beta_{0}^{2} \ell^{4} p^{4} r^{4} + 4 \beta_{0} \ell^{4} \lambda p^{2} r^{4} + 11 \beta_{0} \ell^{2} p^{2} r^{6} + 4 r^{8}}{r^{4} \left(\ell^{2} \lambda - r^{2}\right) \left(\beta_{0} \ell^{2} p^{2} + r^{2}\right)^{2}},\\[4pt]&M^{(2)}_{\varphi\varphi}=\frac{2 \left(\beta_{0}^{3} \ell^{8} \lambda p^{6} + 2 \beta_{0}^{3} \ell^{6} p^{6} r^{2} + 7 \beta_{0}^{2} \ell^{6} \lambda p^{4} r^{2} - 7 \beta_{0}^{2} \ell^{4} p^{4} r^{4} + 2 \beta_{0} \ell^{4} \lambda p^{2} r^{4} - 7 \beta_{0} \ell^{2} p^{2} r^{6} - 2 r^{8}\right)}{\ell^{2} \left(\beta_{0} \ell^{2} p^{2} + r^{2}\right)^{3}}\end{aligned}$}
+\]
+
+\subsubsection{Momento de gradiente escalar final}
+
+\noindent\texttt{case2\_final\_J}\par\nopagebreak[4]
+
+\[
+\resizebox{\textwidth}{!}{$\displaystyle J_2^a\big|_{f=f_{(2)},\phi=p\varphi} = \left[\begin{matrix}0\\0\\\frac{16 \beta_{0}^{2} \ell^{4} p^{3} \left(\beta_{0} p^{2} + \lambda\right)}{\left(\beta_{0} \ell^{2} p^{2} + r^{2}\right)^{3}}\end{matrix}\right]$}
+\]
+
+\subsubsection{Momento escalar explicito final}
+
+\noindent\texttt{case2\_final\_F}\par\nopagebreak[4]
+
+\[
+F_\phi^{(2)}\big|_{f=f_{(2)},\phi=p\varphi} = 0
+\]
+
+\subsubsection{Ricci generalizado final}
+
+\noindent\texttt{case2\_final\_Rcal}\par\nopagebreak[4]
+
+\[
+\resizebox{\textwidth}{!}{$\displaystyle \{\mathcal R^{(2)}_{aa}\}_{\rm diag}\big|_{f=f_{(2)},\phi=p\varphi} = \begin{aligned}&\mathcal R^{(2)}_{\tau\tau}=- \frac{\left(\ell^{2} \lambda - r^{2}\right) \left(\beta_{0}^{3} \ell^{8} \lambda p^{6} - 10 \beta_{0}^{3} \ell^{6} p^{6} r^{2} - 11 \beta_{0}^{2} \ell^{6} \lambda p^{4} r^{2} + 13 \beta_{0}^{2} \ell^{4} p^{4} r^{4} + 4 \beta_{0} \ell^{4} \lambda p^{2} r^{4} + 11 \beta_{0} \ell^{2} p^{2} r^{6} + 4 r^{8}\right)}{2 \ell^{4} \left(\beta_{0} \ell^{2} p^{2} + r^{2}\right)^{4}},\\[4pt]&\mathcal R^{(2)}_{rr}=\frac{\beta_{0}^{3} \ell^{8} \lambda p^{6} - 10 \beta_{0}^{3} \ell^{6} p^{6} r^{2} - 11 \beta_{0}^{2} \ell^{6} \lambda p^{4} r^{2} + 13 \beta_{0}^{2} \ell^{4} p^{4} r^{4} + 4 \beta_{0} \ell^{4} \lambda p^{2} r^{4} + 11 \beta_{0} \ell^{2} p^{2} r^{6} + 4 r^{8}}{2 r^{4} \left(\ell^{2} \lambda - r^{2}\right) \left(\beta_{0} \ell^{2} p^{2} + r^{2}\right)^{2}},\\[4pt]&\mathcal R^{(2)}_{\varphi\varphi}=- \frac{\left(\beta_{0} \ell^{2} p^{2} + 2 r^{2}\right) \left(- \beta_{0} \ell^{4} \lambda p^{2} + 2 \beta_{0} \ell^{2} p^{2} r^{2} + r^{4}\right)}{\ell^{2} \left(\beta_{0} \ell^{2} p^{2} + r^{2}\right)^{2}}\end{aligned}$}
+\]
+
+\subsubsection{Bianchi metrico antes de resolver f(r)}
+
+\noindent\texttt{case2\_bianchi\_ansatz}\par\nopagebreak[4]
+
+\[
+\nabla^aE^{(2)}_{ab}\big|_{g[f],\phi=p\varphi} = \left[\begin{matrix}0\\0\\0\end{matrix}\right]
+\]
+
+\subsubsection{Identidad Bianchi-Noether completa}
+
+\noindent\texttt{case2\_noether\_ansatz}\par\nopagebreak[4]
+
+\[
+2\nabla^aE^{(2)}_{ab}+E^{(2)}_\phi u_b = \left[\begin{matrix}0\\0\\0\end{matrix}\right]
+\]
+
+\subsubsection{Verificacion final de la ecuacion metrica}
+
+\noindent\texttt{case2\_field\_solution}\par\nopagebreak[4]
+
+\[
+E^{(2)}_{ab}\big|_{f=f_{(2)},\phi=p\varphi} = \left[\begin{matrix}0 & 0 & 0\\0 & 0 & 0\\0 & 0 & 0\end{matrix}\right]
+\]
+
+\subsubsection{Verificacion final de la ecuacion escalar}
+
+\noindent\texttt{case2\_scalar\_solution}\par\nopagebreak[4]
+
+\[
+E^{(2)}_\phi\big|_{f=f_{(2)},\phi=p\varphi} = 0
+\]
+
+\subsubsection{Escalar de Ricci de la solucion racional}
+
+\noindent\texttt{case2\_R\_solution}\par\nopagebreak[4]
+
+\[
+\resizebox{\textwidth}{!}{$\displaystyle R\big|_{f=f_{(2)}} = \frac{2 \left(3 \beta_{0}^{2} \ell^{6} \lambda p^{4} - 10 \beta_{0}^{2} \ell^{4} p^{4} r^{2} - \beta_{0} \ell^{4} \lambda p^{2} r^{2} - 9 \beta_{0} \ell^{2} p^{2} r^{4} - 3 r^{6}\right)}{\ell^{2} \left(\beta_{0} \ell^{2} p^{2} + r^{2}\right)^{3}}$}
+\]
+
+\subsubsection{Tensor de Ricci de la solucion racional}
+
+\noindent\texttt{case2\_Ricci\_solution}\par\nopagebreak[4]
+
+\[
+\resizebox{\textwidth}{!}{$\displaystyle \{R_{aa}\}_{\rm diag}\big|_{f=f_{(2)}} = \begin{aligned}&R_{\tau\tau}=- \frac{2 r^{2} \left(\ell^{2} \lambda - r^{2}\right) \left(- \beta_{0}^{2} \ell^{6} \lambda p^{4} + 4 \beta_{0}^{2} \ell^{4} p^{4} r^{2} + \beta_{0} \ell^{4} \lambda p^{2} r^{2} + 3 \beta_{0} \ell^{2} p^{2} r^{4} + r^{6}\right)}{\ell^{4} \left(\beta_{0} \ell^{2} p^{2} + r^{2}\right)^{4}},\\[4pt]&R_{rr}=\frac{2 \left(- \beta_{0}^{2} \ell^{6} \lambda p^{4} + 4 \beta_{0}^{2} \ell^{4} p^{4} r^{2} + \beta_{0} \ell^{4} \lambda p^{2} r^{2} + 3 \beta_{0} \ell^{2} p^{2} r^{4} + r^{6}\right)}{r^{2} \left(\ell^{2} \lambda - r^{2}\right) \left(\beta_{0} \ell^{2} p^{2} + r^{2}\right)^{2}},\\[4pt]&R_{\varphi\varphi}=\frac{2 r^{2} \left(\beta_{0} \ell^{4} \lambda p^{2} - 2 \beta_{0} \ell^{2} p^{2} r^{2} - r^{4}\right)}{\ell^{2} \left(\beta_{0} \ell^{2} p^{2} + r^{2}\right)^{2}}\end{aligned}$}
+\]
+
+\subsubsection{Invariante cuadratico de Ricci}
+
+\noindent\texttt{case2\_Ricci2\_solution}\par\nopagebreak[4]
+
+\[
+\resizebox{\textwidth}{!}{$\displaystyle R_{ab}R^{ab}\big|_{f=f_{(2)}} = \frac{4 \left(3 \beta_{0}^{4} \ell^{12} \lambda^{2} p^{8} - 20 \beta_{0}^{4} \ell^{10} \lambda p^{8} r^{2} + 36 \beta_{0}^{4} \ell^{8} p^{8} r^{4} - 2 \beta_{0}^{3} \ell^{10} \lambda^{2} p^{6} r^{2} - 6 \beta_{0}^{3} \ell^{8} \lambda p^{6} r^{4} + 60 \beta_{0}^{3} \ell^{6} p^{6} r^{6} + 3 \beta_{0}^{2} \ell^{8} \lambda^{2} p^{4} r^{4} + 47 \beta_{0}^{2} \ell^{4} p^{4} r^{8} + 2 \beta_{0} \ell^{4} \lambda p^{2} r^{8} + 18 \beta_{0} \ell^{2} p^{2} r^{10} + 3 r^{12}\right)}{\ell^{4} \left(\beta_{0} \ell^{2} p^{2} + r^{2}\right)^{6}}$}
+\]
+
+\subsubsection{Invariante de Kretschmann en tres dimensiones}
+
+\noindent\texttt{case2\_K\_solution}\par\nopagebreak[4]
+
+\[
+\resizebox{\textwidth}{!}{$\displaystyle R_{abcd}R^{abcd}\big|_{f=f_{(2)}} = \frac{4 \left(3 \beta_{0}^{4} \ell^{12} \lambda^{2} p^{8} - 20 \beta_{0}^{4} \ell^{10} \lambda p^{8} r^{2} + 44 \beta_{0}^{4} \ell^{8} p^{8} r^{4} - 2 \beta_{0}^{3} \ell^{10} \lambda^{2} p^{6} r^{2} + 10 \beta_{0}^{3} \ell^{8} \lambda p^{6} r^{4} + 60 \beta_{0}^{3} \ell^{6} p^{6} r^{6} + 11 \beta_{0}^{2} \ell^{8} \lambda^{2} p^{4} r^{4} + 47 \beta_{0}^{2} \ell^{4} p^{4} r^{8} + 2 \beta_{0} \ell^{4} \lambda p^{2} r^{8} + 18 \beta_{0} \ell^{2} p^{2} r^{10} + 3 r^{12}\right)}{\ell^{4} \left(\beta_{0} \ell^{2} p^{2} + r^{2}\right)^{6}}$}
+\]
+
+\begin{quote}\small Se usa la identidad tridimensional \(R_{abcd}R^{abcd}=4R_{ab}R^{ab}-R^2\).\end{quote}
+
+\subsubsection{Flujo escalar normal al borde radial}
+
+\noindent\texttt{case2\_boundary\_ansatz}\par\nopagebreak[4]
+
+\[
+n_aJ_2^a\big|_{\phi=p\varphi,\,r=\mathrm{cte}} = 0
+\]
+
+\begin{quote}\small La corriente es puramente tangencial sobre la metrica diagonal.\end{quote}
+
+\section{Generalizacion EQT II: motor sobre el ansatz}
+
+El motor tensorial comun construye los momentos totales y las ecuaciones coordenadas manteniendo $f(r)$ sin resolver.
+
+\subsection{Ansatz comun para el modelo configurado}
+
+\noindent\texttt{eqt\_ansatz\_data}\par\nopagebreak[4]
+
+\[
+(ds^2,\phi) = \left(-f(r)d\tau^2+\frac{dr^2}{f(r)}+r^2d\varphi^2,\,p\varphi\right)
+\]
+
+\subsection{Invariantes elementales sobre el ansatz}
+
+\noindent\texttt{eqt\_ansatz\_invariants}\par\nopagebreak[4]
+
+\[
+(X,Y) = \left(\frac{p^{2}}{r^{2}},\,- \frac{p^{2} \frac{d}{d r} f{\left(r \right)}}{r^{3}}\right)
+\]
+
+\subsection{Lagrangiano compuesto sobre el ansatz}
+
+\noindent\texttt{eqt\_ansatz\_lagrangian}\par\nopagebreak[4]
+
+\[
+\resizebox{\textwidth}{!}{$\displaystyle L_{\mathrm{EQT}}[f] = - \frac{\alpha_{1} p^{2}}{r^{2}} - \frac{\alpha_{2} \ell^{2} p^{4}}{r^{4}} + \frac{\beta_{1} \ell^{4} p^{4} \frac{d^{2}}{d r^{2}} f{\left(r \right)}}{r^{4}} - \frac{3 \beta_{1} \ell^{4} p^{4} \frac{d}{d r} f{\left(r \right)}}{r^{5}} - \frac{d^{2}}{d r^{2}} f{\left(r \right)} - \frac{2 \frac{d}{d r} f{\left(r \right)}}{r} + \frac{2}{\ell^{2}}$}
+\]
+
+\subsection{Coeficiente total del tensor de Ricci}
+
+\noindent\texttt{eqt\_ansatz\_C}\par\nopagebreak[4]
+
+\[
+\resizebox{\textwidth}{!}{$\displaystyle C^{ab}_{\mathrm{tot}} = \left[\begin{matrix}\frac{\beta_{1} \ell^{4} p^{4} - r^{4}}{r^{4} f{\left(r \right)}} & 0 & 0\\0 & \frac{\left(- \beta_{1} \ell^{4} p^{4} + r^{4}\right) f{\left(r \right)}}{r^{4}} & 0\\0 & 0 & \frac{4 \beta_{1} \ell^{4} p^{4} + r^{4}}{r^{6}}\end{matrix}\right]$}
+\]
+
+\subsection{Momento de curvatura total}
+
+\noindent\texttt{eqt\_ansatz\_P}\par\nopagebreak[4]
+
+\[
+\resizebox{\textwidth}{!}{$\displaystyle \{P^{abcd}_{\mathrm{EQT}}\}_{\mathrm{indep}} = \begin{aligned}&P_{\mathrm{EQT}}^{{\tau}{r}{\tau}{r}}=\frac{\beta_{1} \ell^{4} p^{4} - r^{4}}{2 r^{4}},\\[2pt]&P_{\mathrm{EQT}}^{{\tau}{\varphi}{\tau}{\varphi}}=\frac{- 3 \beta_{1} \ell^{4} p^{4} - 2 r^{4}}{4 r^{6} f{\left(r \right)}},\\[2pt]&P_{\mathrm{EQT}}^{{r}{\varphi}{r}{\varphi}}=\frac{\left(3 \beta_{1} \ell^{4} p^{4} + 2 r^{4}\right) f{\left(r \right)}}{4 r^{6}}\end{aligned}$}
+\]
+
+\subsection{Momento metrico total}
+
+\noindent\texttt{eqt\_ansatz\_M}\par\nopagebreak[4]
+
+\[
+\resizebox{\textwidth}{!}{$\displaystyle \{M^{\mathrm{EQT}}_{aa}\}_{\mathrm{diag}} = \begin{aligned}&M^{\mathrm{EQT}}_{\tau\tau}=- \frac{\left(2 r \left(\beta_{1} \ell^{4} p^{4} - r^{4}\right) \frac{d^{2}}{d r^{2}} f{\left(r \right)} - \left(3 \beta_{1} \ell^{4} p^{4} + 2 r^{4}\right) \frac{d}{d r} f{\left(r \right)}\right) f{\left(r \right)}}{2 r^{5}},\\[4pt]&M^{\mathrm{EQT}}_{rr}=\frac{r \left(\beta_{1} \ell^{4} p^{4} - r^{4}\right) \frac{d^{2}}{d r^{2}} f{\left(r \right)} - \frac{\left(3 \beta_{1} \ell^{4} p^{4} + 2 r^{4}\right) \frac{d}{d r} f{\left(r \right)}}{2}}{r^{5} f{\left(r \right)}},\\[4pt]&M^{\mathrm{EQT}}_{\varphi\varphi}=\frac{- 9 \beta_{1} \ell^{4} p^{4} \frac{d}{d r} f{\left(r \right)} + 2 \ell^{2} p^{4} r \left(- \alpha_{2} + \beta_{1} \ell^{2} \frac{d^{2}}{d r^{2}} f{\left(r \right)}\right) - r^{3} \left(\alpha_{1} p^{2} + 2 r \frac{d}{d r} f{\left(r \right)}\right)}{r^{3}}\end{aligned}$}
+\]
+
+\subsection{Momento de gradiente escalar total}
+
+\noindent\texttt{eqt\_ansatz\_J}\par\nopagebreak[4]
+
+\[
+\resizebox{\textwidth}{!}{$\displaystyle J^a_{\mathrm{EQT}} = \left[\begin{matrix}0\\0\\- \frac{2 p \left(\alpha_{1} r^{3} + 2 \alpha_{2} \ell^{2} p^{2} r - 2 \beta_{1} \ell^{4} p^{2} \left(r \frac{d^{2}}{d r^{2}} f{\left(r \right)} - 3 \frac{d}{d r} f{\left(r \right)}\right)\right)}{r^{5}}\end{matrix}\right]$}
+\]
+
+\subsection{Momento escalar explicito total}
+
+\noindent\texttt{eqt\_ansatz\_F}\par\nopagebreak[4]
+
+\[
+F^{\mathrm{EQT}}_\phi = 0
+\]
+
+\subsection{Ricci generalizado total}
+
+\noindent\texttt{eqt\_ansatz\_Rcal}\par\nopagebreak[4]
+
+\[
+\resizebox{\textwidth}{!}{$\displaystyle \{\mathcal R^{\mathrm{EQT}}_{aa}\}_{\mathrm{diag}} = \begin{aligned}&\mathcal R^{\mathrm{EQT}}_{\tau\tau}=- \frac{\left(2 r \left(\beta_{1} \ell^{4} p^{4} - r^{4}\right) \frac{d^{2}}{d r^{2}} f{\left(r \right)} - \left(3 \beta_{1} \ell^{4} p^{4} + 2 r^{4}\right) \frac{d}{d r} f{\left(r \right)}\right) f{\left(r \right)}}{4 r^{5}},\\[4pt]&\mathcal R^{\mathrm{EQT}}_{rr}=\frac{2 r \left(\beta_{1} \ell^{4} p^{4} - r^{4}\right) \frac{d^{2}}{d r^{2}} f{\left(r \right)} - \left(3 \beta_{1} \ell^{4} p^{4} + 2 r^{4}\right) \frac{d}{d r} f{\left(r \right)}}{4 r^{5} f{\left(r \right)}},\\[4pt]&\mathcal R^{\mathrm{EQT}}_{\varphi\varphi}=- \frac{\left(3 \beta_{1} \ell^{4} p^{4} + 2 r^{4}\right) \frac{d}{d r} f{\left(r \right)}}{2 r^{3}}\end{aligned}$}
+\]
+
+\subsection{Doble divergencia del momento total}
+
+\noindent\texttt{eqt\_ansatz\_doubledivP}\par\nopagebreak[4]
+
+\[
+\resizebox{\textwidth}{!}{$\displaystyle \nabla^m\nabla^nP^{\mathrm{EQT}}_{(a|mn|b)} = \begin{aligned}&D^{\mathrm{EQT}}_{\tau\tau}=\frac{3 \beta_{1} \ell^{4} p^{4} \left(r \frac{d}{d r} f{\left(r \right)} - 8 f{\left(r \right)}\right) f{\left(r \right)}}{8 r^{6}},\\[4pt]&D^{\mathrm{EQT}}_{rr}=\frac{3 \beta_{1} \ell^{4} p^{4} \left(- r \frac{d}{d r} f{\left(r \right)} + 8 f{\left(r \right)}\right)}{8 r^{6} f{\left(r \right)}},\\[4pt]&D^{\mathrm{EQT}}_{\varphi\varphi}=\frac{3 \beta_{1} \ell^{4} p^{4} \left(r \frac{d}{d r} f{\left(r \right)} - 5 f{\left(r \right)}\right)}{r^{4}}\end{aligned}$}
+\]
+
+\subsection{Ecuacion escalar sobre el ansatz}
+
+\noindent\texttt{eqt\_ansatz\_Ephi}\par\nopagebreak[4]
+
+\[
+E^{\mathrm{EQT}}_\phi = 0
+\]
+
+\subsection{Ecuacion metrica antes de resolver f(r)}
+
+\noindent\texttt{eqt\_ansatz\_E}\par\nopagebreak[4]
+
+\[
+\resizebox{\textwidth}{!}{$\displaystyle \{E^{\mathrm{EQT}}_{aa}\}_{\mathrm{diag}} = \begin{aligned}&E^{\mathrm{EQT}}_{\tau\tau}=\frac{\left(- \alpha_{1} \ell^{2} p^{2} r^{4} - \alpha_{2} \ell^{4} p^{4} r^{2} - 3 \beta_{1} \ell^{6} p^{4} r \frac{d}{d r} f{\left(r \right)} + 12 \beta_{1} \ell^{6} p^{4} f{\left(r \right)} - \ell^{2} r^{5} \frac{d}{d r} f{\left(r \right)} + 2 r^{6}\right) f{\left(r \right)}}{2 \ell^{2} r^{6}},\\[4pt]&E^{\mathrm{EQT}}_{rr}=\frac{\alpha_{1} \ell^{2} p^{2} r^{4} + \alpha_{2} \ell^{4} p^{4} r^{2} + 3 \beta_{1} \ell^{6} p^{4} r \frac{d}{d r} f{\left(r \right)} - 12 \beta_{1} \ell^{6} p^{4} f{\left(r \right)} + \ell^{2} r^{5} \frac{d}{d r} f{\left(r \right)} - 2 r^{6}}{2 \ell^{2} r^{6} f{\left(r \right)}},\\[4pt]&E^{\mathrm{EQT}}_{\varphi\varphi}=- \frac{\alpha_{1} p^{2}}{2} - \frac{3 \alpha_{2} \ell^{2} p^{4}}{2 r^{2}} + \frac{3 \beta_{1} \ell^{4} p^{4} \frac{d^{2}}{d r^{2}} f{\left(r \right)}}{2 r^{2}} - \frac{12 \beta_{1} \ell^{4} p^{4} \frac{d}{d r} f{\left(r \right)}}{r^{3}} + \frac{30 \beta_{1} \ell^{4} p^{4} f{\left(r \right)}}{r^{4}} + \frac{r^{2} \frac{d^{2}}{d r^{2}} f{\left(r \right)}}{2} - \frac{r^{2}}{\ell^{2}}\end{aligned}$}
+\]
+
+\section{Generalizacion EQT III: rama y verificacion}
+
+Las ecuaciones se reducen a una primera integral, se selecciona la rama analitica y se sustituye en todos los momentos e invariantes.
+
+\subsection{Reduccion a una ecuacion radial integrable}
+
+\noindent\texttt{eqt\_radial\_reduction}\par\nopagebreak[4]
+
+\[
+E^{\mathrm{EQT}}_{rr} = \left(\frac{1}{2 r f{\left(r \right)}}\right)\frac{d}{dr}[H(r)f(r)-N(r)]
+\]
+
+\subsection{Numerador de la rama analitica}
+
+\noindent\texttt{eqt\_N\_branch}\par\nopagebreak[4]
+
+\[
+N(r) = - \alpha_{1} p^{2} \log{\left(r \right)} + \alpha_{1} p^{2} \log{\left(r_{0} \right)} + \frac{\alpha_{2} \ell^{2} p^{4}}{2 r^{2}} - \lambda + \frac{r^{2}}{\ell^{2}}
+\]
+
+\subsection{Denominador de la rama analitica}
+
+\noindent\texttt{eqt\_H\_branch}\par\nopagebreak[4]
+
+\[
+H(r) = \frac{3 \beta_{1} \ell^{4} p^{4}}{r^{4}} + 1
+\]
+
+\subsection{Solucion EQT configurada}
+
+\noindent\texttt{eqt\_f\_branch}\par\nopagebreak[4]
+
+\[
+\resizebox{\textwidth}{!}{$\displaystyle f_{\mathrm{EQT}}(r) = \frac{r^{2} \left(- \alpha_{1} \ell^{2} p^{2} r^{2} \log{\left(r \right)} + \alpha_{1} \ell^{2} p^{2} r^{2} \log{\left(r_{0} \right)} + \frac{\alpha_{2} \ell^{4} p^{4}}{2} - \ell^{2} \lambda r^{2} + r^{4}\right)}{\ell^{2} \left(3 \beta_{1} \ell^{4} p^{4} + r^{4}\right)}$}
+\]
+
+\subsection{Momento de curvatura final}
+
+\noindent\texttt{eqt\_final\_P}\par\nopagebreak[4]
+
+\[
+\resizebox{\textwidth}{!}{$\displaystyle \{P^{abcd}_{\mathrm{EQT}}\}_{\mathrm{indep}}\big|_{f=f_{\mathrm{EQT}}} = \begin{aligned}&P_{\mathrm{EQT}}^{{\tau}{r}{\tau}{r}}=\frac{\beta_{1} \ell^{4} p^{4} - r^{4}}{2 r^{4}},\\[2pt]&P_{\mathrm{EQT}}^{{\tau}{\varphi}{\tau}{\varphi}}=- \frac{\ell^{2} \left(3 \beta_{1} \ell^{4} p^{4} + r^{4}\right) \left(3 \beta_{1} \ell^{4} p^{4} + 2 r^{4}\right)}{2 r^{8} \left(- 2 \alpha_{1} \ell^{2} p^{2} r^{2} \log{\left(r \right)} + 2 \alpha_{1} \ell^{2} p^{2} r^{2} \log{\left(r_{0} \right)} + \alpha_{2} \ell^{4} p^{4} - 2 \ell^{2} \lambda r^{2} + 2 r^{4}\right)},\\[2pt]&P_{\mathrm{EQT}}^{{r}{\varphi}{r}{\varphi}}=\frac{\left(3 \beta_{1} \ell^{4} p^{4} + 2 r^{4}\right) \left(- 2 \alpha_{1} \ell^{2} p^{2} r^{2} \log{\left(r \right)} + 2 \alpha_{1} \ell^{2} p^{2} r^{2} \log{\left(r_{0} \right)} + \alpha_{2} \ell^{4} p^{4} - 2 \ell^{2} \lambda r^{2} + 2 r^{4}\right)}{8 \ell^{2} r^{4} \left(3 \beta_{1} \ell^{4} p^{4} + r^{4}\right)}\end{aligned}$}
+\]
+
+\begin{quote}\small Desde este bloque se ha sustituido la rama completa y todas sus derivadas.\end{quote}
+
+\subsection{Momento metrico final}
+
+\noindent\texttt{eqt\_final\_M}\par\nopagebreak[4]
+
+\[
+\resizebox{\textwidth}{!}{$\displaystyle \{M^{\mathrm{EQT}}_{aa}\}_{\mathrm{diag}}\big|_{f=f_{\mathrm{EQT}}} = \begin{aligned}&M^{\mathrm{EQT}}_{\tau\tau}=\frac{\left(- 2 \alpha_{1} \ell^{2} p^{2} r^{2} \log{\left(r \right)} + \alpha_{2} \ell^{4} p^{4} - 2 \ell^{2} \lambda r^{2} + 2 r^{4} + \log{\left(r_{0}^{2 \alpha_{1} \ell^{2} p^{2} r^{2}} \right)}\right) \left(108 \alpha_{1} \beta_{1}^{3} \ell^{14} p^{14} r^{2} \log{\left(r \right)} + 99 \alpha_{1} \beta_{1}^{3} \ell^{14} p^{14} r^{2} - 444 \alpha_{1} \beta_{1}^{2} \ell^{10} p^{10} r^{6} \log{\left(r \right)} - 126 \alpha_{1} \beta_{1}^{2} \ell^{10} p^{10} r^{6} + 96 \alpha_{1} \beta_{1} \ell^{6} p^{6} r^{10} \log{\left(r \right)} - 53 \alpha_{1} \beta_{1} \ell^{6} p^{6} r^{10} + 9 \alpha_{2} \beta_{1}^{3} \ell^{16} p^{16} + 108 \alpha_{2} \beta_{1}^{2} \ell^{12} p^{12} r^{4} - 81 \alpha_{2} \beta_{1} \ell^{8} p^{8} r^{8} + 4 \alpha_{2} \ell^{4} p^{4} r^{12} + 108 \beta_{1}^{3} \ell^{14} \lambda p^{12} r^{2} - 378 \beta_{1}^{3} \ell^{12} p^{12} r^{4} - 444 \beta_{1}^{2} \ell^{10} \lambda p^{8} r^{6} + 720 \beta_{1}^{2} \ell^{8} p^{8} r^{8} + 96 \beta_{1} \ell^{6} \lambda p^{4} r^{10} + 50 \beta_{1} \ell^{4} p^{4} r^{12} + 8 r^{16} + \log{\left(r_{0}^{12 \alpha_{1} \beta_{1} \ell^{6} p^{6} r^{2} \left(- 9 \beta_{1}^{2} \ell^{8} p^{8} + 37 \beta_{1} \ell^{4} p^{4} r^{4} - 8 r^{8}\right)} \right)}\right)}{4 \ell^{4} r^{2} \left(3 \beta_{1} \ell^{4} p^{4} + r^{4}\right)^{4}},\\[4pt]&M^{\mathrm{EQT}}_{rr}=\frac{- 108 \alpha_{1} \beta_{1}^{3} \ell^{14} p^{14} r^{2} \log{\left(r \right)} - 99 \alpha_{1} \beta_{1}^{3} \ell^{14} p^{14} r^{2} + 444 \alpha_{1} \beta_{1}^{2} \ell^{10} p^{10} r^{6} \log{\left(r \right)} + 126 \alpha_{1} \beta_{1}^{2} \ell^{10} p^{10} r^{6} - 96 \alpha_{1} \beta_{1} \ell^{6} p^{6} r^{10} \log{\left(r \right)} + 53 \alpha_{1} \beta_{1} \ell^{6} p^{6} r^{10} - 9 \alpha_{2} \beta_{1}^{3} \ell^{16} p^{16} - 108 \alpha_{2} \beta_{1}^{2} \ell^{12} p^{12} r^{4} + 81 \alpha_{2} \beta_{1} \ell^{8} p^{8} r^{8} - 4 \alpha_{2} \ell^{4} p^{4} r^{12} - 108 \beta_{1}^{3} \ell^{14} \lambda p^{12} r^{2} + 378 \beta_{1}^{3} \ell^{12} p^{12} r^{4} + 444 \beta_{1}^{2} \ell^{10} \lambda p^{8} r^{6} - 720 \beta_{1}^{2} \ell^{8} p^{8} r^{8} - 96 \beta_{1} \ell^{6} \lambda p^{4} r^{10} - 50 \beta_{1} \ell^{4} p^{4} r^{12} - 8 r^{16} + \log{\left(r_{0}^{12 \alpha_{1} \beta_{1} \ell^{6} p^{6} r^{2} \left(9 \beta_{1}^{2} \ell^{8} p^{8} - 37 \beta_{1} \ell^{4} p^{4} r^{4} + 8 r^{8}\right)} \right)}}{r^{6} \left(3 \beta_{1} \ell^{4} p^{4} + r^{4}\right)^{2} \left(- 2 \alpha_{1} \ell^{2} p^{2} r^{2} \log{\left(r \right)} + \alpha_{2} \ell^{4} p^{4} - 2 \ell^{2} \lambda r^{2} + 2 r^{4} + \log{\left(r_{0}^{2 \alpha_{1} \ell^{2} p^{2} r^{2}} \right)}\right)},\\[4pt]&M^{\mathrm{EQT}}_{\varphi\varphi}=\frac{108 \alpha_{1} \beta_{1}^{3} \ell^{14} p^{14} r^{2} \log{\left(r \right)} - 72 \alpha_{1} \beta_{1}^{3} \ell^{14} p^{14} r^{2} + 300 \alpha_{1} \beta_{1}^{2} \ell^{10} p^{10} r^{6} \log{\left(r \right)} + 9 \alpha_{1} \beta_{1}^{2} \ell^{10} p^{10} r^{6} + 24 \alpha_{1} \beta_{1} \ell^{6} p^{6} r^{10} \log{\left(r \right)} + 14 \alpha_{1} \beta_{1} \ell^{6} p^{6} r^{10} + \alpha_{1} \ell^{2} p^{2} r^{14} - 117 \alpha_{2} \beta_{1}^{3} \ell^{16} p^{16} - 144 \alpha_{2} \beta_{1}^{2} \ell^{12} p^{12} r^{4} - 3 \alpha_{2} \beta_{1} \ell^{8} p^{8} r^{8} + 108 \beta_{1}^{3} \ell^{14} \lambda p^{12} r^{2} + 54 \beta_{1}^{3} \ell^{12} p^{12} r^{4} + 300 \beta_{1}^{2} \ell^{10} \lambda p^{8} r^{6} - 324 \beta_{1}^{2} \ell^{8} p^{8} r^{8} + 24 \beta_{1} \ell^{6} \lambda p^{4} r^{10} - 62 \beta_{1} \ell^{4} p^{4} r^{12} - 4 r^{16} - \log{\left(r_{0}^{12 \alpha_{1} \beta_{1} \ell^{6} p^{6} r^{2} \left(9 \beta_{1}^{2} \ell^{8} p^{8} + 25 \beta_{1} \ell^{4} p^{4} r^{4} + 2 r^{8}\right)} \right)}}{\ell^{2} r^{2} \left(3 \beta_{1} \ell^{4} p^{4} + r^{4}\right)^{3}}\end{aligned}$}
+\]
+
+\subsection{Momento de gradiente escalar final}
+
+\noindent\texttt{eqt\_final\_J}\par\nopagebreak[4]
+
+\[
+\resizebox{\textwidth}{!}{$\displaystyle J^a_{\mathrm{EQT}}\big|_{f=f_{\mathrm{EQT}}} = \left[\begin{matrix}0\\0\\- \frac{2 p \left(99 \alpha_{1} \beta_{1}^{3} \ell^{12} p^{12} r^{2} - 192 \alpha_{1} \beta_{1}^{2} \ell^{8} p^{8} r^{6} \log{\left(r \right)} + 192 \alpha_{1} \beta_{1}^{2} \ell^{8} p^{8} r^{6} \log{\left(r_{0} \right)} + 27 \alpha_{1} \beta_{1}^{2} \ell^{8} p^{8} r^{6} + \alpha_{1} \beta_{1} \ell^{4} p^{4} r^{10} + \alpha_{1} r^{14} + 90 \alpha_{2} \beta_{1}^{3} \ell^{14} p^{14} + 126 \alpha_{2} \beta_{1}^{2} \ell^{10} p^{10} r^{4} + 6 \alpha_{2} \beta_{1} \ell^{6} p^{6} r^{8} + 2 \alpha_{2} \ell^{2} p^{2} r^{12} - 216 \beta_{1}^{3} \ell^{10} p^{10} r^{4} - 192 \beta_{1}^{2} \ell^{8} \lambda p^{6} r^{6} + 144 \beta_{1}^{2} \ell^{6} p^{6} r^{8} + 8 \beta_{1} \ell^{2} p^{2} r^{12}\right)}{r^{4} \left(3 \beta_{1} \ell^{4} p^{4} + r^{4}\right)^{3}}\end{matrix}\right]$}
+\]
+
+\subsection{Momento escalar explicito final}
+
+\noindent\texttt{eqt\_final\_F}\par\nopagebreak[4]
+
+\[
+F^{\mathrm{EQT}}_\phi\big|_{f=f_{\mathrm{EQT}}} = 0
+\]
+
+\subsection{Ricci generalizado final}
+
+\noindent\texttt{eqt\_final\_Rcal}\par\nopagebreak[4]
+
+\[
+\resizebox{\textwidth}{!}{$\displaystyle \{\mathcal R^{\mathrm{EQT}}_{aa}\}_{\mathrm{diag}}\big|_{f=f_{\mathrm{EQT}}} = \begin{aligned}&\mathcal R^{\mathrm{EQT}}_{\tau\tau}=\frac{\left(- 2 \alpha_{1} \ell^{2} p^{2} r^{2} \log{\left(r \right)} + \alpha_{2} \ell^{4} p^{4} - 2 \ell^{2} \lambda r^{2} + 2 r^{4} + \log{\left(r_{0}^{2 \alpha_{1} \ell^{2} p^{2} r^{2}} \right)}\right) \left(108 \alpha_{1} \beta_{1}^{3} \ell^{14} p^{14} r^{2} \log{\left(r \right)} + 99 \alpha_{1} \beta_{1}^{3} \ell^{14} p^{14} r^{2} - 444 \alpha_{1} \beta_{1}^{2} \ell^{10} p^{10} r^{6} \log{\left(r \right)} - 126 \alpha_{1} \beta_{1}^{2} \ell^{10} p^{10} r^{6} + 96 \alpha_{1} \beta_{1} \ell^{6} p^{6} r^{10} \log{\left(r \right)} - 53 \alpha_{1} \beta_{1} \ell^{6} p^{6} r^{10} + 9 \alpha_{2} \beta_{1}^{3} \ell^{16} p^{16} + 108 \alpha_{2} \beta_{1}^{2} \ell^{12} p^{12} r^{4} - 81 \alpha_{2} \beta_{1} \ell^{8} p^{8} r^{8} + 4 \alpha_{2} \ell^{4} p^{4} r^{12} + 108 \beta_{1}^{3} \ell^{14} \lambda p^{12} r^{2} - 378 \beta_{1}^{3} \ell^{12} p^{12} r^{4} - 444 \beta_{1}^{2} \ell^{10} \lambda p^{8} r^{6} + 720 \beta_{1}^{2} \ell^{8} p^{8} r^{8} + 96 \beta_{1} \ell^{6} \lambda p^{4} r^{10} + 50 \beta_{1} \ell^{4} p^{4} r^{12} + 8 r^{16} + \log{\left(r_{0}^{12 \alpha_{1} \beta_{1} \ell^{6} p^{6} r^{2} \left(- 9 \beta_{1}^{2} \ell^{8} p^{8} + 37 \beta_{1} \ell^{4} p^{4} r^{4} - 8 r^{8}\right)} \right)}\right)}{8 \ell^{4} r^{2} \left(3 \beta_{1} \ell^{4} p^{4} + r^{4}\right)^{4}},\\[4pt]&\mathcal R^{\mathrm{EQT}}_{rr}=\frac{- 108 \alpha_{1} \beta_{1}^{3} \ell^{14} p^{14} r^{2} \log{\left(r \right)} - 99 \alpha_{1} \beta_{1}^{3} \ell^{14} p^{14} r^{2} + 444 \alpha_{1} \beta_{1}^{2} \ell^{10} p^{10} r^{6} \log{\left(r \right)} + 126 \alpha_{1} \beta_{1}^{2} \ell^{10} p^{10} r^{6} - 96 \alpha_{1} \beta_{1} \ell^{6} p^{6} r^{10} \log{\left(r \right)} + 53 \alpha_{1} \beta_{1} \ell^{6} p^{6} r^{10} - 9 \alpha_{2} \beta_{1}^{3} \ell^{16} p^{16} - 108 \alpha_{2} \beta_{1}^{2} \ell^{12} p^{12} r^{4} + 81 \alpha_{2} \beta_{1} \ell^{8} p^{8} r^{8} - 4 \alpha_{2} \ell^{4} p^{4} r^{12} - 108 \beta_{1}^{3} \ell^{14} \lambda p^{12} r^{2} + 378 \beta_{1}^{3} \ell^{12} p^{12} r^{4} + 444 \beta_{1}^{2} \ell^{10} \lambda p^{8} r^{6} - 720 \beta_{1}^{2} \ell^{8} p^{8} r^{8} - 96 \beta_{1} \ell^{6} \lambda p^{4} r^{10} - 50 \beta_{1} \ell^{4} p^{4} r^{12} - 8 r^{16} + \log{\left(r_{0}^{12 \alpha_{1} \beta_{1} \ell^{6} p^{6} r^{2} \left(9 \beta_{1}^{2} \ell^{8} p^{8} - 37 \beta_{1} \ell^{4} p^{4} r^{4} + 8 r^{8}\right)} \right)}}{2 r^{6} \left(3 \beta_{1} \ell^{4} p^{4} + r^{4}\right)^{2} \left(- 2 \alpha_{1} \ell^{2} p^{2} r^{2} \log{\left(r \right)} + \alpha_{2} \ell^{4} p^{4} - 2 \ell^{2} \lambda r^{2} + 2 r^{4} + \log{\left(r_{0}^{2 \alpha_{1} \ell^{2} p^{2} r^{2}} \right)}\right)},\\[4pt]&\mathcal R^{\mathrm{EQT}}_{\varphi\varphi}=\frac{\left(3 \beta_{1} \ell^{4} p^{4} + 2 r^{4}\right) \left(12 \alpha_{1} \beta_{1} \ell^{6} p^{6} r^{2} \log{\left(r \right)} - 12 \alpha_{1} \beta_{1} \ell^{6} p^{6} r^{2} \log{\left(r_{0} \right)} + 3 \alpha_{1} \beta_{1} \ell^{6} p^{6} r^{2} + \alpha_{1} \ell^{2} p^{2} r^{6} - 3 \alpha_{2} \beta_{1} \ell^{8} p^{8} + \alpha_{2} \ell^{4} p^{4} r^{4} + 12 \beta_{1} \ell^{6} \lambda p^{4} r^{2} - 18 \beta_{1} \ell^{4} p^{4} r^{4} - 2 r^{8}\right)}{2 \ell^{2} r^{2} \left(3 \beta_{1} \ell^{4} p^{4} + r^{4}\right)^{2}}\end{aligned}$}
+\]
+
+\subsection{Verificacion final de la ecuacion metrica}
+
+\noindent\texttt{eqt\_final\_field}\par\nopagebreak[4]
+
+\[
+E^{\mathrm{EQT}}_{ab}\big|_{f=f_{\mathrm{EQT}}} = \left[\begin{matrix}0 & 0 & 0\\0 & 0 & 0\\0 & 0 & 0\end{matrix}\right]
+\]
+
+\subsection{Verificacion final de la ecuacion escalar}
+
+\noindent\texttt{eqt\_final\_scalar}\par\nopagebreak[4]
+
+\[
+E^{\mathrm{EQT}}_\phi\big|_{f=f_{\mathrm{EQT}}} = 0
+\]
+
+\subsection{Identidad Bianchi-Noether del modelo compuesto}
+
+\noindent\texttt{eqt\_final\_noether}\par\nopagebreak[4]
+
+\[
+2\nabla^aE^{\mathrm{EQT}}_{ab}+E^{\mathrm{EQT}}_\phi u_b = \left[\begin{matrix}0\\0\\0\end{matrix}\right]
+\]
+
+\subsection{Escalar de Ricci de la rama seleccionada}
+
+\noindent\texttt{eqt\_final\_R}\par\nopagebreak[4]
+
+\[
+\resizebox{\textwidth}{!}{$\displaystyle R\big|_{f=f_{\mathrm{EQT}}} = \frac{180 \alpha_{1} \beta_{1}^{2} \ell^{10} p^{10} r^{2} \log{\left(r \right)} + 81 \alpha_{1} \beta_{1}^{2} \ell^{10} p^{10} r^{2} - 36 \alpha_{1} \beta_{1} \ell^{6} p^{6} r^{6} \log{\left(r \right)} + 30 \alpha_{1} \beta_{1} \ell^{6} p^{6} r^{6} + \alpha_{1} \ell^{2} p^{2} r^{10} - 27 \alpha_{2} \beta_{1}^{2} \ell^{12} p^{12} + 36 \alpha_{2} \beta_{1} \ell^{8} p^{8} r^{4} - \alpha_{2} \ell^{4} p^{4} r^{8} + 180 \beta_{1}^{2} \ell^{10} \lambda p^{8} r^{2} - 378 \beta_{1}^{2} \ell^{8} p^{8} r^{4} - 36 \beta_{1} \ell^{6} \lambda p^{4} r^{6} - 48 \beta_{1} \ell^{4} p^{4} r^{8} - 6 r^{12} + \log{\left(r_{0}^{36 \alpha_{1} \beta_{1} \ell^{6} p^{6} r^{2} \left(- 5 \beta_{1} \ell^{4} p^{4} + r^{4}\right)} \right)}}{\ell^{2} \left(3 \beta_{1} \ell^{4} p^{4} + r^{4}\right)^{3}}$}
+\]
+
+\subsection{Tensor de Ricci de la rama seleccionada}
+
+\noindent\texttt{eqt\_final\_Ricci}\par\nopagebreak[4]
+
+\[
+\resizebox{\textwidth}{!}{$\displaystyle \{R_{aa}\}_{\mathrm{diag}}\big|_{f=f_{\mathrm{EQT}}} = \begin{aligned}&R_{\tau\tau}=\frac{r^{2} \left(- 2 \alpha_{1} \ell^{2} p^{2} r^{2} \log{\left(r \right)} + \alpha_{2} \ell^{4} p^{4} - 2 \ell^{2} \lambda r^{2} + 2 r^{4} + \log{\left(r_{0}^{2 \alpha_{1} \ell^{2} p^{2} r^{2}} \right)}\right) \left(- 72 \alpha_{1} \beta_{1}^{2} \ell^{10} p^{10} r^{2} \log{\left(r \right)} - 36 \alpha_{1} \beta_{1}^{2} \ell^{10} p^{10} r^{2} + 24 \alpha_{1} \beta_{1} \ell^{6} p^{6} r^{6} \log{\left(r \right)} - 12 \alpha_{1} \beta_{1} \ell^{6} p^{6} r^{6} + 9 \alpha_{2} \beta_{1}^{2} \ell^{12} p^{12} - 18 \alpha_{2} \beta_{1} \ell^{8} p^{8} r^{4} + \alpha_{2} \ell^{4} p^{4} r^{8} - 72 \beta_{1}^{2} \ell^{10} \lambda p^{8} r^{2} + 162 \beta_{1}^{2} \ell^{8} p^{8} r^{4} + 24 \beta_{1} \ell^{6} \lambda p^{4} r^{6} + 12 \beta_{1} \ell^{4} p^{4} r^{8} + 2 r^{12} + \log{\left(r_{0}^{24 \alpha_{1} \beta_{1} \ell^{6} p^{6} r^{2} \left(3 \beta_{1} \ell^{4} p^{4} - r^{4}\right)} \right)}\right)}{2 \ell^{4} \left(3 \beta_{1} \ell^{4} p^{4} + r^{4}\right)^{4}},\\[4pt]&R_{rr}=\frac{2 \left(72 \alpha_{1} \beta_{1}^{2} \ell^{10} p^{10} r^{2} \log{\left(r \right)} - 72 \alpha_{1} \beta_{1}^{2} \ell^{10} p^{10} r^{2} \log{\left(r_{0} \right)} + 36 \alpha_{1} \beta_{1}^{2} \ell^{10} p^{10} r^{2} - 24 \alpha_{1} \beta_{1} \ell^{6} p^{6} r^{6} \log{\left(r \right)} + 24 \alpha_{1} \beta_{1} \ell^{6} p^{6} r^{6} \log{\left(r_{0} \right)} + 12 \alpha_{1} \beta_{1} \ell^{6} p^{6} r^{6} - 9 \alpha_{2} \beta_{1}^{2} \ell^{12} p^{12} + 18 \alpha_{2} \beta_{1} \ell^{8} p^{8} r^{4} - \alpha_{2} \ell^{4} p^{4} r^{8} + 72 \beta_{1}^{2} \ell^{10} \lambda p^{8} r^{2} - 162 \beta_{1}^{2} \ell^{8} p^{8} r^{4} - 24 \beta_{1} \ell^{6} \lambda p^{4} r^{6} - 12 \beta_{1} \ell^{4} p^{4} r^{8} - 2 r^{12}\right)}{r^{2} \left(3 \beta_{1} \ell^{4} p^{4} + r^{4}\right)^{2} \left(- 2 \alpha_{1} \ell^{2} p^{2} r^{2} \log{\left(r \right)} + 2 \alpha_{1} \ell^{2} p^{2} r^{2} \log{\left(r_{0} \right)} + \alpha_{2} \ell^{4} p^{4} - 2 \ell^{2} \lambda r^{2} + 2 r^{4}\right)},\\[4pt]&R_{\varphi\varphi}=\frac{r^{2} \left(12 \alpha_{1} \beta_{1} \ell^{6} p^{6} r^{2} \log{\left(r \right)} - 12 \alpha_{1} \beta_{1} \ell^{6} p^{6} r^{2} \log{\left(r_{0} \right)} + 3 \alpha_{1} \beta_{1} \ell^{6} p^{6} r^{2} + \alpha_{1} \ell^{2} p^{2} r^{6} - 3 \alpha_{2} \beta_{1} \ell^{8} p^{8} + \alpha_{2} \ell^{4} p^{4} r^{4} + 12 \beta_{1} \ell^{6} \lambda p^{4} r^{2} - 18 \beta_{1} \ell^{4} p^{4} r^{4} - 2 r^{8}\right)}{\ell^{2} \left(3 \beta_{1} \ell^{4} p^{4} + r^{4}\right)^{2}}\end{aligned}$}
+\]
+
+\subsection{Invariante cuadratico de Ricci}
+
+\noindent\texttt{eqt\_final\_Ricci2}\par\nopagebreak[4]
+
+\[
+\resizebox{\textwidth}{!}{$\displaystyle R_{ab}R^{ab}\big|_{f=f_{\mathrm{EQT}}} = \frac{11664 \alpha_{1}^{2} \beta_{1}^{4} \ell^{20} p^{20} r^{4} \log{\left(r \right)}^{2} + 11016 \alpha_{1}^{2} \beta_{1}^{4} \ell^{20} p^{20} r^{4} \log{\left(r \right)} + 11664 \alpha_{1}^{2} \beta_{1}^{4} \ell^{20} p^{20} r^{4} \log{\left(r_{0} \right)}^{2} + 2673 \alpha_{1}^{2} \beta_{1}^{4} \ell^{20} p^{20} r^{4} - 6048 \alpha_{1}^{2} \beta_{1}^{3} \ell^{16} p^{16} r^{8} \log{\left(r \right)}^{2} + 648 \alpha_{1}^{2} \beta_{1}^{3} \ell^{16} p^{16} r^{8} \log{\left(r \right)} - 6048 \alpha_{1}^{2} \beta_{1}^{3} \ell^{16} p^{16} r^{8} \log{\left(r_{0} \right)}^{2} + 1836 \alpha_{1}^{2} \beta_{1}^{3} \ell^{16} p^{16} r^{8} + 1296 \alpha_{1}^{2} \beta_{1}^{2} \ell^{12} p^{12} r^{12} \log{\left(r \right)}^{2} - 936 \alpha_{1}^{2} \beta_{1}^{2} \ell^{12} p^{12} r^{12} \log{\left(r \right)} + 1296 \alpha_{1}^{2} \beta_{1}^{2} \ell^{12} p^{12} r^{12} \log{\left(r_{0} \right)}^{2} + 342 \alpha_{1}^{2} \beta_{1}^{2} \ell^{12} p^{12} r^{12} + 24 \alpha_{1}^{2} \beta_{1} \ell^{8} p^{8} r^{16} \log{\left(r \right)} + 12 \alpha_{1}^{2} \beta_{1} \ell^{8} p^{8} r^{16} + \alpha_{1}^{2} \ell^{4} p^{4} r^{20} - 3240 \alpha_{1} \alpha_{2} \beta_{1}^{4} \ell^{22} p^{22} r^{2} \log{\left(r \right)} - 1458 \alpha_{1} \alpha_{2} \beta_{1}^{4} \ell^{22} p^{22} r^{2} + 5832 \alpha_{1} \alpha_{2} \beta_{1}^{3} \ell^{18} p^{18} r^{6} \log{\left(r \right)} + 2052 \alpha_{1} \alpha_{2} \beta_{1}^{3} \ell^{18} p^{18} r^{6} - 1944 \alpha_{1} \alpha_{2} \beta_{1}^{2} \ell^{14} p^{14} r^{10} \log{\left(r \right)} + 720 \alpha_{1} \alpha_{2} \beta_{1}^{2} \ell^{14} p^{14} r^{10} + 120 \alpha_{1} \alpha_{2} \beta_{1} \ell^{10} p^{10} r^{14} \log{\left(r \right)} - 36 \alpha_{1} \alpha_{2} \beta_{1} \ell^{10} p^{10} r^{14} + 2 \alpha_{1} \alpha_{2} \ell^{6} p^{6} r^{18} + 23328 \alpha_{1} \beta_{1}^{4} \ell^{20} \lambda p^{18} r^{4} \log{\left(r \right)} + 11016 \alpha_{1} \beta_{1}^{4} \ell^{20} \lambda p^{18} r^{4} - 50544 \alpha_{1} \beta_{1}^{4} \ell^{18} p^{18} r^{6} \log{\left(r \right)} - 24300 \alpha_{1} \beta_{1}^{4} \ell^{18} p^{18} r^{6} - 12096 \alpha_{1} \beta_{1}^{3} \ell^{16} \lambda p^{14} r^{8} \log{\left(r \right)} + 648 \alpha_{1} \beta_{1}^{3} \ell^{16} \lambda p^{14} r^{8} + 9072 \alpha_{1} \beta_{1}^{3} \ell^{14} p^{14} r^{10} \log{\left(r \right)} - 10584 \alpha_{1} \beta_{1}^{3} \ell^{14} p^{14} r^{10} + 2592 \alpha_{1} \beta_{1}^{2} \ell^{12} \lambda p^{10} r^{12} \log{\left(r \right)} - 936 \alpha_{1} \beta_{1}^{2} \ell^{12} \lambda p^{10} r^{12} - 144 \alpha_{1} \beta_{1}^{2} \ell^{10} p^{10} r^{14} \log{\left(r \right)} - 1296 \alpha_{1} \beta_{1}^{2} \ell^{10} p^{10} r^{14} + 24 \alpha_{1} \beta_{1} \ell^{8} \lambda p^{6} r^{16} + 144 \alpha_{1} \beta_{1} \ell^{6} p^{6} r^{18} \log{\left(r \right)} - 168 \alpha_{1} \beta_{1} \ell^{6} p^{6} r^{18} - 4 \alpha_{1} \ell^{2} p^{2} r^{22} + 243 \alpha_{2}^{2} \beta_{1}^{4} \ell^{24} p^{24} - 648 \alpha_{2}^{2} \beta_{1}^{3} \ell^{20} p^{20} r^{4} + 666 \alpha_{2}^{2} \beta_{1}^{2} \ell^{16} p^{16} r^{8} - 72 \alpha_{2}^{2} \beta_{1} \ell^{12} p^{12} r^{12} + 3 \alpha_{2}^{2} \ell^{8} p^{8} r^{16} - 3240 \alpha_{2} \beta_{1}^{4} \ell^{22} \lambda p^{20} r^{2} + 6804 \alpha_{2} \beta_{1}^{4} \ell^{20} p^{20} r^{4} + 5832 \alpha_{2} \beta_{1}^{3} \ell^{18} \lambda p^{16} r^{6} - 10800 \alpha_{2} \beta_{1}^{3} \ell^{16} p^{16} r^{8} - 1944 \alpha_{2} \beta_{1}^{2} \ell^{14} \lambda p^{12} r^{10} - 216 \alpha_{2} \beta_{1}^{2} \ell^{12} p^{12} r^{12} + 120 \alpha_{2} \beta_{1} \ell^{10} \lambda p^{8} r^{14} - 144 \alpha_{2} \beta_{1} \ell^{8} p^{8} r^{16} + 4 \alpha_{2} \ell^{4} p^{4} r^{20} + 11664 \beta_{1}^{4} \ell^{20} \lambda^{2} p^{16} r^{4} - 50544 \beta_{1}^{4} \ell^{18} \lambda p^{16} r^{6} + 55404 \beta_{1}^{4} \ell^{16} p^{16} r^{8} - 6048 \beta_{1}^{3} \ell^{16} \lambda^{2} p^{12} r^{8} + 9072 \beta_{1}^{3} \ell^{14} \lambda p^{12} r^{10} + 10368 \beta_{1}^{3} \ell^{12} p^{12} r^{12} + 1296 \beta_{1}^{2} \ell^{12} \lambda^{2} p^{8} r^{12} - 144 \beta_{1}^{2} \ell^{10} \lambda p^{8} r^{14} + 2376 \beta_{1}^{2} \ell^{8} p^{8} r^{16} + 144 \beta_{1} \ell^{6} \lambda p^{4} r^{18} + 192 \beta_{1} \ell^{4} p^{4} r^{20} + 12 r^{24} + \log{\left(r \right)} \log{\left(r_{0}^{864 \alpha_{1}^{2} \beta_{1}^{2} \ell^{12} p^{12} r^{4} \left(- 27 \beta_{1}^{2} \ell^{8} p^{8} + 14 \beta_{1} \ell^{4} p^{4} r^{4} - 3 r^{8}\right)} \right)} + \log{\left(r_{0}^{24 \alpha_{1} \beta_{1} \ell^{6} p^{6} r^{2} \left(- 459 \alpha_{1} \beta_{1}^{3} \ell^{14} p^{14} r^{2} - 27 \alpha_{1} \beta_{1}^{2} \ell^{10} p^{10} r^{6} + 39 \alpha_{1} \beta_{1} \ell^{6} p^{6} r^{10} - \alpha_{1} \ell^{2} p^{2} r^{14} + 135 \alpha_{2} \beta_{1}^{3} \ell^{16} p^{16} - 243 \alpha_{2} \beta_{1}^{2} \ell^{12} p^{12} r^{4} + 81 \alpha_{2} \beta_{1} \ell^{8} p^{8} r^{8} - 5 \alpha_{2} \ell^{4} p^{4} r^{12} - 972 \beta_{1}^{3} \ell^{14} \lambda p^{12} r^{2} + 2106 \beta_{1}^{3} \ell^{12} p^{12} r^{4} + 504 \beta_{1}^{2} \ell^{10} \lambda p^{8} r^{6} - 378 \beta_{1}^{2} \ell^{8} p^{8} r^{8} - 108 \beta_{1} \ell^{6} \lambda p^{4} r^{10} + 6 \beta_{1} \ell^{4} p^{4} r^{12} - 6 r^{16}\right)} \right)}}{\ell^{4} \left(3 \beta_{1} \ell^{4} p^{4} + r^{4}\right)^{6}}$}
+\]
+
+\subsection{Invariante de Kretschmann}
+
+\noindent\texttt{eqt\_final\_K}\par\nopagebreak[4]
+
+\[
+\resizebox{\textwidth}{!}{$\displaystyle R_{abcd}R^{abcd}\big|_{f=f_{\mathrm{EQT}}} = \frac{14256 \alpha_{1}^{2} \beta_{1}^{4} \ell^{20} p^{20} r^{4} \log{\left(r \right)}^{2} + 14904 \alpha_{1}^{2} \beta_{1}^{4} \ell^{20} p^{20} r^{4} \log{\left(r \right)} + 14256 \alpha_{1}^{2} \beta_{1}^{4} \ell^{20} p^{20} r^{4} \log{\left(r_{0} \right)}^{2} + 4131 \alpha_{1}^{2} \beta_{1}^{4} \ell^{20} p^{20} r^{4} - 11232 \alpha_{1}^{2} \beta_{1}^{3} \ell^{16} p^{16} r^{8} \log{\left(r \right)}^{2} - 2376 \alpha_{1}^{2} \beta_{1}^{3} \ell^{16} p^{16} r^{8} \log{\left(r \right)} - 11232 \alpha_{1}^{2} \beta_{1}^{3} \ell^{16} p^{16} r^{8} \log{\left(r_{0} \right)}^{2} + 2484 \alpha_{1}^{2} \beta_{1}^{3} \ell^{16} p^{16} r^{8} + 3888 \alpha_{1}^{2} \beta_{1}^{2} \ell^{12} p^{12} r^{12} \log{\left(r \right)}^{2} - 1944 \alpha_{1}^{2} \beta_{1}^{2} \ell^{12} p^{12} r^{12} \log{\left(r \right)} + 3888 \alpha_{1}^{2} \beta_{1}^{2} \ell^{12} p^{12} r^{12} \log{\left(r_{0} \right)}^{2} + 306 \alpha_{1}^{2} \beta_{1}^{2} \ell^{12} p^{12} r^{12} + 168 \alpha_{1}^{2} \beta_{1} \ell^{8} p^{8} r^{16} \log{\left(r \right)} - 12 \alpha_{1}^{2} \beta_{1} \ell^{8} p^{8} r^{16} + 3 \alpha_{1}^{2} \ell^{4} p^{4} r^{20} - 3240 \alpha_{1} \alpha_{2} \beta_{1}^{4} \ell^{22} p^{22} r^{2} \log{\left(r \right)} - 1458 \alpha_{1} \alpha_{2} \beta_{1}^{4} \ell^{22} p^{22} r^{2} + 8424 \alpha_{1} \alpha_{2} \beta_{1}^{3} \ell^{18} p^{18} r^{6} \log{\left(r \right)} + 3996 \alpha_{1} \alpha_{2} \beta_{1}^{3} \ell^{18} p^{18} r^{6} - 4824 \alpha_{1} \alpha_{2} \beta_{1}^{2} \ell^{14} p^{14} r^{10} \log{\left(r \right)} + 936 \alpha_{1} \alpha_{2} \beta_{1}^{2} \ell^{14} p^{14} r^{10} + 408 \alpha_{1} \alpha_{2} \beta_{1} \ell^{10} p^{10} r^{14} \log{\left(r \right)} - 156 \alpha_{1} \alpha_{2} \beta_{1} \ell^{10} p^{10} r^{14} + 10 \alpha_{1} \alpha_{2} \ell^{6} p^{6} r^{18} + 28512 \alpha_{1} \beta_{1}^{4} \ell^{20} \lambda p^{18} r^{4} \log{\left(r \right)} + 14904 \alpha_{1} \beta_{1}^{4} \ell^{20} \lambda p^{18} r^{4} - 66096 \alpha_{1} \beta_{1}^{4} \ell^{18} p^{18} r^{6} \log{\left(r \right)} - 35964 \alpha_{1} \beta_{1}^{4} \ell^{18} p^{18} r^{6} - 22464 \alpha_{1} \beta_{1}^{3} \ell^{16} \lambda p^{14} r^{8} \log{\left(r \right)} - 2376 \alpha_{1} \beta_{1}^{3} \ell^{16} \lambda p^{14} r^{8} + 26352 \alpha_{1} \beta_{1}^{3} \ell^{14} p^{14} r^{10} \log{\left(r \right)} - 11880 \alpha_{1} \beta_{1}^{3} \ell^{14} p^{14} r^{10} + 7776 \alpha_{1} \beta_{1}^{2} \ell^{12} \lambda p^{10} r^{12} \log{\left(r \right)} - 1944 \alpha_{1} \beta_{1}^{2} \ell^{12} \lambda p^{10} r^{12} - 1872 \alpha_{1} \beta_{1}^{2} \ell^{10} p^{10} r^{14} \log{\left(r \right)} - 576 \alpha_{1} \beta_{1}^{2} \ell^{10} p^{10} r^{14} + 168 \alpha_{1} \beta_{1} \ell^{8} \lambda p^{6} r^{16} + 144 \alpha_{1} \beta_{1} \ell^{6} p^{6} r^{18} \log{\left(r \right)} - 216 \alpha_{1} \beta_{1} \ell^{6} p^{6} r^{18} - 4 \alpha_{1} \ell^{2} p^{2} r^{22} + 243 \alpha_{2}^{2} \beta_{1}^{4} \ell^{24} p^{24} - 648 \alpha_{2}^{2} \beta_{1}^{3} \ell^{20} p^{20} r^{4} + 1314 \alpha_{2}^{2} \beta_{1}^{2} \ell^{16} p^{16} r^{8} - 216 \alpha_{2}^{2} \beta_{1} \ell^{12} p^{12} r^{12} + 11 \alpha_{2}^{2} \ell^{8} p^{8} r^{16} - 3240 \alpha_{2} \beta_{1}^{4} \ell^{22} \lambda p^{20} r^{2} + 6804 \alpha_{2} \beta_{1}^{4} \ell^{20} p^{20} r^{4} + 8424 \alpha_{2} \beta_{1}^{3} \ell^{18} \lambda p^{16} r^{6} - 18576 \alpha_{2} \beta_{1}^{3} \ell^{16} p^{16} r^{8} - 4824 \alpha_{2} \beta_{1}^{2} \ell^{14} \lambda p^{12} r^{10} + 1512 \alpha_{2} \beta_{1}^{2} \ell^{12} p^{12} r^{12} + 408 \alpha_{2} \beta_{1} \ell^{10} \lambda p^{8} r^{14} - 240 \alpha_{2} \beta_{1} \ell^{8} p^{8} r^{16} + 4 \alpha_{2} \ell^{4} p^{4} r^{20} + 14256 \beta_{1}^{4} \ell^{20} \lambda^{2} p^{16} r^{4} - 66096 \beta_{1}^{4} \ell^{18} \lambda p^{16} r^{6} + 78732 \beta_{1}^{4} \ell^{16} p^{16} r^{8} - 11232 \beta_{1}^{3} \ell^{16} \lambda^{2} p^{12} r^{8} + 26352 \beta_{1}^{3} \ell^{14} \lambda p^{12} r^{10} + 5184 \beta_{1}^{3} \ell^{12} p^{12} r^{12} + 3888 \beta_{1}^{2} \ell^{12} \lambda^{2} p^{8} r^{12} - 1872 \beta_{1}^{2} \ell^{10} \lambda p^{8} r^{14} + 2664 \beta_{1}^{2} \ell^{8} p^{8} r^{16} + 144 \beta_{1} \ell^{6} \lambda p^{4} r^{18} + 192 \beta_{1} \ell^{4} p^{4} r^{20} + 12 r^{24} + \log{\left(r \right)} \log{\left(r_{0}^{864 \alpha_{1}^{2} \beta_{1}^{2} \ell^{12} p^{12} r^{4} \left(- 33 \beta_{1}^{2} \ell^{8} p^{8} + 26 \beta_{1} \ell^{4} p^{4} r^{4} - 9 r^{8}\right)} \right)} + \log{\left(r_{0}^{24 \alpha_{1} \beta_{1} \ell^{6} p^{6} r^{2} \left(- 621 \alpha_{1} \beta_{1}^{3} \ell^{14} p^{14} r^{2} + 99 \alpha_{1} \beta_{1}^{2} \ell^{10} p^{10} r^{6} + 81 \alpha_{1} \beta_{1} \ell^{6} p^{6} r^{10} - 7 \alpha_{1} \ell^{2} p^{2} r^{14} + 135 \alpha_{2} \beta_{1}^{3} \ell^{16} p^{16} - 351 \alpha_{2} \beta_{1}^{2} \ell^{12} p^{12} r^{4} + 201 \alpha_{2} \beta_{1} \ell^{8} p^{8} r^{8} - 17 \alpha_{2} \ell^{4} p^{4} r^{12} - 1188 \beta_{1}^{3} \ell^{14} \lambda p^{12} r^{2} + 2754 \beta_{1}^{3} \ell^{12} p^{12} r^{4} + 936 \beta_{1}^{2} \ell^{10} \lambda p^{8} r^{6} - 1098 \beta_{1}^{2} \ell^{8} p^{8} r^{8} - 324 \beta_{1} \ell^{6} \lambda p^{4} r^{10} + 78 \beta_{1} \ell^{4} p^{4} r^{12} - 6 r^{16}\right)} \right)}}{\ell^{4} \left(3 \beta_{1} \ell^{4} p^{4} + r^{4}\right)^{6}}$}
+\]
+
+\begin{quote}\small En tres dimensiones se usa (R_{abcd}R^{abcd}=4R_{ab}R^{ab}-R^2).\end{quote}
+
+\section{Verificaciones simbolicas automaticas}
+\begin{longtable}{p{0.67\textwidth}cc}
+\toprule
+\textbf{Residuo} & \textbf{Valor} & \textbf{Estado}\\
+\midrule
+\endfirsthead
+\toprule
+\textbf{Residuo} & \textbf{Valor} & \textbf{Estado}\\
+\midrule
+\endhead
+\texttt{diffeo\_moment\_identity} & $0$ & OK\\
+\texttt{general\_bianchi} & $0$ & OK\\
+\texttt{case0\_divP} & $0$ & OK\\
+\texttt{case0\_doubledivP} & $0$ & OK\\
+\texttt{case0\_bianchi} & $0$ & OK\\
+\texttt{case1\_divP} & $0$ & OK\\
+\texttt{case1\_doubledivP} & $0$ & OK\\
+\texttt{case1\_bianchi} & $0$ & OK\\
+\texttt{case2\_bianchi} & $0$ & OK\\
+\texttt{ansatz\_bianchi} & $0$ & OK\\
+\texttt{btz\_ricci} & $0$ & OK\\
+\texttt{btz\_R} & $0$ & OK\\
+\texttt{btz\_einstein} & $0$ & OK\\
+\texttt{btz\_field\_equations} & $0$ & OK\\
+\texttt{btz\_constant\_curvature} & $0$ & OK\\
+\texttt{btz\_kretschmann} & $0$ & OK\\
+\texttt{case1\_ansatz\_box} & $0$ & OK\\
+\texttt{case1\_integrate\_f} & $0$ & OK\\
+\texttt{case1\_f\_solution} & $0$ & OK\\
+\texttt{case1\_bianchi\_ansatz} & $0$ & OK\\
+\texttt{case1\_noether\_ansatz} & $0$ & OK\\
+\texttt{case1\_field\_solution} & $0$ & OK\\
+\texttt{case1\_scalar\_solution} & $0$ & OK\\
+\texttt{case1\_R\_solution} & $0$ & OK\\
+\texttt{case1\_boundary\_ansatz} & $0$ & OK\\
+\texttt{case2\_moment\_identity} & $0$ & OK\\
+\texttt{case2\_ansatz\_Ephi} & $0$ & OK\\
+\texttt{case2\_f\_solution} & $0$ & OK\\
+\texttt{case2\_bianchi\_ansatz} & $0$ & OK\\
+\texttt{case2\_noether\_ansatz} & $0$ & OK\\
+\texttt{case2\_field\_solution} & $0$ & OK\\
+\texttt{case2\_scalar\_solution} & $0$ & OK\\
+\texttt{case2\_boundary\_ansatz} & $0$ & OK\\
+\texttt{eqt\_ansatz\_Ephi} & $0$ & OK\\
+\texttt{eqt\_radial\_reduction} & $0$ & OK\\
+\texttt{eqt\_f\_branch} & $0$ & OK\\
+\texttt{eqt\_final\_field} & $0$ & OK\\
+\texttt{eqt\_final\_scalar} & $0$ & OK\\
+\texttt{eqt\_final\_noether} & $0$ & OK\\
+\bottomrule
+\end{longtable}
+
+\section{Resultado final}
+Para el Caso-0, los momentos son
+\[
+P_0^{abcd}=\tfrac12(g^{ac}g^{bd}-g^{ad}g^{bc}),\quad
+M^{(0)}_{ab}=2R_{ab},\quad J_0^a=F_\phi^{(0)}=0,
+\]
+y $\nabla_aP_0^{abcd}=0$. Por tanto,
+\[
+E^{(0)}_{ab}=G_{ab}-\ell^{-2}g_{ab}=0.
+\]
+El ansatz circular reduce estas ecuaciones a $f'=2r/\ell^2$ y
+$f''=2/\ell^2$, cuya solucion es $f=r^2/\ell^2-\lambda$. La sustitucion final
+da $R_{ab}=-2g_{ab}/\ell^2$, $R=-6/\ell^2$ y $E^{(0)}_{ab}=0$ componente a
+componente. La identidad de Bianchi se anula incluso antes de imponer la solucion.
+
+Para el Caso-1 se obtiene, antes del ansatz,
+\[
+P_1^{abcd}=P_0^{abcd},\qquad
+M^{(1)}_{ab}=2R_{ab}-\alpha_1u_au_b,\qquad
+J_1^a=-2\alpha_1u^a,
+\]
+\[
+E^{(1)}_{ab}=G_{ab}-\ell^{-2}g_{ab}
+-\alpha_1\left(u_au_b-\tfrac12g_{ab}X\right),
+\qquad E^{(1)}_\phi=2\alpha_1\Box\phi.
+\]
+Solo después de fijar $\phi=p\varphi$, la ecuación escalar se anula y la ecuación
+radial integra a
+\[
+f_{(1)}(r)=\frac{r^2}{\ell^2}-\lambda
+-\alpha_1p^2\log\left(\frac r{r_0}\right).
+\]
+La sustitución directa devuelve $E^{(1)}_{ab}=0$, $E^{(1)}_\phi=0$ y la identidad
+de Bianchi--Noether nula componente a componente.
+
+Para el Caso-2, definiendo
+\[
+H^{ab}=3u^au^b-Xg^{ab},\qquad
+C^{ab}=g^{ab}+\ell^2\beta_0H^{ab},
+\]
+los momentos caracteristicos son
+\[
+P_2^{abcd}=\tfrac14(C^{ac}g^{bd}-C^{ad}g^{bc}-C^{bc}g^{ad}+C^{bd}g^{ac}),
+\qquad
+J_2^a=2\ell^2\beta_0(3R^{ab}-Rg^{ab})u_b.
+\]
+El perfil $\phi=p\varphi$ satisface la ecuacion escalar y las ecuaciones metricas
+se integran mediante $N=Hf$, con $H=1+\beta_0p^2\ell^2/r^2$. La rama exacta es
+\[
+f_{(2)}(r)=\frac{r^2/\ell^2-\lambda}
+{1+\beta_0p^2\ell^2/r^2}.
+\]
+Tras sustituirla se obtienen todos los momentos en forma explicita,
+$E^{(2)}_{ab}=0$, $E^{(2)}_\phi=0$ y la identidad de Bianchi--Noether nula.
+
+La generalizacion implementa una suma finita elegida por el usuario,
+\[
+L_{\rm EQT}=R+\frac{2}{\ell^2}
+-\sum_{n\ge1}\alpha_n\ell^{2(n-1)}X^n
++\sum_{m\ge0}\beta_m\ell^{2(m+1)}X^m
+\left[(3+2m)R_{ab}u^au^b-XR\right].
+\]
+Cada invariante aporta reglas para $P^{abcd}$ y $J^a$; el momento metrico se
+reconstruye con $M_{ab}=2\mathcal R_{(ab)}+\tfrac12J_{(a}u_{b)}$. Sobre el
+ansatz, la ecuacion radial toma la forma
+\[
+E_{rr}=\frac{1}{2rf}\frac{d}{dr}\left[H(r)f(r)-N(r)\right]=0,
+\]
+con
+\[
+N=\frac{r^2}{\ell^2}-\lambda-\alpha_1p^2\log(r/r_0)
++\sum_{n\ge2}\frac{\alpha_n\ell^{2(n-1)}p^{2n}}
+{2(n-1)r^{2(n-1)}},
+\]
+\[
+H=1+\sum_{m\ge0}\beta_m(2m+1)
+\left(\frac{p\ell}{r}\right)^{2(m+1)},\qquad f_{\rm EQT}=\frac NH.
+\]
+La configuracion de demostracion activa $\alpha_1,\alpha_2,\beta_1$ y verifica
+todos los momentos finales, $E_{ab}=0$, $E_\phi=0$ y Bianchi--Noether.
+
+\end{document}
