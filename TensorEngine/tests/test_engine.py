@@ -94,6 +94,8 @@ def test_engine_runs_required_pipeline_with_one_call() -> None:
         "integrate_by_parts",
         "noether",
         "verify",
+        "derive_intermediate_quantities",
+        "organize_result_views",
     ]
     assert result.skipped_stages == ("components", "wolfram_model_validation", "export")
     specifications = {stage.key: stage for stage in DEFAULT_PIPELINE}
@@ -173,6 +175,8 @@ def test_engine_emits_ordered_observable_events() -> None:
         "integrate_by_parts",
         "noether",
         "verify",
+        "derive_intermediate_quantities",
+        "organize_result_views",
     )]
     assert all(event.duration_seconds >= 0 for event in events)
 

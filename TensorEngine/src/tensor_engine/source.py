@@ -9,7 +9,8 @@ import json
 from typing import Any, Mapping
 
 from .builders import ModelBuilder
-from .errors import SourceCompilationError
+from .errors import SourceCompilationError, TensorEngineError
+from .invariants import DEFAULT_INVARIANTS, TENSOR_SOURCE_CONSTRUCTORS, InvariantRegistry
 from .ir import Expr, Number, Scalar
 from .model import DimensionSpec, FunctionSpec, GeometrySymbols, ModelSpec, ParameterSpec
 
@@ -17,7 +18,9 @@ from .model import DimensionSpec, FunctionSpec, GeometrySymbols, ModelSpec, Para
 SOURCE_SCHEMA_VERSION = "1.0"
 _MAX_SOURCE_LENGTH = 10_000
 _MAX_AST_NODES = 1_000
-_RESERVED_METADATA = {"source_expression", "source_fingerprint", "source_schema_version"}
+_RESERVED_METADATA = {
+    "source_expression", "source_fingerprint", "source_schema_version", "source_invariants",
+}
 
 
 def _fingerprint(data: Mapping[str, Any]) -> str:
@@ -36,12 +39,15 @@ class _Compiler:
         dimension: DimensionSpec,
         *,
         normalization: bool = False,
+        registry: InvariantRegistry = DEFAULT_INVARIANTS,
     ) -> None:
         self.builder = builder
         self.parameter_names = {item.name for item in parameters}
         self.function_arities = {item.name: item.arity for item in functions}
         self.dimension_name = str(dimension.value) if dimension.is_symbolic else None
         self.normalization = normalization
+        self.registry = registry
+        self.expanded_aliases: dict[str, Expr] = {}
 
     def compile(self, source: str) -> Expr:
         if not source.strip():
@@ -60,7 +66,12 @@ class _Compiler:
             raise SourceCompilationError(
                 f"La expresión supera el límite de {_MAX_AST_NODES} nodos sintácticos."
             )
-        return self._node(tree.body)
+        try:
+            return self._node(tree.body)
+        except SourceCompilationError:
+            raise
+        except TensorEngineError as error:
+            raise self._reject(tree.body, str(error)) from error
 
     @staticmethod
     def _location(node: ast.AST) -> str:
@@ -86,12 +97,10 @@ class _Compiler:
                     node,
                     f"El símbolo {name!r} no puede aparecer en la normalización",
                 )
-            if name == "R":
-                return self.builder.ricci_scalar()
-            if name == "X":
-                return self.builder.kinetic_scalar()
-            if name == "phi":
-                return self.builder.phi
+            if name in self.registry.aliases:
+                if name not in self.expanded_aliases:
+                    self.expanded_aliases[name] = self.registry.expand(name, self.builder)
+                return self.expanded_aliases[name]
             if name in self.function_arities:
                 raise self._reject(node, f"La función {name!r} debe escribirse con argumentos")
             raise self._reject(node, f"Símbolo no declarado {name!r}")
@@ -133,6 +142,25 @@ class _Compiler:
             if node.keywords:
                 raise self._reject(node, "Las funciones no admiten argumentos con nombre")
             name = node.func.id
+            if name == "contract":
+                if not node.args:
+                    raise self._reject(node, "contract requiere al menos un factor")
+                return self.builder.contract(*(self._node(item) for item in node.args))
+            constructors = {
+                "Riemann": (self.builder.riemann, 4),
+                "metric": (self.builder.metric, 2),
+                "gradient": (self.builder.scalar_gradient, 1),
+            }
+            if name in constructors:
+                constructor, count = constructors[name]
+                if len(node.args) != count:
+                    raise self._reject(node, f"{name} espera {count} índices")
+                if any(
+                    not isinstance(item, ast.Constant) or not isinstance(item.value, str)
+                    for item in node.args
+                ):
+                    raise self._reject(node, "Los índices deben ser cadenas literales")
+                return constructor(*(item.value for item in node.args))
             arity = self.function_arities.get(name)
             if arity is None:
                 raise self._reject(node, f"Función no declarada {name!r}")
@@ -173,7 +201,9 @@ class LagrangianSourceSpec:
         declared_names = {item.name for item in self.parameters}.union(
             item.name for item in self.functions
         )
-        alias_collisions = {"R", "X", "phi"}.intersection(declared_names)
+        alias_collisions = (
+            set(DEFAULT_INVARIANTS.aliases) | TENSOR_SOURCE_CONSTRUCTORS
+        ).intersection(declared_names)
         if alias_collisions:
             raise SourceCompilationError(
                 "Nombres reservados por la gramática: " + ", ".join(sorted(alias_collisions))
@@ -188,25 +218,53 @@ class LagrangianSourceSpec:
     def fingerprint(self) -> str:
         return _fingerprint(self.to_data())
 
-    def compile(self) -> ModelSpec:
+    def compile(self, *, registry: InvariantRegistry = DEFAULT_INVARIANTS) -> ModelSpec:
+        """Expande azúcar sintáctico a IR; el motor recibe solo ModelSpec.
+
+        Para recompilar fuentes que usan extensiones, vuelva a proporcionar su
+        registro. Los modelos y bundles ya expandidos no dependen del registro.
+        """
+        declared_names = {item.name for item in self.parameters + self.functions}
+        if self.dimension.is_symbolic:
+            declared_names.add(str(self.dimension.value))
+        collisions = (set(registry.aliases) | TENSOR_SOURCE_CONSTRUCTORS).intersection(
+            declared_names
+        )
+        if collisions:
+            raise SourceCompilationError(
+                "Nombres reservados por el registro: " + ", ".join(sorted(collisions))
+            )
         builder = ModelBuilder(self.symbols)
-        lagrangian = _Compiler(
+        compiler = _Compiler(
             builder,
             self.parameters,
             self.functions,
             self.dimension,
-        ).compile(self.expression)
+            registry=registry,
+        )
+        lagrangian = compiler.compile(self.expression)
         normalization = _Compiler(
             builder,
             self.parameters,
             (),
             self.dimension,
             normalization=True,
+            registry=registry,
         ).compile(self.normalization)
         metadata = self.metadata + (
             ("source_expression", self.expression),
             ("source_fingerprint", self.fingerprint),
             ("source_schema_version", self.schema_version),
+            (
+                "source_invariants",
+                json.dumps({
+                    alias: {
+                        "version": registry.get(alias).version,
+                        "ir_sha256": _fingerprint(expression.to_data()),
+                    }
+                    for alias, expression in sorted(compiler.expanded_aliases.items())
+                }, sort_keys=True),
+            ),
         )
         return ModelSpec(
             self.name,

@@ -14,12 +14,13 @@ from typing import Any, Mapping
 
 from .contracts import VerificationRecord, VerificationStatus
 from .errors import BackendExecutionError, BackendUnavailableError
-from .euler import EulerLagrangeResult
+from .differential import DifferentialContext
+from .euler import EulerLagrangeResult, curvature_derivative_metric_term
 from .indices import all_indices, index_key, rename_free_indices
 from .ir import Expr, Number, Scalar, VolumeElement, add, expr_from_data, infer_free_indices, mul
 from .model import ModelSpec, TensorDeclaration
 from .noether import NoetherWaldResult
-from .variational import LagrangianMomenta
+from .variational import LagrangianMomenta, VariationalContext
 
 
 BRIDGE_SCHEMA_VERSION = "1.3"
@@ -353,6 +354,11 @@ def _generic_checks(
     euler: EulerLagrangeResult,
     noether: NoetherWaldResult | None,
 ) -> tuple[dict[str, Any], ...]:
+    expected_curvature_derivative_term = curvature_derivative_metric_term(
+        momenta.curvature,
+        VariationalContext.from_model(model),
+        DifferentialContext.from_model(model),
+    )
     checks: list[tuple[str, str, Expr, str, str, tuple[str, ...]]] = [
         ("metric_momentum_symmetry", "M_ab es simétrico para este modelo.", _permutation_residual(momenta.metric, (1, 0), 1), "failed", "algebraic", ()),
         ("curvature_momentum_first_pair", "P^{abcd} es antisimétrico en el primer par.", _permutation_residual(momenta.curvature, (1, 0, 2, 3), -1), "failed", "algebraic", ()),
@@ -362,6 +368,17 @@ def _generic_checks(
         ("metric_euler_symmetry", "E_ab es simétrico para este modelo.", _permutation_residual(euler.metric_euler, (1, 0), 1), "failed", "algebraic", ()),
         ("boundary_sum", "La frontera total coincide con sus sectores.", add(euler.boundary_total, mul(-1, add(euler.boundary_metric, euler.boundary_scalar))), "failed", "algebraic", ()),
         ("density_factorization", "La variación de densidad factoriza sqrt(-g).", add(euler.density_variation, mul(-1, VolumeElement(model.symbols.metric), euler.full_variation)), "failed", "algebraic", ()),
+        (
+            "metric_euler_curvature_derivative_term",
+            "El término de E_ab procedente de nabla nabla P coincide con -2 nabla^c nabla^d P_acdb.",
+            add(
+                euler.curvature_derivative_metric_term,
+                mul(-1, expected_curvature_derivative_term),
+            ),
+            "failed",
+            "differential",
+            (),
+        ),
     ]
     if noether is not None:
         checks.extend(

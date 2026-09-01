@@ -7,7 +7,7 @@ simplificar cada componente.
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from itertools import product
 import re
 from typing import Any, Mapping, Sequence
@@ -253,14 +253,17 @@ def sympy_scalar_to_ir(expr: sp.Expr) -> Expr:
     if isinstance(expr, sp.Derivative):
         return _derivative_to_ir(expr)
     if isinstance(expr, sp.Subs) and isinstance(expr.expr, sp.Derivative):
-        replaced = expr.expr.xreplace(dict(zip(expr.variables, expr.point, strict=True)))
-        base = replaced.expr
+        derivative = expr.expr
+        base = derivative.expr
         if not isinstance(base, AppliedUndef):
             raise BackendExecutionError(f"Subs no representable en la IR: {expr!s}.")
-        arguments = tuple(sympy_scalar_to_ir(item) for item in base.args)
+        substitutions = dict(zip(expr.variables, expr.point, strict=True))
+        arguments = tuple(
+            sympy_scalar_to_ir(item.xreplace(substitutions)) for item in base.args
+        )
         orders = [0] * len(base.args)
-        for variable, count in expr.expr.variable_count:
-            position = expr.expr.expr.args.index(variable)
+        for variable, count in derivative.variable_count:
+            position = base.args.index(variable)
             orders[position] += int(count)
         return FunctionDerivative(base.func.__name__, tuple(orders), arguments)
     if expr.is_Function:
@@ -278,10 +281,16 @@ class ComponentTensor:
     indices: tuple[Index, ...]
     dimension: int
     values: tuple[tuple[tuple[int, ...], sp.Expr], ...]
+    _value_mapping: Mapping[tuple[int, ...], sp.Expr] = field(
+        init=False,
+        repr=False,
+        compare=False,
+    )
 
     def __post_init__(self) -> None:
         object.__setattr__(self, "indices", tuple(self.indices))
         object.__setattr__(self, "values", tuple(self.values))
+        object.__setattr__(self, "_value_mapping", dict(self.values))
         if self.dimension < 2:
             raise TensorAlgebraError("Un tensor coordenado requiere dimensión D>=2.")
         positions = [position for position, _ in self.values]
@@ -314,14 +323,14 @@ class ComponentTensor:
 
     @property
     def mapping(self) -> dict[tuple[int, ...], sp.Expr]:
-        return dict(self.values)
+        return dict(self._value_mapping)
 
     def component(self, *positions: int) -> sp.Expr:
         if len(positions) != len(self.indices):
             raise TensorAlgebraError(
                 f"Se esperaban {len(self.indices)} posiciones y se recibieron {len(positions)}."
             )
-        return self.mapping.get(tuple(positions), sp.S.Zero)
+        return self._value_mapping.get(tuple(positions), sp.S.Zero)
 
     @property
     def is_scalar(self) -> bool:
@@ -625,6 +634,25 @@ def spatially_flat_flrw_ansatz() -> GeometryAnsatz:
     )
 
 
+def draft4_circular_ansatz() -> GeometryAnsatz:
+    """Draft 4, ec. (8): ds²=-f(r)dτ²+dr²/f(r)+r²dvarphi², phi=p varphi."""
+
+    tau, radial, angle = (Scalar(name) for name in ("tau", "r", "varphi"))
+    metric_function = Function("f", (radial,))
+    zero = Number(0)
+    return GeometryAnsatz(
+        name="draft4_circular",
+        chart=CoordinateChart("draft4_axial", (tau, radial, angle)),
+        metric_covariant=(
+            (mul(-1, metric_function), zero, zero),
+            (zero, power(metric_function, -1), zero),
+            (zero, zero, power(radial, 2)),
+        ),
+        scalar_field=mul(Scalar("p"), angle),
+        assumptions=("r>0", "f(r)!=0", "phi=p*varphi"),
+    )
+
+
 class SympyComponentBackend:
     """Proyecta la IR tensorial a componentes coordenadas exactas."""
 
@@ -652,6 +680,7 @@ class SympyComponentBackend:
         }
         if self.geometry.scalar_field is not None:
             self.scalar_values[self.symbols.scalar] = self.geometry.scalar_field
+        self._evaluation_cache: dict[Expr, ComponentTensor] = {}
 
     @classmethod
     def from_model(
@@ -713,7 +742,16 @@ class SympyComponentBackend:
 
     def _tensor(self, expr: Tensor) -> ComponentTensor:
         n = self.geometry.dimension
-        if expr.name in self.tensors:
+        if expr.name == "delta":
+            if (len(expr.indices) != 2
+                    or any(i.space != self.symbols.index_space for i in expr.indices)
+                    or expr.indices[0].variance is expr.indices[1].variance):
+                raise BackendExecutionError(
+                    "El delta requiere dos índices de varianza opuesta en el espacio de la geometría activa."
+                )
+            values = {(a, b): sp.S.One if a == b else sp.S.Zero
+                      for a, b in product(range(n), repeat=2)}
+        elif expr.name in self.tensors:
             source = self.tensors[expr.name]
             if source.dimension != n:
                 raise TensorAlgebraError(
@@ -748,7 +786,11 @@ class SympyComponentBackend:
             raise BackendExecutionError(
                 f"No hay componentes registradas para el tensor {expr.name!r}."
             )
-        return ComponentTensor.from_mapping(expr.indices, n, values)
+        tensor = ComponentTensor.from_mapping(expr.indices, n, values)
+        # Identity elimination can expose an intrinsic trace T^a_a. Use the
+        # same summation path as products, rather than leaving duplicate axes.
+        free = infer_free_indices(expr)
+        return tensor if len(free) == len(expr.indices) else self._contract_components([tensor], free)
 
     @staticmethod
     def _align(tensor: ComponentTensor, indices: tuple[Index, ...]) -> ComponentTensor:
@@ -777,6 +819,12 @@ class SympyComponentBackend:
     def _multiply(self, expr: Mul) -> ComponentTensor:
         factors = [self._evaluate(factor) for factor in expr.factors]
         output_indices = infer_free_indices(expr)
+        return self._contract_components(factors, output_indices)
+
+    def _contract_components(
+        self, factors: list[ComponentTensor], output_indices: tuple[Index, ...],
+    ) -> ComponentTensor:
+        """Shared Einstein summation for products and intrinsic tensor traces."""
         occurrences: dict[tuple[str, str], list[Index]] = {}
         for factor in factors:
             for index in factor.indices:
@@ -853,7 +901,7 @@ class SympyComponentBackend:
             values[output_position] = sp.simplify(total)
         return ComponentTensor.from_mapping(output_indices, n, values)
 
-    def _evaluate(self, expr: Expr) -> ComponentTensor:
+    def _evaluate_uncached(self, expr: Expr) -> ComponentTensor:
         if isinstance(expr, (Number, Scalar, Function, FunctionDerivative)):
             return self._scalar(expr)
         if isinstance(expr, Tensor):
@@ -878,6 +926,14 @@ class SympyComponentBackend:
         if isinstance(expr, Variation):
             raise BackendExecutionError("Una variación formal no puede evaluarse como componente.")
         raise BackendExecutionError(f"Nodo IR no soportado: {type(expr).__name__}.")
+
+    def _evaluate(self, expr: Expr) -> ComponentTensor:
+        cached = self._evaluation_cache.get(expr)
+        if cached is not None:
+            return cached
+        result = self._evaluate_uncached(expr)
+        self._evaluation_cache[expr] = result
+        return result
 
     def evaluate_sympy(self, expr: Expr) -> ComponentTensor:
         """Evalúa una expresión y conserva componentes SymPy para trabajo numérico."""

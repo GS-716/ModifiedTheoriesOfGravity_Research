@@ -93,8 +93,40 @@ DEFAULT_PIPELINE: tuple[StageSpec, ...] = (
         description="Ejecuta verificaciones matemáticas y de integridad.",
     ),
     StageSpec(
+        "derive_intermediate_quantities",
+        (
+            "validated_model",
+            "curvature_momentum",
+            "metric_euler",
+            "verification_report",
+        ),
+        ("derived_quantities",),
+        description=(
+            "Expone R, Riemann, nabla P, nabla nabla P y su contracción en E_ab."
+        ),
+    ),
+    StageSpec(
+        "organize_result_views",
+        (
+            "lagrangian",
+            "metric_momentum",
+            "curvature_momentum",
+            "metric_euler",
+            "scalar_euler",
+            "derived_quantities",
+        ),
+        ("abstract_results", "projected_results"),
+        description="Organiza las vistas abstracta y proyectada sin recalcular la variación.",
+    ),
+    StageSpec(
         "export",
-        ("validated_model", "verification_report"),
+        (
+            "validated_model",
+            "verification_report",
+            "derived_quantities",
+            "abstract_results",
+            "projected_results",
+        ),
         ("run_manifest", "exported_artifacts"),
         optional=True,
         description="Genera manifestación y artefactos de presentación.",

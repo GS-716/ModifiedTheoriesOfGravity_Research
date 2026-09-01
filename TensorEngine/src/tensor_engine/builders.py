@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 
+from .errors import TensorAlgebraError
 from .ir import Expr, Index, Scalar, Tensor, Variance, function, mul
 from .model import GeometrySymbols
 
@@ -58,4 +59,28 @@ class ModelBuilder:
             self.metric("a", "b"),
             self.scalar_gradient("a"),
             self.scalar_gradient("b"),
+        )
+
+    def contract(self, *factors: Expr) -> Expr:
+        """Contrae por índices de Einstein; exige un resultado escalar.
+
+        mul ya valida varianzas y preserva el alcance de los índices mudos de
+        subexpresiones escalares. No se introducen nuevas reglas de índices.
+        """
+        if not factors:
+            raise TensorAlgebraError("contract requiere al menos un factor.")
+        result = mul(*factors)
+        if not result.is_scalar:
+            raise TensorAlgebraError("contract debe contraer todos los índices libres.")
+        return result
+
+    def ricci_uu(self) -> Expr:
+        """R_bd u^b u^d = g^ac R_abcd g^be g^df u_e u_f."""
+        return self.contract(
+            self.metric("a", "c"),
+            self.riemann("a", "b", "c", "d"),
+            self.metric("b", "e"),
+            self.metric("d", "f"),
+            self.scalar_gradient("e"),
+            self.scalar_gradient("f"),
         )

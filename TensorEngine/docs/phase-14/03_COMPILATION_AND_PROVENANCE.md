@@ -9,6 +9,12 @@ El modelo compilado conserva en `metadata`:
 - expresión original;
 - versión del esquema de fuente;
 - fingerprint SHA-256 de toda la especificación declarativa.
+- `source_invariants`: versiones y SHA-256 de las expansiones IR usadas.
+
+El JSON de una fuente no contiene funciones ejecutables. Recompilar un alias
+personalizado requiere proporcionar el registro correspondiente; cargar un
+`ModelSpec` o `RunPackage` ya expandido no lo requiere. Las expansiones distintas
+producen fingerprints de modelo distintos, incluso con el mismo texto fuente.
 
 Como el fingerprint forma parte del `ModelSpec`, queda incluido también en el
 fingerprint de modelo que vincula la evidencia xAct.

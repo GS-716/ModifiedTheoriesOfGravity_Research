@@ -106,7 +106,8 @@ def rename_free_indices(expr: Expr, mapping: Mapping[IndexKey, str]) -> Expr:
 
     # Los índices mudos se hacen higiénicos primero para impedir que compartan
     # accidentalmente el nombre de un índice libre durante el renombrado.
-    hygienic = canonicalize_dummy_indices(expr)
+    reserved_targets = {(space, name) for (space, _), name in mapping.items()}
+    hygienic = canonicalize_dummy_indices(expr, reserved=reserved_targets)
     return rename_indices(hygienic, mapping)
 
 
@@ -217,10 +218,12 @@ def _canonicalize_dummies(expr: Expr, allocator: _FreshIndexAllocator) -> Expr:
     raise TypeError(f"Nodo IR no reconocido: {type(expr).__name__}")
 
 
-def canonicalize_dummy_indices(expr: Expr, prefix: str = "d") -> Expr:
+def canonicalize_dummy_indices(
+    expr: Expr, prefix: str = "d", *, reserved: Iterable[IndexKey] = (),
+) -> Expr:
     """Renombra índices mudos determinísticamente sin tocar índices libres."""
 
-    free = {index_key(index) for index in infer_free_indices(expr)}
+    free = {index_key(index) for index in infer_free_indices(expr)} | set(reserved)
     # Primera pasada: aparta todos los nombres mudos a un espacio temporal que
     # no colisiona con ningún nombre existente. Segunda pasada: asigna d0, d1,
     # ... reservando únicamente los nombres libres. Así la operación es

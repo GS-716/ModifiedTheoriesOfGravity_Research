@@ -24,6 +24,7 @@ from tensor_engine import (
     Tensor,
     Variance,
     evaluate_field_equations,
+    draft4_circular_ansatz,
     ir_scalar_to_sympy,
     mul,
     spatially_flat_flrw_ansatz,
@@ -52,6 +53,36 @@ class AnsatzContractTests(unittest.TestCase):
         with self.assertRaises(ModelValidationError):
             GeometryAnsatz.from_data(data)
 
+    def test_draft4_ansatz_json_roundtrip(self) -> None:
+        ansatz = draft4_circular_ansatz()
+        encoded = json.loads(json.dumps(ansatz.to_data()))
+        self.assertEqual(GeometryAnsatz.from_data(encoded), ansatz)
+
+
+class Draft4GeometryTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.geometry = CoordinateGeometry.build(draft4_circular_ansatz())
+        cls.r = cls.geometry.coordinates[1]
+        cls.f = sp.Function("f")(cls.r)
+        cls.p = sp.Symbol("p")
+
+    def test_metric_inverse_and_determinant(self) -> None:
+        self.assertEqual(
+            sp.simplify(
+                self.geometry.metric_covariant * self.geometry.metric_contravariant
+            ),
+            sp.eye(3),
+        )
+        self.assertEqual(sp.simplify(self.geometry.determinant + self.r**2), 0)
+
+    def test_axial_scalar_profile(self) -> None:
+        self.assertEqual(
+            self.geometry.scalar_gradient_covariant(),
+            (sp.S.Zero, sp.S.Zero, self.p),
+        )
+        self.assertEqual(sp.simplify(self.geometry.scalar_laplacian()), 0)
+
 
 class ScalarTranslationTests(unittest.TestCase):
     def test_function_derivative_roundtrip(self) -> None:
@@ -59,6 +90,23 @@ class ScalarTranslationTests(unittest.TestCase):
         expression = FunctionDerivative("F", (2,), (Function("phi", (t,)),))
         translated = ir_scalar_to_sympy(expression)
         self.assertEqual(sympy_scalar_to_ir(translated), expression)
+
+    def test_substituted_function_derivative_accepts_composite_argument(self) -> None:
+        dummy = sp.Symbol("dummy")
+        p, angle = sp.symbols("p varphi")
+        expression = sp.Subs(
+            sp.Derivative(sp.Function("V")(dummy), dummy),
+            dummy,
+            p * angle,
+        )
+        self.assertEqual(
+            sympy_scalar_to_ir(expression),
+            FunctionDerivative(
+                "V",
+                (1,),
+                (mul(Scalar("p"), Scalar("varphi")),),
+            ),
+        )
 
     def test_elementary_functions_are_evaluated(self) -> None:
         theta = Scalar("theta")

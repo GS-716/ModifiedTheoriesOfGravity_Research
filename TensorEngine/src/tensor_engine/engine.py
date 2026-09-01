@@ -25,9 +25,17 @@ from .contracts import (
     Severity,
     validate_stage_result,
 )
-from .errors import PipelineExecutionError
+from .derived import (
+    AbstractTensorResults,
+    DerivedQuantities,
+    ProjectedTensorResults,
+    build_result_views,
+    derive_intermediate_quantities,
+)
+from .errors import PipelineExecutionError, TensorEngineError
 from .euler import EulerLagrangeResult
 from .exporting import ExportBundle, RunExporter, RunPackage
+from .presentation import DisplayPolicy
 from .ir import Expr, Number, mul
 from .model import ModelSpec
 from .noether import NoetherWaldResult
@@ -110,6 +118,24 @@ class EngineRun:
     @property
     def status(self) -> StageStatus:
         return self.package.verification.status
+
+    @property
+    def derived(self) -> DerivedQuantities | None:
+        """Cantidades geométricas intermedias de la corrida."""
+
+        return self.package.derived
+
+    @property
+    def abstract(self) -> AbstractTensorResults | None:
+        return self.package.abstract
+
+    @property
+    def projected(self) -> ProjectedTensorResults | None:
+        return self.package.projected
+
+    @property
+    def delta_contractions(self):
+        return self.package.delta_contractions
 
     @property
     def duration_seconds(self) -> float:
@@ -200,6 +226,7 @@ class TensorEngine:
         output_root: str | Path | None = None,
         external_reports: tuple[WolframValidationReport, ...] = (),
         wolfram_bridge: WolframXActBridge | None = None,
+        display_policy: DisplayPolicy | None = None,
     ) -> EngineRun:
         """Calcula, verifica y opcionalmente exporta una teoría declarada."""
 
@@ -333,32 +360,65 @@ class TensorEngine:
 
         components: ComponentFieldEquations | None = None
         component_backend: SympyComponentBackend | None = None
+        component_failure_reason: str | None = None
         if ansatz is not None and self.options.include_components:
-            def component_operation() -> tuple[ComponentFieldEquations, SympyComponentBackend]:
-                active_backend = SympyComponentBackend.from_model(calculation_model, ansatz)
-                result = evaluate_field_equations(
-                    euler.metric_euler,
-                    euler.scalar_euler,
-                    active_backend,
-                )
-                return result, active_backend
+            def component_operation() -> tuple[
+                ComponentFieldEquations | None,
+                SympyComponentBackend | None,
+                str | None,
+            ]:
+                active_backend: SympyComponentBackend | None = None
+                try:
+                    active_backend = SympyComponentBackend.from_model(
+                        calculation_model,
+                        ansatz,
+                    )
+                    result = evaluate_field_equations(
+                        euler.metric_euler,
+                        euler.scalar_euler,
+                        active_backend,
+                    )
+                    return result, active_backend, None
+                except (TensorEngineError, OverflowError, RecursionError) as error:
+                    return None, active_backend, str(error)
 
-            components, component_backend = self._execute(
+            components, component_backend, component_failure_reason = self._execute(
                 "components",
                 component_operation,
                 lambda value, duration: StageResult(
                     "components",
-                    StageStatus.SUCCESS,
-                    value[1].name,
+                    StageStatus.SUCCESS if value[0] is not None else StageStatus.PARTIAL,
+                    value[1].name if value[1] is not None else "sympy-components",
                     "evaluate_field_equations",
                     inputs=("validated_model", "geometry_ansatz", "metric_euler", "scalar_euler"),
                     artifacts=(
                         ArtifactRecord(
                             "component_results",
                             "component_field_equations",
-                            tuple(value[0].to_data().items()),
+                            tuple(
+                                (
+                                    value[0].to_data()
+                                    if value[0] is not None
+                                    else {
+                                        "ansatz": ansatz.name,
+                                        "available": False,
+                                        "reason": value[2],
+                                    }
+                                ).items()
+                            ),
                             ("validated_model", "geometry_ansatz", "metric_euler", "scalar_euler"),
                         ),
+                    ),
+                    diagnostics=(
+                        ()
+                        if value[0] is not None
+                        else (
+                            Diagnostic(
+                                "W_COMPONENT_BACKEND_LIMITATION",
+                                value[2] or "No fue posible proyectar las ecuaciones de campo.",
+                                Severity.WARNING,
+                            ),
+                        )
                     ),
                     duration_seconds=duration,
                 ),
@@ -413,7 +473,9 @@ class TensorEngine:
                 raw_variation=raw_variation,
                 noether=noether,
                 components=components,
-                component_backend=component_backend,
+                component_backend=(
+                    component_backend if components is not None else None
+                ),
                 external_reports=tuple(active_external_reports),
             )
             return adjudicate_external_evidence(
@@ -428,6 +490,97 @@ class TensorEngine:
             completed,
         )
 
+        derived = self._execute(
+            "derive_intermediate_quantities",
+            lambda: derive_intermediate_quantities(
+                calculation_model,
+                momenta,
+                euler,
+                verification,
+                backend,
+                component_backend,
+                projection_unavailable_reason=component_failure_reason,
+            ),
+            lambda value, duration: StageResult(
+                "derive_intermediate_quantities",
+                StageStatus.SUCCESS,
+                backend.info.name,
+                "derive_intermediate_quantities",
+                inputs=(
+                    "validated_model",
+                    "curvature_momentum",
+                    "metric_euler",
+                    "verification_report",
+                ),
+                artifacts=(
+                    ArtifactRecord(
+                        "derived_quantities",
+                        "derived_quantities",
+                        tuple(value.to_data().items()),
+                        (
+                            "validated_model",
+                            "curvature_momentum",
+                            "metric_euler",
+                            "verification_report",
+                        ),
+                    ),
+                ),
+                duration_seconds=duration,
+            ),
+            completed,
+        )
+
+        abstract_results, projected_results = self._execute(
+            "organize_result_views",
+            lambda: build_result_views(
+                calculation_model,
+                normalized_lagrangian,
+                momenta,
+                euler,
+                derived,
+                verification,
+                ansatz_name=None if ansatz is None else ansatz.name,
+                component_backend=component_backend,
+                field_components=components,
+                projection_unavailable_reason=component_failure_reason,
+                field_equation_failure_reason=(
+                    component_failure_reason
+                    if ansatz is not None and components is None
+                    else None
+                ),
+            ),
+            lambda value, duration: StageResult(
+                "organize_result_views",
+                StageStatus.SUCCESS,
+                backend.info.name,
+                "build_result_views",
+                inputs=(
+                    "lagrangian",
+                    "metric_momentum",
+                    "curvature_momentum",
+                    "metric_euler",
+                    "scalar_euler",
+                    "derived_quantities",
+                ),
+                artifacts=(
+                    ArtifactRecord(
+                        "abstract_results",
+                        "abstract_tensor_results",
+                        tuple(value[0].to_data().items()),
+                        ("lagrangian", "metric_momentum", "metric_euler", "derived_quantities"),
+                    ),
+                    ArtifactRecord(
+                        "projected_results",
+                        "projected_tensor_results",
+                        tuple(value[1].to_data().items()),
+                        ("geometry_ansatz", "abstract_results"),
+                    ),
+                ),
+                duration_seconds=duration,
+            ),
+            completed,
+        )
+
         pre_export_duration = sum(stage.duration_seconds for stage in completed)
         package = RunPackage(
             validated_model,
@@ -438,15 +591,22 @@ class TensorEngine:
             normalized_lagrangian=normalized_lagrangian,
             noether=noether,
             components=components,
+            derived=derived,
+            abstract=abstract_results,
+            projected=projected_results,
             duration_seconds=pre_export_duration,
             stage_durations=tuple((stage.stage_key, stage.duration_seconds) for stage in completed),
+            delta_contractions=tuple(getattr(backend, "delta_contractions", ())),
         )
 
         export_bundle: ExportBundle | None = None
         if self.options.include_export and output_root is not None:
             export_bundle = self._execute(
                 "export",
-                lambda: RunExporter(output_root).export(package),
+                lambda: RunExporter(
+                    output_root, display_policy=display_policy,
+                    projected_assumptions=() if ansatz is None else ansatz.assumptions,
+                ).export(package),
                 lambda value, duration: value.to_stage_result(duration),
                 completed,
             )

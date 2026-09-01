@@ -1,6 +1,15 @@
 """API pública de TensorEngine."""
 
 from .builders import ModelBuilder
+from .delta import (
+    DeltaContractionEvent, DeltaContractionAudit, DeltaContractionResult,
+    contract_deltas, delta_count,
+)
+from .invariants import DEFAULT_INVARIANTS, InvariantRegistry, InvariantSpec
+from .presentation import (
+    DisplayPolicy, DisplayExpression, PresentationBuilder, ReportPresentation,
+    build_presentation,
+)
 from .catalog import CatalogEntry, catalog_entries, catalog_model
 from .campaign import (
     CAMPAIGN_SCHEMA_VERSION,
@@ -43,6 +52,7 @@ from .components import (
     GeometryAnsatz,
     SympyComponentBackend,
     evaluate_field_equations,
+    draft4_circular_ansatz,
     ir_scalar_to_sympy,
     spatially_flat_flrw_ansatz,
     sympy_scalar_to_ir,
@@ -58,6 +68,22 @@ from .errors import (
     SourceCompilationError,
     TensorEngineError,
     TensorAlgebraError,
+)
+from .derived import (
+    DERIVED_QUANTITY_KEYS,
+    REPORT_QUANTITY_KEYS,
+    AbstractQuantityRecord,
+    AbstractTensorResults,
+    ComponentProjectionStatus,
+    DerivedQuantities,
+    DerivedQuantityRecord,
+    ProjectedQuantityResult,
+    ProjectedTensorResults,
+    ProjectionStatus,
+    SymbolicEvaluationStatus,
+    XActValidationStatus,
+    build_result_views,
+    derive_intermediate_quantities,
 )
 from .euler import (
     EulerLagrangeResult,
@@ -215,7 +241,22 @@ from .serialization import (
 from .source import SOURCE_SCHEMA_VERSION, LagrangianSourceSpec
 
 __all__ = [
+    "DeltaContractionEvent",
+    "DeltaContractionAudit",
+    "DeltaContractionResult",
+    "contract_deltas",
+    "delta_count",
+    "DisplayPolicy",
+    "DisplayExpression",
+    "PresentationBuilder",
+    "ReportPresentation",
+    "build_presentation",
+    "DEFAULT_INVARIANTS",
+    "InvariantRegistry",
+    "InvariantSpec",
     "Add",
+    "AbstractQuantityRecord",
+    "AbstractTensorResults",
     "ArtifactRecord",
     "BackendCapabilityError",
     "BackendExecutionError",
@@ -236,12 +277,16 @@ __all__ = [
     "ConventionSpec",
     "ComponentEvaluation",
     "ComponentFieldEquations",
+    "ComponentProjectionStatus",
     "ComponentTensor",
     "CoordinateChart",
     "CoordinateGeometry",
     "CovariantDerivative",
     "DEFAULT_PIPELINE",
+    "DERIVED_QUANTITY_KEYS",
     "Diagnostic",
+    "DerivedQuantities",
+    "DerivedQuantityRecord",
     "DifferentialContext",
     "DiffeomorphismVariation",
     "DimensionSpec",
@@ -275,12 +320,17 @@ __all__ = [
     "ParameterSpec",
     "PipelineExecutionError",
     "Power",
+    "ProjectedQuantityResult",
+    "ProjectedTensorResults",
+    "ProjectionStatus",
+    "REPORT_QUANTITY_KEYS",
     "Scalar",
     "Severity",
     "StageResult",
     "StageSpec",
     "StageStatus",
     "SourceCompilationError",
+    "SymbolicEvaluationStatus",
     "Tensor",
     "TensorAlgebraError",
     "TensorBackend",
@@ -303,6 +353,7 @@ __all__ = [
     "WolframValidationReport",
     "WolframRuntime",
     "WolframXActBridge",
+    "XActValidationStatus",
     "StructuralTensorBackend",
     "SympyComponentBackend",
     "RunVerifier",
@@ -317,6 +368,7 @@ __all__ = [
     "antisymmetrize",
     "canonicalize_dummy_indices",
     "calculation_fingerprint",
+    "build_result_views",
     "catalog_entries",
     "catalog_model",
     "canonicalize_monoterm",
@@ -333,7 +385,9 @@ __all__ = [
     "derivative_commutator",
     "detect_wolfram_runtime",
     "differential_bianchi_residual",
+    "draft4_circular_ansatz",
     "derive_momenta",
+    "derive_intermediate_quantities",
     "derive_euler_lagrange",
     "derive_noether_wald",
     "diffeomorphism_boundary_potential",

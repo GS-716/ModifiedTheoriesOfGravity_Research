@@ -518,6 +518,11 @@ class RunVerifier:
             self._signature_record("signature.boundary_total", euler.boundary_total, (Variance.UP,)),
             self._signature_record("signature.full_variation", euler.full_variation, ()),
             self._signature_record("signature.density_variation", euler.density_variation, ()),
+            self._signature_record(
+                "signature.curvature_derivative_metric_term",
+                euler.curvature_derivative_metric_term,
+                (Variance.DOWN, Variance.DOWN),
+            ),
             self._record_from_residual(
                 "symmetry.metric_euler",
                 self._permutation_residual(euler.metric_euler, (1, 0), 1),
@@ -551,6 +556,10 @@ class RunVerifier:
                     ("boundary_total", euler.boundary_total),
                     ("full_variation", euler.full_variation),
                     ("density_variation", euler.density_variation),
+                    (
+                        "curvature_derivative_metric_term",
+                        euler.curvature_derivative_metric_term,
+                    ),
                 ),
                 (
                     ("metric", expected.metric_euler),
@@ -560,6 +569,10 @@ class RunVerifier:
                     ("boundary_total", expected.boundary_total),
                     ("full_variation", expected.full_variation),
                     ("density_variation", expected.density_variation),
+                    (
+                        "curvature_derivative_metric_term",
+                        expected.curvature_derivative_metric_term,
+                    ),
                 ),
             )
         )
@@ -667,6 +680,7 @@ class RunVerifier:
             euler.boundary_total,
             euler.full_variation,
             euler.density_variation,
+            euler.curvature_derivative_metric_term,
         ]
         if raw_variation is not None:
             expressions.append(raw_variation)

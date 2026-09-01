@@ -79,6 +79,16 @@ def test_latex_report_escapes_machine_identifiers() -> None:
     assert r"structural\_python" in report
 
 
+def test_component_labels_respect_the_stored_free_axis_order() -> None:
+    from tensor_engine.exporting import _component_label
+    a, b, c, d = (Index(name, Variance.UP) for name in "abcd")
+    assert _component_label("P^{abcd}", (a, b, c, d), (0, 0, 1, 1),
+                            component_indices=(a, c, b, d)) == r"\left[P^{abcd}\right]^{0101}"
+    e = Index("e", Variance.DOWN)
+    assert _component_label("T", (a, b, e), (2, 0, 1),
+                            component_indices=(e, b, a)) == r"\left[T\right]_{2}^{10}"
+
+
 def test_run_id_is_content_addressed_and_ignores_timing() -> None:
     package = make_package()
     changed_timing = replace(package, duration_seconds=99.0, stage_durations=())
@@ -104,12 +114,13 @@ def test_run_package_rejects_tampered_run_id() -> None:
 
 def test_export_creates_auditable_files_with_valid_hashes(tmp_path) -> None:
     package = make_package()
-    bundle = RunExporter(tmp_path).export(package, created_at_utc="2026-08-28T12:00:00Z")
+    bundle = RunExporter(tmp_path, compile_pdf=False).export(package, created_at_utc="2026-08-28T12:00:00Z")
     assert bundle.manifest_path.is_file()
     assert {item.relative_path for item in bundle.manifest.files} == {
         "results.json",
         "verification.json",
         "report.tex",
+        "presentation.json",
     }
     for item in bundle.manifest.files:
         content = (bundle.output_directory / item.relative_path).read_bytes()
@@ -121,7 +132,7 @@ def test_export_creates_auditable_files_with_valid_hashes(tmp_path) -> None:
 
 
 def test_manifest_detects_a_modified_artifact(tmp_path) -> None:
-    bundle = RunExporter(tmp_path).export(make_package())
+    bundle = RunExporter(tmp_path, compile_pdf=False).export(make_package())
     (bundle.output_directory / "verification.json").write_text("altered", encoding="utf-8")
     incidents = bundle.manifest.verify_files(bundle.output_directory)
     assert any("tamaño" in item for item in incidents)
@@ -129,7 +140,7 @@ def test_manifest_detects_a_modified_artifact(tmp_path) -> None:
 
 
 def test_export_is_deterministic_with_injected_timestamp(tmp_path) -> None:
-    exporter = RunExporter(tmp_path)
+    exporter = RunExporter(tmp_path, compile_pdf=False)
     first = exporter.export(make_package(), created_at_utc="2026-08-28T12:00:00Z")
     first_manifest = first.manifest_path.read_bytes()
     second = exporter.export(make_package(), created_at_utc="2026-08-28T12:00:00Z")
@@ -141,13 +152,13 @@ def test_export_directory_uses_safe_model_slug(tmp_path) -> None:
     package = make_package()
     model = replace(package.model, name="Model_Name_99")
     report = replace(package.verification, model_name=model.name)
-    bundle = RunExporter(tmp_path).export(replace(package, model=model, verification=report))
+    bundle = RunExporter(tmp_path, compile_pdf=False).export(replace(package, model=model, verification=report))
     assert bundle.output_directory.name.startswith("model-name-99-")
     assert bundle.output_directory.parent == tmp_path.resolve()
 
 
 def test_export_stage_result_satisfies_declared_contract(tmp_path) -> None:
-    bundle = RunExporter(tmp_path).export(make_package())
+    bundle = RunExporter(tmp_path, compile_pdf=False).export(make_package())
     result = bundle.to_stage_result(duration_seconds=0.2)
     export_stage = next(stage for stage in DEFAULT_PIPELINE if stage.key == "export")
     validate_stage_result(export_stage, result)
@@ -162,7 +173,7 @@ def test_partial_or_failed_verification_is_not_promoted_to_success(tmp_path) -> 
         "1",
         (VerificationRecord("unknown", VerificationStatus.UNDETERMINED, Number(1)),),
     )
-    partial = RunExporter(tmp_path / "partial").export(
+    partial = RunExporter(tmp_path / "partial", compile_pdf=False).export(
         replace(package, verification=partial_report)
     ).to_stage_result()
     assert partial.status.value == "partial"
@@ -172,7 +183,7 @@ def test_partial_or_failed_verification_is_not_promoted_to_success(tmp_path) -> 
         partial_report,
         checks=(VerificationRecord("failure", VerificationStatus.FAILED, Number(1)),),
     )
-    failed = RunExporter(tmp_path / "failed").export(
+    failed = RunExporter(tmp_path / "failed", compile_pdf=False).export(
         replace(package, verification=failed_report)
     ).to_stage_result()
     assert failed.status.value == "failed"
@@ -181,7 +192,7 @@ def test_partial_or_failed_verification_is_not_promoted_to_success(tmp_path) -> 
 
 def test_results_json_is_the_canonical_reconstructible_source(tmp_path) -> None:
     package = make_package()
-    bundle = RunExporter(tmp_path).export(package)
+    bundle = RunExporter(tmp_path, compile_pdf=False).export(package)
     data = json.loads((bundle.output_directory / "results.json").read_text(encoding="utf-8"))
     rebuilt = RunPackage.from_data(data)
     assert rebuilt.model == package.model

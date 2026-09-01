@@ -140,9 +140,9 @@ class WolframBridgeTests(unittest.TestCase):
             subject["calculation_fingerprint"],
             calculation_fingerprint(model, model.lagrangian, momenta, euler),
         )
-        self.assertEqual(len(request["options"]["checks"]), 8)
+        self.assertEqual(len(request["options"]["checks"]), 9)
         strategies = {item["strategy"] for item in request["options"]["checks"]}
-        self.assertEqual(strategies, {"algebraic", "riemann_bianchi"})
+        self.assertEqual(strategies, {"algebraic", "riemann_bianchi", "differential"})
         json.dumps(request)
 
     def test_check_strategy_and_adjudication_round_trip(self) -> None:
@@ -273,7 +273,7 @@ class WolframBridgeTests(unittest.TestCase):
         self.assertEqual(report.model_name, model.name)
         self.assertEqual(report.summary["failed"], 0, report.to_data())
         self.assertGreater(report.summary["passed"], 0)
-        self.assertEqual(len(report.checks), 11)
+        self.assertEqual(len(report.checks), 12)
         self.assertEqual(
             {item.strategy for item in report.checks},
             {"algebraic", "riemann_bianchi", "differential"},

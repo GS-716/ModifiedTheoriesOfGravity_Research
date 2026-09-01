@@ -46,6 +46,11 @@ La fase 14 añade un frontend declarativo seguro: expresiones textuales en
 `R`, `X`, `phi`, parámetros y funciones declaradas se compilan a la misma IR sin
 usar `eval`, conservando un fingerprint de la fuente dentro del modelo.
 
+El frontend también reconoce `RicciUU` y contracciones tensoriales genéricas.
+El [registro extensible y la guía de autoría](docs/frontend-invariants.md) explican
+cómo introducir un lagrangiano, añadir invariantes y usar la API avanzada sin
+cambiar el backend variacional.
+
 Documentos normativos:
 
 - [`docs/phase-0/01_SCOPE.md`](docs/phase-0/01_SCOPE.md): dominio matemático y exclusiones.
@@ -142,6 +147,15 @@ TensorEngine/
 ```
 
 ## Principios del proyecto
+
+Los reportes usan una [política de presentación configurable](docs/display-policy.md)
+que simplifica y mejora la tipografía sin cambiar la IR canónica, el JSON o la
+evidencia xAct. La auditoría de esa vista se guarda en presentation.json.
+
+Las [contracciones seguras de Kronecker](docs/delta-contractions.md) se aplican
+en la IR canónica, también sobre bloques con derivadas, antes de xAct y de la
+presentación. Su historial está disponible en run.delta_contractions y en el
+archivo auditado delta_contractions.json; el notebook no necesita reglas propias.
 
 1. Una convención matemática tiene una única definición normativa.
 2. Cada resultado conserva trazabilidad hasta el lagrangiano de entrada.

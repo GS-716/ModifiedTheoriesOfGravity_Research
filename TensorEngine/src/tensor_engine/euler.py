@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Any, Mapping
 
 from .differential import DifferentialContext, covariant_derivative, divergence
@@ -36,6 +36,7 @@ class EulerLagrangeResult:
     boundary_total: Expr
     full_variation: Expr
     density_variation: Expr
+    curvature_derivative_metric_term: Expr = field(default_factory=lambda: Number(0))
 
     def to_data(self) -> dict[str, Any]:
         return {
@@ -46,6 +47,9 @@ class EulerLagrangeResult:
             "boundary_potential_total": self.boundary_total.to_data(),
             "full_variation": self.full_variation.to_data(),
             "density_variation": self.density_variation.to_data(),
+            "curvature_derivative_metric_term": (
+                self.curvature_derivative_metric_term.to_data()
+            ),
         }
 
     @classmethod
@@ -58,6 +62,9 @@ class EulerLagrangeResult:
             boundary_total=expr_from_data(data["boundary_potential_total"]),
             full_variation=expr_from_data(data["full_variation"]),
             density_variation=expr_from_data(data["density_variation"]),
+            curvature_derivative_metric_term=expr_from_data(
+                data.get("curvature_derivative_metric_term", Number(0).to_data())
+            ),
         )
 
 
@@ -159,6 +166,8 @@ def metric_euler_expression(
     momenta: LagrangianMomenta,
     variational_context: VariationalContext | None = None,
     differential_context: DifferentialContext | None = None,
+    *,
+    precomputed_curvature_derivative_term: Expr | None = None,
 ) -> Expr:
     """Construye E_ab para la convención de variación respecto a g^{ab}."""
 
@@ -176,10 +185,14 @@ def metric_euler_expression(
     result = add(
         metric_momentum,
         curvature_algebraic_metric_term(momenta.curvature, variational_context),
-        curvature_derivative_metric_term(
-            momenta.curvature,
-            variational_context,
-            differential_context,
+        (
+            precomputed_curvature_derivative_term
+            if precomputed_curvature_derivative_term is not None
+            else curvature_derivative_metric_term(
+                momenta.curvature,
+                variational_context,
+                differential_context,
+            )
         ),
         volume_term,
     )
@@ -303,11 +316,17 @@ def derive_euler_lagrange(
 
     variational_context = variational_context or VariationalContext()
     differential_context = differential_context or DifferentialContext()
+    derivative_metric_term = curvature_derivative_metric_term(
+        momenta.curvature,
+        variational_context,
+        differential_context,
+    )
     metric_euler = metric_euler_expression(
         lagrangian,
         momenta,
         variational_context,
         differential_context,
+        precomputed_curvature_derivative_term=derivative_metric_term,
     )
     scalar_euler = scalar_euler_expression(
         momenta,
@@ -367,4 +386,5 @@ def derive_euler_lagrange(
         boundary_total=boundary_total,
         full_variation=full_variation,
         density_variation=density_variation,
+        curvature_derivative_metric_term=derivative_metric_term,
     )

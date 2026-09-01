@@ -13,10 +13,13 @@ import json
 import os
 from pathlib import Path
 import re
+import shutil
+import subprocess
 import tempfile
 from typing import Any, Mapping
 
 from .components import ComponentFieldEquations
+from .delta import DeltaContractionAudit, delta_count
 from .contracts import (
     ArtifactRecord,
     Diagnostic,
@@ -25,6 +28,14 @@ from .contracts import (
     Severity,
     StageResult,
     StageStatus,
+)
+from .derived import (
+    REPORT_QUANTITY_KEYS,
+    AbstractTensorResults,
+    DerivedQuantities,
+    ProjectedTensorResults,
+    ProjectionStatus,
+    XActValidationStatus,
 )
 from .euler import EulerLagrangeResult
 from .ir import (
@@ -44,6 +55,7 @@ from .ir import (
     expr_from_data,
 )
 from .model import ModelSpec
+from .presentation import DisplayPolicy, ReportPresentation, build_presentation
 from .noether import NoetherWaldResult
 from .variational import LagrangianMomenta
 from .verification import VerificationReport
@@ -89,11 +101,16 @@ class RunPackage:
     normalized_lagrangian: Expr | None = None
     noether: NoetherWaldResult | None = None
     components: ComponentFieldEquations | None = None
+    derived: DerivedQuantities | None = None
+    abstract: AbstractTensorResults | None = None
+    projected: ProjectedTensorResults | None = None
     duration_seconds: float = 0.0
     stage_durations: tuple[tuple[str, float], ...] = ()
+    delta_contractions: tuple[DeltaContractionAudit, ...] = ()
 
     def __post_init__(self) -> None:
         object.__setattr__(self, "stage_durations", tuple(tuple(item) for item in self.stage_durations))
+        object.__setattr__(self, "delta_contractions", tuple(self.delta_contractions))
         if self.verification.model_name != self.model.name:
             raise ValueError("El informe de verificación pertenece a otro modelo.")
         if self.duration_seconds < 0 or any(value < 0 for _, value in self.stage_durations):
@@ -101,6 +118,8 @@ class RunPackage:
         keys = [key for key, _ in self.stage_durations]
         if len(keys) != len(set(keys)):
             raise ValueError("Las duraciones por etapa contienen claves repetidas.")
+        if (self.abstract is None) != (self.projected is None):
+            raise ValueError("Las vistas abstracta y proyectada deben conservarse juntas.")
 
     @property
     def lagrangian(self) -> Expr:
@@ -159,6 +178,16 @@ class RunPackage:
                     ExpressionRecord("noether_identity", self.noether.noether_identity, ExpressionForm.CANONICAL, ("noether_current", "metric_euler", "scalar_euler")),
                 )
             )
+        if self.derived is not None:
+            records.extend(
+                ExpressionRecord(
+                    key,
+                    expression,
+                    ExpressionForm.CANONICAL,
+                    self.derived.record(key).source_keys,
+                )
+                for key, expression in self.derived.expression_items()
+            )
         return tuple(records)
 
     def semantic_data(self) -> dict[str, Any]:
@@ -173,6 +202,15 @@ class RunPackage:
             "euler_lagrange": self.euler.to_data(),
             "noether_wald": None if self.noether is None else self.noether.to_data(),
             "components": None if self.components is None else self.components.to_data(),
+            "derived_quantities": (
+                None if self.derived is None else self.derived.to_data()
+            ),
+            "abstract_results": (
+                None if self.abstract is None else self.abstract.to_data()
+            ),
+            "projected_results": (
+                None if self.projected is None else self.projected.to_data()
+            ),
             "verification": self.verification.to_data(),
         }
 
@@ -185,6 +223,8 @@ class RunPackage:
             "schema_version": EXPORT_SCHEMA_VERSION,
             "run_id": self.run_id,
             **self.semantic_data(),
+            **({"delta_contractions": [a.to_data() for a in self.delta_contractions]}
+               if self.delta_contractions else {}),
             "normalization_explicit": self.normalized_lagrangian is not None,
             "timing": {
                 "duration_seconds": self.duration_seconds,
@@ -197,6 +237,9 @@ class RunPackage:
     def from_data(cls, data: Mapping[str, Any]) -> "RunPackage":
         timing = data.get("timing", {})
         component_data = data.get("components")
+        derived_data = data.get("derived_quantities")
+        abstract_data = data.get("abstract_results")
+        projected_data = data.get("projected_results")
         noether_data = data.get("noether_wald")
         package = cls(
             model=ModelSpec.from_data(data["model"]),
@@ -211,14 +254,47 @@ class RunPackage:
             ),
             noether=None if noether_data is None else NoetherWaldResult.from_data(noether_data),
             components=None if component_data is None else ComponentFieldEquations.from_data(component_data),
+            derived=(
+                None
+                if derived_data is None
+                else DerivedQuantities.from_data(derived_data)
+            ),
+            abstract=(
+                None
+                if abstract_data is None
+                else AbstractTensorResults.from_data(abstract_data)
+            ),
+            projected=(
+                None
+                if projected_data is None
+                else ProjectedTensorResults.from_data(projected_data)
+            ),
             duration_seconds=float(timing.get("duration_seconds", 0.0)),
             stage_durations=tuple(
                 (str(key), float(value)) for key, value in timing.get("stages", {}).items()
             ),
+            delta_contractions=tuple(DeltaContractionAudit.from_data(a)
+                                     for a in data.get("delta_contractions", ())),
         )
         supplied = data.get("run_id")
         if supplied is not None and supplied != package.run_id:
-            raise ValueError("El run_id no coincide con el contenido reconstruido.")
+            semantic = package.semantic_data()
+            legacy_candidates: list[dict[str, Any]] = []
+            without_views = dict(semantic)
+            without_views.pop("abstract_results", None)
+            without_views.pop("projected_results", None)
+            legacy_candidates.append(without_views)
+            before_derived = dict(without_views)
+            before_derived.pop("derived_quantities", None)
+            legacy_euler = dict(before_derived["euler_lagrange"])
+            legacy_euler.pop("curvature_derivative_metric_term", None)
+            before_derived["euler_lagrange"] = legacy_euler
+            legacy_candidates.append(before_derived)
+            legacy_ids = {
+                f"run_{_sha256_data(candidate)[:20]}" for candidate in legacy_candidates
+            }
+            if supplied not in legacy_ids:
+                raise ValueError("El run_id no coincide con el contenido reconstruido.")
         return package
 
 
@@ -275,6 +351,8 @@ class RunManifest:
     stage_durations: tuple[tuple[str, float], ...]
     expressions: tuple[tuple[str, str, str], ...]
     files: tuple[ExportedFile, ...]
+    abstract_quantities: tuple[str, ...] = ()
+    projected_quantities: tuple[tuple[str, str, str], ...] = ()
     external_bindings: tuple[tuple[str, str, str], ...] = ()
     adjudications: tuple[tuple[str, str, str], ...] = ()
     schema_version: str = EXPORT_SCHEMA_VERSION
@@ -284,6 +362,8 @@ class RunManifest:
         object.__setattr__(self, "stage_durations", tuple(tuple(item) for item in self.stage_durations))
         object.__setattr__(self, "expressions", tuple(tuple(item) for item in self.expressions))
         object.__setattr__(self, "files", tuple(self.files))
+        object.__setattr__(self, "abstract_quantities", tuple(self.abstract_quantities))
+        object.__setattr__(self, "projected_quantities", tuple(tuple(item) for item in self.projected_quantities))
         object.__setattr__(self, "external_bindings", tuple(tuple(item) for item in self.external_bindings))
         object.__setattr__(self, "adjudications", tuple(tuple(item) for item in self.adjudications))
         if self.schema_version != EXPORT_SCHEMA_VERSION:
@@ -296,6 +376,12 @@ class RunManifest:
             raise ValueError("El manifiesto repite claves de expresión.")
         if len({item.relative_path for item in self.files}) != len(self.files):
             raise ValueError("El manifiesto repite rutas de artefactos.")
+        if len(self.abstract_quantities) != len(set(self.abstract_quantities)):
+            raise ValueError("El manifiesto repite cantidades abstractas.")
+        if len({item[0] for item in self.projected_quantities}) != len(self.projected_quantities):
+            raise ValueError("El manifiesto repite cantidades proyectadas.")
+        if any(len(item) != 3 for item in self.projected_quantities):
+            raise ValueError("Las proyecciones del manifiesto tienen un contrato inválido.")
         if any(len(item) != 3 for item in self.external_bindings):
             raise ValueError("Los vínculos externos del manifiesto tienen un contrato inválido.")
         if any(len(item) != 3 for item in self.adjudications):
@@ -342,6 +428,13 @@ class RunManifest:
                 {"key": key, "form": form, "sha256": digest}
                 for key, form, digest in self.expressions
             ],
+            "result_views": {
+                "abstract": list(self.abstract_quantities),
+                "projected": [
+                    {"key": key, "status": status, "sha256": digest}
+                    for key, status, digest in self.projected_quantities
+                ],
+            },
             "files": [item.to_data() for item in self.files],
         }
 
@@ -370,6 +463,7 @@ class RunManifest:
         model = data["model"]
         backend = data["backend"]
         timing = data.get("timing", {})
+        result_views = data.get("result_views", {})
         return cls(
             run_id=str(data["run_id"]),
             created_at_utc=str(data["created_at_utc"]),
@@ -393,6 +487,17 @@ class RunManifest:
                 for item in data.get("expressions", ())
             ),
             files=tuple(ExportedFile.from_data(item) for item in data.get("files", ())),
+            abstract_quantities=tuple(
+                str(item) for item in result_views.get("abstract", ())
+            ),
+            projected_quantities=tuple(
+                (
+                    str(item["key"]),
+                    str(item["status"]),
+                    str(item.get("sha256", "")),
+                )
+                for item in result_views.get("projected", ())
+            ),
             external_bindings=tuple(
                 (
                     str(item["operation"]),
@@ -518,58 +623,347 @@ def expr_to_latex(expr: Expr) -> str:
     return _latex(expr)
 
 
-_DISPLAY_LABELS = {
-    "original_lagrangian": r"L_{\mathrm{original}}",
+def _display_name(name: str) -> str:
+    names = {"ell": r"\ell", "alpha": r"\alpha", "beta": r"\beta", "delta": r"\delta"}
+    match = re.fullmatch(r"([A-Za-z_]+)([0-9]+)", name)
+    if match:
+        return rf"{_display_name(match[1])}_{{{match[2]}}}"
+    return names.get(name, _latex_name(name))
+
+
+def display_expr_to_latex(expr: Expr, parent_precedence: int = 0) -> str:
+    """Readable printer only. Does not cancel, reorder slots or mutate the IR."""
+    precedence = _precedence(expr)
+    render = display_expr_to_latex
+    if isinstance(expr, Scalar):
+        result = _display_name(expr.name)
+    elif isinstance(expr, Tensor):
+        result = _display_name(expr.name)
+        # Group only consecutive equal variances, preserving the tensor slots.
+        groups: list[tuple[Variance, list[str]]] = []
+        for index in expr.indices:
+            if not groups or groups[-1][0] is not index.variance:
+                groups.append((index.variance, []))
+            groups[-1][1].append(_display_name(index.name))
+        for variance, names in groups:
+            marker = "^" if variance is Variance.UP else "_"
+            result += "{}" + marker + "{" + r"\,".join(names) + "}"
+    elif isinstance(expr, Add):
+        parts = []
+        for term in expr.terms:
+            text = render(term, precedence)
+            parts.append(text if not parts else ("- " + text[1:] if text.startswith("-") else "+ " + text))
+        result = " ".join(parts)
+    elif isinstance(expr, Mul):
+        numerator, denominator = [], []
+        sign = 1
+        for factor in expr.factors:
+            if isinstance(factor, Number):
+                sign *= -1 if factor.numerator < 0 else 1
+                if abs(factor.numerator) != 1:
+                    numerator.append(str(abs(factor.numerator)))
+                if factor.denominator != 1:
+                    denominator.append(str(factor.denominator))
+            elif (isinstance(factor, Power) and isinstance(factor.exponent, Number)
+                  and factor.exponent.denominator == 1 and factor.exponent.numerator < 0):
+                positive = -factor.exponent.numerator
+                denominator.append(render(factor.base, 20) if positive == 1 else render(Power(factor.base, Number(positive))))
+            else:
+                numerator.append(render(factor, precedence))
+        top = r"\,".join(numerator) or "1"
+        bottom = r"\,".join(denominator)
+        # Large fraction numerators cannot break over pages in TeX. Keep a
+        # small reciprocal coefficient outside the breakable polynomial.
+        if bottom and len(top) > 160:
+            result = rf"\frac{{1}}{{{bottom}}}\,{top}"
+        else:
+            result = rf"\frac{{{top}}}{{{bottom}}}" if bottom else top
+        if sign < 0:
+            result = "-" + result
+    elif isinstance(expr, Power):
+        if isinstance(expr.exponent, Number) and expr.exponent.denominator == 1 and expr.exponent.numerator < 0:
+            n = -expr.exponent.numerator
+            bottom = render(expr.base) if n == 1 else render(Power(expr.base, Number(n)))
+            result = rf"\frac{{1}}{{{bottom}}}"
+        else:
+            result = rf"{{{render(expr.base, precedence)}}}^{{{render(expr.exponent)}}}"
+    elif isinstance(expr, Function):
+        result = rf"{_display_name(expr.name)}\!\left({', '.join(render(a) for a in expr.arguments)}\right)"
+    elif isinstance(expr, FunctionDerivative) and len(expr.arguments) == 1:
+        n = expr.derivative_orders[0]
+        marker = "'" * n if n in (1, 2) else rf"^{{({n})}}"
+        result = rf"{_display_name(expr.name)}{marker}\!\left({render(expr.arguments[0])}\right)"
+    elif isinstance(expr, CovariantDerivative):
+        result = rf"\nabla_{{{_display_name(expr.index.name)}}}\!\left({render(expr.operand)}\right)"
+    elif isinstance(expr, Variation):
+        result = rf"\delta\!\left({render(expr.operand)}\right)"
+    else:
+        result = expr_to_latex(expr)
+    return rf"\left({result}\right)" if precedence < parent_precedence else result
+
+
+def _presentation_latex(view: ReportPresentation, key: str) -> str:
+    record = view.record(key)
+    printer = display_expr_to_latex if view.policy.enabled else expr_to_latex
+    return printer(record.presentation)
+
+
+def _presentation_audit(view: ReportPresentation, key: str) -> str:
+    record = view.record(key)
+    data = {"key": key, "status": record.status, "operations": record.operations,
+            "assumptions_used": record.assumptions_used, "notes": record.notes}
+    return "% display: " + json.dumps(data, ensure_ascii=True, sort_keys=True)
+
+
+_REPORT_LABELS = {
     "lagrangian": r"L",
     "metric_momentum": r"M_{ab}",
     "curvature_momentum": r"P^{abcd}",
     "scalar_gradient_momentum": r"J^a",
     "scalar_derivative": r"F_{\phi}",
-    "delta_lagrangian": r"\delta L",
     "metric_euler": r"E_{ab}",
     "scalar_euler": r"E_{\phi}",
-    "boundary_potential_metric": r"\Theta^a_g",
-    "boundary_potential_scalar": r"\Theta^a_\phi",
-    "boundary_potential_total": r"\Theta^a",
-    "full_variation": r"\delta L_{\mathrm{IBP}}",
-    "density_variation": r"\delta(\sqrt{-g}L)",
-    "noether_current": r"J^a_\xi",
-    "constraint_current": r"C^a_\xi",
-    "charge_potential": r"Q^{ab}_\xi",
-    "noether_identity": r"\mathcal{N}_\xi",
+    "ricci_scalar": r"\mathcal{R}",
+    "riemann_tensor": r"R_{abcd}",
+    "nabla_P": r"\nabla_e P^{abcd}",
+    "nabla_nabla_P": r"\nabla_f\nabla_e P^{abcd}",
+}
+
+_XACT_STATUS_TEXT = {
+    XActValidationStatus.VALIDATED: "validación estructural aprobada con Wolfram Engine/xAct",
+    XActValidationStatus.NOT_VALIDATED: "sin validación independiente con xAct",
+    XActValidationStatus.NOT_REQUESTED: "validación xAct no solicitada",
+}
+
+_PROJECTION_STATUS_TEXT = {
+    ProjectionStatus.COMPLETED: "completada",
+    ProjectionStatus.PARTIAL: "parcial",
+    ProjectionStatus.SYMBOLIC: "simbólica",
+    ProjectionStatus.UNAVAILABLE: "no disponible por limitación del backend",
 }
 
 
-def latex_report(package: RunPackage) -> str:
-    """Crea un documento autocontenido de presentación para la corrida."""
+def _indices_to_latex(indices: tuple[Any, ...]) -> str:
+    if not indices:
+        return r"\varnothing\;\text{(escalar)}"
+    return r",\;".join(
+        (
+            rf"{_latex_index(index.name)}^{{\uparrow}}"
+            if index.variance is Variance.UP
+            else rf"{_latex_index(index.name)}_{{\downarrow}}"
+        )
+        for index in indices
+    )
 
+
+def _component_label(
+    label: str, indices: tuple[Any, ...], position: tuple[int, ...],
+    *, component_indices: tuple[Any, ...] | None = None,
+) -> str:
+    # A canonical expression can enumerate its free axes in a different order
+    # from the mathematical label. Reorder coordinates, not values or JSON keys.
+    if component_indices is not None:
+        by_index = dict(zip(component_indices, position, strict=True))
+        position = tuple(by_index[index] for index in indices)
+    upper = "".join(
+        str(value)
+        for index, value in zip(indices, position, strict=True)
+        if index.variance is Variance.UP
+    )
+    lower = "".join(
+        str(value)
+        for index, value in zip(indices, position, strict=True)
+        if index.variance is Variance.DOWN
+    )
+    result = rf"\left[{label}\right]"
+    if lower:
+        result += rf"_{{{lower}}}"
+    if upper:
+        result += rf"^{{{upper}}}"
+    return result
+
+
+def _append_abstract_results(lines: list[str], package: RunPackage, view: ReportPresentation) -> None:
+    lines.append(r"\section*{Expresiones tensoriales abstractas}")
+    lines.append(
+        r"Las expresiones de esta sección son covariantes y no incorporan sustituciones "
+        r"del ansatz."
+    )
+    if package.abstract is None:
+        lines.append(
+            r"Este bundle heredado no contiene la vista abstracta estructurada; "
+            r"los objetos canónicos permanecen disponibles en \texttt{results.json}."
+        )
+        return
+    for key, expression in package.abstract.expression_items():
+        record = package.abstract.record(key)
+        label = _REPORT_LABELS[key]
+        lines.extend(
+            (
+                r"\Needspace{9\baselineskip}",
+                rf"\subsection*{{$ {label} $}}",
+                _presentation_audit(view, f"abstract.{key}"),
+                r"\begin{dmath*}[breakdepth={5}]",
+                rf"{label} = {_presentation_latex(view, f'abstract.{key}')}",
+                r"\end{dmath*}",
+                r"\par\vspace{1.2\baselineskip}\noindent",
+                r"\begin{minipage}{\linewidth}",
+                rf"\textbf{{Significado:}} {_latex_text(record.description)}\par",
+                rf"\textbf{{Índices libres y varianzas:}} $ {_indices_to_latex(record.free_indices)} $\par",
+                rf"\textbf{{Fuentes del pipeline:}} \texttt{{{_latex_text(', '.join(record.source_keys))}}}\par",
+                rf"\textbf{{Wolfram/xAct:}} {_XACT_STATUS_TEXT[record.xact_status]}. {_latex_text(record.validation_note)}\par",
+                r"\end{minipage}",
+            )
+        )
+        if key == "metric_euler" and package.derived is not None:
+            lines.extend(
+                (
+                    _presentation_audit(view, "abstract.curvature_derivative_metric_term"),
+                    r"\begin{dmath*}[breakdepth={5}]",
+                    (
+                        r"\left.E_{ab}\right|_{\nabla\nabla P} "
+                        rf"= {_presentation_latex(view, 'abstract.curvature_derivative_metric_term')}"
+                    ),
+                    r"\end{dmath*}",
+                    r"\par\vspace{0.8\baselineskip}\noindent",
+                    r"\begin{minipage}{\linewidth}",
+                    r"La expresión anterior identifica la contribución "
+                    r"$-2\nabla^c\nabla^dP_{acdb}$ dentro de $E_{ab}$.\par",
+                    r"\end{minipage}",
+                )
+            )
+
+
+def _append_projected_results(lines: list[str], package: RunPackage, view: ReportPresentation) -> None:
+    lines.append(r"\section*{Expresiones proyectadas mediante el ansatz}")
+    if package.projected is None or package.abstract is None:
+        lines.append(
+            r"Este bundle heredado no contiene una vista proyectada estructurada."
+        )
+        return
+    ansatz_text = (
+        "ninguno"
+        if package.projected.ansatz_name is None
+        else package.projected.ansatz_name
+    )
+    lines.append(rf"\textbf{{Ansatz utilizado:}} \texttt{{{_latex_text(ansatz_text)}}}.")
+    lines.append(
+        r"Las componentes completas se conservan de forma dispersa en "
+        r"\texttt{results.json}; el documento muestra como máximo doce componentes "
+        r"no nulas por tensor."
+    )
+    for key in REPORT_QUANTITY_KEYS:
+        abstract_expression = getattr(package.abstract, key)
+        abstract_record = package.abstract.record(key)
+        projected = package.projected.quantity(key)
+        label = _REPORT_LABELS[key]
+        lines.extend(
+            (
+                r"\Needspace{7\baselineskip}",
+                rf"\subsection*{{$ {label} $}}",
+                (
+                    rf"\textbf{{Ansatz:}} \texttt{{{_latex_text(ansatz_text)}}}; "
+                    rf"\textbf{{estado:}} {_PROJECTION_STATUS_TEXT[projected.status]}.\par"
+                ),
+            )
+        )
+        if projected.components is None:
+            lines.extend(
+                (
+                    r"La forma abstracta se conserva sin sustitución:",
+                    _presentation_audit(view, f"projected.{key}.abstract_fallback"),
+                    r"\begin{dmath*}[breakdepth={5}]",
+                    rf"{label} = {_presentation_latex(view, f'projected.{key}.abstract_fallback')}",
+                    r"\end{dmath*}",
+                    r"\par\smallskip\noindent",
+                    rf"\textbf{{Motivo:}} {_latex_text(projected.reason)}\par",
+                )
+            )
+            continue
+        components = projected.components
+        total = components.dimension ** len(abstract_record.free_indices)
+        nonzero = len(components.values)
+        if not abstract_record.free_indices:
+            lines.extend(
+                (
+                    _presentation_audit(view, f"projected.{key}.scalar"),
+                    r"\begin{dmath*}[breakdepth={5}]",
+                    rf"{label}\big|_{{\mathrm{{ansatz}}}} = {_presentation_latex(view, f'projected.{key}.scalar')}",
+                    r"\end{dmath*}",
+                    r"\par\smallskip",
+                )
+            )
+        elif nonzero == 0:
+            lines.append(_presentation_audit(view, f"projected.{key}.zero"))
+            lines.append(r"Todas las componentes de esta cantidad son nulas.")
+        else:
+            displayed = components.values[:12]
+            for position, expression in displayed:
+                display_key = f"projected.{key}[{','.join(map(str, position))}]"
+                lines.extend(
+                    (
+                        _presentation_audit(view, display_key),
+                        r"\begin{dmath*}[breakdepth={5}]",
+                        rf"{_component_label(label, abstract_record.free_indices, position, component_indices=components.free_indices)} = {_presentation_latex(view, display_key)}",
+                        r"\end{dmath*}",
+                        r"\par\smallskip",
+                    )
+                )
+            if nonzero > len(displayed):
+                lines.append(
+                    rf"Representación compacta: se muestran {len(displayed)} de "
+                    rf"{nonzero} componentes no nulas."
+                )
+        lines.append(
+            rf"Proyección completa almacenada: {nonzero} componentes no nulas de {total}. "
+            rf"{_latex_text(projected.reason)}\par\medskip"
+        )
+
+
+def latex_report(package: RunPackage, display_policy: DisplayPolicy | None = None, *,
+                 projected_assumptions: tuple[str, ...] = (),
+                 presentation: ReportPresentation | None = None) -> str:
+    """Presenta la corrida mediante exactamente dos secciones matemáticas."""
+
+    view = presentation or build_presentation(package, display_policy, projected_assumptions=projected_assumptions)
+    if view.run_id != package.run_id:
+        raise ValueError("La presentación pertenece a otra corrida.")
     summary = package.verification.summary
     lines = [
         r"\documentclass[11pt]{article}",
         r"\usepackage[margin=2.2cm]{geometry}",
         r"\usepackage{amsmath,amssymb}",
         r"\usepackage{breqn}",
+        r"\usepackage{needspace}",
         r"\usepackage[T1]{fontenc}",
         r"\begin{document}",
-        r"\section*{TensorEngine: informe de corrida}",
+        r"\begin{center}",
+        r"{\Large\bfseries TensorEngine: informe de corrida}",
+        r"\end{center}",
         rf"\textbf{{Modelo:}} \texttt{{{_latex_text(package.model.name)}}}\\",
         rf"\textbf{{Run ID:}} \texttt{{{_latex_text(package.run_id)}}}\\",
         rf"\textbf{{Estado:}} \texttt{{{_latex_text(package.verification.status.value)}}}\\",
         rf"\textbf{{Backend:}} \texttt{{{_latex_text(package.verification.backend_name)} {_latex_text(package.verification.backend_version)}}}\\",
         rf"\textbf{{Verificaciones:}} {summary['passed']} aprobadas, {summary['failed']} fallidas, {summary['undetermined']} indeterminadas.",
-        r"\section*{Resultados covariantes}",
     ]
-    for record in package.expression_records():
-        label = _DISPLAY_LABELS.get(record.key, rf"\mathrm{{{_latex_text(record.key)}}}")
-        lines.extend((r"\begin{dmath*}[breakdepth={5}]", rf"{label} = {expr_to_latex(record.expression)}", r"\end{dmath*}"))
-    if package.components is not None:
-        lines.append(r"\section*{Componentes independientes}")
-        lines.append(rf"Ansatz: \texttt{{{_latex_text(package.components.ansatz_name)}}}.")
-        for position, expression in package.components.independent_metric:
-            lines.extend((r"\begin{dmath*}[breakdepth={5}]", rf"E_{{{position[0]}{position[1]}}} = {expr_to_latex(expression)}", r"\end{dmath*}"))
+    mode = "simplificación protegida" if view.policy.enabled else "simplificación desactivada"
+    lines.extend((r"\par\smallskip", rf"\textbf{{Presentación:}} {mode}, sin modificar los objetos canónicos. "
+                  r"Las operaciones e hipótesis usadas por expresión constan en \texttt{presentation.json} "
+                  r"y en los comentarios del archivo LaTeX. La validación xAct corresponde a la IR canónica.\par"))
+    if package.delta_contractions:
+        substitutions = sum(e.action == "substitute" for a in package.delta_contractions for e in a.events)
+        traces = sum(e.action == "trace" for a in package.delta_contractions for e in a.events)
+        remaining = sum(delta_count(expr) for _, expr in package.abstract.expression_items()) if package.abstract else 0
+        lines.append(
+            rf"\textbf{{Deltas canónicos:}} {substitutions} sustituciones y {traces} trazas registradas "
+            rf"en las pasadas del álgebra (incluidas verificaciones); {remaining} deltas explícitos "
+            r"en las once cantidades finales. Detalle e índices sustituidos en \texttt{delta\_contractions.json}.\par"
+        )
+    _append_abstract_results(lines, package, view)
+    _append_projected_results(lines, package, view)
     lines.extend(
         (
-            r"\section*{Política de lectura}",
+            r"\bigskip\noindent\textbf{Política de lectura.} "
             r"Este PDF/LaTeX es una vista. El archivo \texttt{results.json} conserva la representación intermedia canónica y la trazabilidad completa.",
             r"\end{document}",
             "",
@@ -583,6 +977,8 @@ class ExportBundle:
     output_directory: Path
     manifest_path: Path
     manifest: RunManifest
+    pdf_diagnostic: str | None = None
+    presentation: ReportPresentation | None = None
 
     def to_stage_result(self, duration_seconds: float = 0.0) -> StageResult:
         status = self.manifest.status
@@ -595,6 +991,14 @@ class ExportBundle:
             diagnostics = (
                 Diagnostic("W_EXPORTED_PARTIAL_RUN", "La corrida exportada conserva verificaciones indeterminadas.", Severity.WARNING),
             )
+        if self.pdf_diagnostic is not None:
+            diagnostics = diagnostics + (
+                Diagnostic(
+                    "W_PDF_NOT_GENERATED",
+                    self.pdf_diagnostic,
+                    Severity.WARNING,
+                ),
+            )
         manifest_payload = self.manifest.to_data()
         artifacts_payload = {
             "output_directory": str(self.output_directory.resolve()),
@@ -606,9 +1010,26 @@ class ExportBundle:
             status=status,
             backend="python",
             operation="export_run",
-            inputs=("validated_model", "verification_report"),
+            inputs=(
+                "validated_model",
+                "verification_report",
+                "derived_quantities",
+                "abstract_results",
+                "projected_results",
+            ),
             artifacts=(
-                ArtifactRecord("run_manifest", "run_manifest", tuple(manifest_payload.items()), ("validated_model", "verification_report")),
+                ArtifactRecord(
+                    "run_manifest",
+                    "run_manifest",
+                    tuple(manifest_payload.items()),
+                    (
+                        "validated_model",
+                        "verification_report",
+                        "derived_quantities",
+                        "abstract_results",
+                        "projected_results",
+                    ),
+                ),
                 ArtifactRecord("exported_artifacts", "file_bundle", tuple(artifacts_payload.items()), ("run_manifest",)),
             ),
             diagnostics=diagnostics,
@@ -619,8 +1040,65 @@ class ExportBundle:
 class RunExporter:
     """Materializa archivos atómicamente dentro de una raíz controlada."""
 
-    def __init__(self, output_root: str | Path) -> None:
+    def __init__(
+        self,
+        output_root: str | Path,
+        *,
+        compile_pdf: bool = True,
+        pdf_timeout_seconds: float = 90.0,
+        display_policy: DisplayPolicy | None = None,
+        projected_assumptions: tuple[str, ...] = (),
+    ) -> None:
         self.output_root = Path(output_root)
+        self.compile_pdf = compile_pdf
+        self.pdf_timeout_seconds = pdf_timeout_seconds
+        self.display_policy = display_policy or DisplayPolicy()
+        self.projected_assumptions = tuple(projected_assumptions)
+
+    def _compile_pdf(self, directory: Path) -> tuple[bytes | None, str | None]:
+        compiler = shutil.which("pdflatex") or shutil.which("xelatex")
+        if compiler is None:
+            return None, "No se encontró pdflatex ni xelatex; report.tex sigue disponible."
+        pdf_path = directory / "report.pdf"
+        pdf_path.unlink(missing_ok=True)
+        try:
+            environment = os.environ.copy()
+            environment["SOURCE_DATE_EPOCH"] = "946684800"
+            environment["FORCE_SOURCE_DATE"] = "1"
+            completed = subprocess.run(
+                [
+                    compiler,
+                    "-interaction=nonstopmode",
+                    "-halt-on-error",
+                    "report.tex",
+                ],
+                cwd=directory,
+                check=False,
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                errors="replace",
+                timeout=self.pdf_timeout_seconds,
+                shell=False,
+                env=environment,
+            )
+        except (OSError, subprocess.TimeoutExpired) as error:
+            return None, f"No se pudo compilar report.tex a PDF: {error}"
+        finally:
+            for suffix in ("aux", "log", "out"):
+                (directory / f"report.{suffix}").unlink(missing_ok=True)
+        if completed.returncode != 0 or not pdf_path.is_file():
+            diagnostic = "\n".join(
+                item.strip()
+                for item in (completed.stderr, completed.stdout[-2000:])
+                if item and item.strip()
+            )
+            pdf_path.unlink(missing_ok=True)
+            return (
+                None,
+                "La compilación LaTeX no produjo report.pdf. " + diagnostic,
+            )
+        return pdf_path.read_bytes(), None
 
     @staticmethod
     def _write_atomic(path: Path, content: str) -> bytes:
@@ -653,15 +1131,47 @@ class RunExporter:
             raise ValueError("La carpeta calculada de exportación escapa de la raíz autorizada.")
         directory.mkdir(parents=True, exist_ok=True)
 
+        presentation = build_presentation(package, self.display_policy, projected_assumptions=self.projected_assumptions)
+        presentation_data = presentation.to_data()
+        for key, record in presentation.expressions:
+            presentation_data["expressions"][key]["latex"] = _presentation_latex(presentation, key)
+            presentation_data["expressions"][key]["formatting_operations"] = (
+                ["latex_signs_fractions_index_groups"] if self.display_policy.enabled else []
+            )
         contents = {
             "results": ("results.json", "application/json", _canonical_json(package.to_data(), pretty=True)),
             "verification": ("verification.json", "application/json", _canonical_json(package.verification.to_data(), pretty=True)),
-            "latex_report": ("report.tex", "application/x-tex", latex_report(package)),
+            "latex_report": ("report.tex", "application/x-tex", latex_report(package, presentation=presentation)),
+            "presentation": ("presentation.json", "application/json", _canonical_json(presentation_data, pretty=True)),
         }
+        if package.delta_contractions:
+            contents["delta_contractions"] = (
+                "delta_contractions.json", "application/json", _canonical_json({
+                    "schema_version": "1.0", "run_id": package.run_id,
+                    "passes": [a.to_data() for a in package.delta_contractions],
+                    "final_abstract_counts": {} if package.abstract is None else {
+                        key: delta_count(expr) for key, expr in package.abstract.expression_items()
+                    },
+                }, pretty=True),
+            )
         files: list[ExportedFile] = []
         for key, (name, media_type, content) in contents.items():
             encoded = self._write_atomic(directory / name, content)
             files.append(ExportedFile(key, name, media_type, _sha256_bytes(encoded), len(encoded)))
+
+        pdf_diagnostic: str | None = None
+        if self.compile_pdf:
+            pdf_content, pdf_diagnostic = self._compile_pdf(directory)
+            if pdf_content is not None:
+                files.append(
+                    ExportedFile(
+                        "pdf_report",
+                        "report.pdf",
+                        "application/pdf",
+                        _sha256_bytes(pdf_content),
+                        len(pdf_content),
+                    )
+                )
 
         if created_at_utc is None:
             created_at_utc = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
@@ -684,9 +1194,30 @@ class RunExporter:
                 for record in records
             ),
             files=tuple(files),
+            abstract_quantities=(
+                ()
+                if package.abstract is None
+                else tuple(key for key, _ in package.abstract.expression_items())
+            ),
+            projected_quantities=(
+                ()
+                if package.projected is None
+                else tuple(
+                    (
+                        item.key,
+                        item.status.value,
+                        _sha256_data(
+                            item.components.to_data()
+                            if item.components is not None
+                            else {"reason": item.reason, "ansatz": item.ansatz_name}
+                        ),
+                    )
+                    for item in package.projected.quantities
+                )
+            ),
             external_bindings=package.verification.external_bindings,
             adjudications=package.verification.adjudications,
         )
         manifest_path = directory / "manifest.json"
         self._write_atomic(manifest_path, _canonical_json(manifest.to_data(), pretty=True))
-        return ExportBundle(directory, manifest_path, manifest)
+        return ExportBundle(directory, manifest_path, manifest, pdf_diagnostic, presentation)

@@ -31,6 +31,7 @@ from ..euler import (
 )
 from ..indices import tensor_product
 from ..ir import Expr, Index, Number
+from ..delta import DeltaContractionAudit, contract_deltas, delta_count
 from ..model import ModelSpec, TensorDeclaration
 from ..noether import (
     DiffeomorphismVariation,
@@ -61,7 +62,7 @@ class StructuralTensorBackend(TensorBackend):
 
     info = BackendInfo(
         name="structural-python",
-        version="0.8.0",
+        version="0.9.0",
         capabilities=frozenset(
             {
                 Capability.INDEX_HYGIENE,
@@ -103,6 +104,7 @@ class StructuralTensorBackend(TensorBackend):
         self.curvature_name = curvature_name
         self.delta_name = delta_name
         self.dimension = dimension
+        self._delta_audits: dict[tuple[str, str], DeltaContractionAudit] = {}
         self.differential_context = differential_context or DifferentialContext(
             metric_name=metric_name,
             delta_name=delta_name,
@@ -127,17 +129,42 @@ class StructuralTensorBackend(TensorBackend):
         )
 
     def canonicalize(self, expr: Expr) -> Expr:
-        return canonicalize_monoterm(expr, self.declarations)
+        current = self._contract_deltas(expr)
+        current = canonicalize_monoterm(current, self.declarations)
+        contracted = self._contract_deltas(current)
+        return (canonicalize_monoterm(contracted, self.declarations)
+                if contracted != current else current)
+
+    @property
+    def delta_contractions(self) -> tuple[DeltaContractionAudit, ...]:
+        return tuple(self._delta_audits.values())
+
+    def _remember_delta_audit(self, audit: DeltaContractionAudit) -> None:
+        if audit.events:
+            self._delta_audits[(audit.input_sha256, audit.output_sha256)] = audit
+
+    def _contract_deltas(self, expr: Expr) -> Expr:
+        if not delta_count(expr, self.delta_name):
+            return expr
+        result = contract_deltas(expr, delta_name=self.delta_name, dimension=self.dimension,
+                                 index_space=self.variational_context.index_space)
+        self._remember_delta_audit(result.audit)
+        return result.expression
 
     def simplify(self, expr: Expr) -> Expr:
         current = self.canonicalize(expr)
         for _ in range(8):
+            audits: list[DeltaContractionAudit] = []
             simplified = simplify_metrics(
                 current,
                 metric_name=self.metric_name,
                 delta_name=self.delta_name,
                 dimension=self.dimension,
+                index_space=self.variational_context.index_space,
+                audit=audits,
             )
+            for audit in audits:
+                self._remember_delta_audit(audit)
             simplified = self.canonicalize(simplified)
             if simplified == current:
                 break
@@ -361,6 +388,9 @@ class StructuralTensorBackend(TensorBackend):
             boundary_total=self.canonicalize(raw.boundary_total),
             full_variation=self.canonicalize(raw.full_variation),
             density_variation=self.canonicalize(raw.density_variation),
+            curvature_derivative_metric_term=self.simplify(
+                raw.curvature_derivative_metric_term
+            ),
         )
 
     def check_scalar_integration_by_parts(

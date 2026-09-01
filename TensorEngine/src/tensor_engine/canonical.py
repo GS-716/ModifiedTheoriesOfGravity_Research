@@ -7,6 +7,7 @@ from fractions import Fraction
 import json
 
 from .errors import TensorAlgebraError
+from .delta import DeltaContractionAudit, contract_deltas, delta_count
 from .indices import (
     all_indices,
     canonicalize_dummy_indices,
@@ -64,10 +65,26 @@ def canonicalize_tensor(
     if declaration.symmetry is TensorSymmetry.RIEMANN:
         if len(indices) != 4:
             raise TensorAlgebraError(f"{tensor.name} fue declarado Riemann pero no tiene rango cuatro.")
-        # Las simetrías por pares se aplican a representaciones completamente
-        # covariantes o completamente contravariantes.
-        if len({index.variance for index in indices}) != 1:
+        # Symmetries permute complete Index objects, including their variance.
+        # Raising a slot with the metric preserves those relations: e.g.
+        # R^a_bcd = -R_b^a_cd, NOT -R^b_acd. This also canonicalizes intrinsic
+        # traces exposed by delta contraction without adding a Ricci-specific rule.
+        if len({index.space for index in indices}) != 1:
             return tensor
+        # A local trace contracts two slots with a symmetric inverse metric.
+        # Exchanging which of those two *dummy* occurrences is raised leaves
+        # the contraction unchanged. Normalize only complete intrinsic pairs;
+        # free indices and contractions crossing this tensor's boundary stay put.
+        trace_slots: dict[tuple[str, str], list[int]] = defaultdict(list)
+        for position, index in enumerate(indices):
+            trace_slots[index_key(index)].append(position)
+        for positions in trace_slots.values():
+            if len(positions) == 2:
+                first, second = positions
+                if indices[first].variance is not indices[second].variance:
+                    key = indices[first]
+                    indices[first] = Index(key.name, Variance.DOWN, key.space)
+                    indices[second] = Index(key.name, Variance.UP, key.space)
         if index_key(indices[0]) == index_key(indices[1]):
             return Number(0)
         if index_key(indices[2]) == index_key(indices[3]):
@@ -235,19 +252,13 @@ def _replace_tensor_index(tensor: Tensor, position: int, replacement: Index) -> 
     return Tensor(tensor.name, tuple(indices))
 
 
-def _dimension_expr(dimension: int | str | Expr) -> Expr:
-    if isinstance(dimension, Expr):
-        return dimension
-    if isinstance(dimension, int):
-        return Number(dimension)
-    return Scalar(dimension)
-
-
 def _simplify_metric_product(
     expr: Expr,
     metric_name: str,
     delta_name: str,
     dimension: int | str | Expr,
+    index_space: str = "M",
+    audit: list[DeltaContractionAudit] | None = None,
 ) -> Expr:
     factors = _flatten_product(canonicalize_dummy_indices(expr))
     factors = [factor for factor in factors if not (isinstance(factor, Number) and factor.value == 1)]
@@ -260,49 +271,27 @@ def _simplify_metric_product(
             if not isinstance(factor, Tensor) or factor.name != metric_name or len(factor.indices) != 2:
                 continue
             first, second = factor.indices
+            if first.space != index_space or second.space != index_space:
+                continue
             if first.variance is second.variance:
                 continue
             upper, lower = (first, second) if first.variance is Variance.UP else (second, first)
-            if index_key(upper) == index_key(lower):
-                factors[position] = _dimension_expr(dimension)
-            else:
-                factors[position] = Tensor(delta_name, (upper, lower))
+            factors[position] = Tensor(delta_name, (upper, lower))
             changed = True
             break
         if changed:
             continue
 
-        # Contracción de un delta con un tensor directo.
-        contracted = False
-        for delta_position, factor in enumerate(factors):
-            if not isinstance(factor, Tensor) or factor.name != delta_name or len(factor.indices) != 2:
-                continue
-            upper, lower = factor.indices
-            if index_key(upper) == index_key(lower):
-                factors[delta_position] = _dimension_expr(dimension)
-                changed = contracted = True
-                break
-            for delta_slot, delta_index in enumerate((upper, lower)):
-                other = lower if delta_slot == 0 else upper
-                for target_position, target in enumerate(factors):
-                    if target_position == delta_position or not isinstance(target, Tensor):
-                        continue
-                    for target_slot, target_index in enumerate(target.indices):
-                        if (
-                            index_key(target_index) == index_key(delta_index)
-                            and target_index.variance is not delta_index.variance
-                        ):
-                            replacement = Index(other.name, other.variance, other.space)
-                            factors[target_position] = _replace_tensor_index(target, target_slot, replacement)
-                            factors.pop(delta_position)
-                            changed = contracted = True
-                            break
-                    if contracted:
-                        break
-                if contracted:
-                    break
-            if contracted:
-                break
+        # A single reducer handles direct tensors AND complete derivative blocks.
+        product = mul(*factors)
+        if delta_count(product, delta_name):
+            result = contract_deltas(product, delta_name=delta_name,
+                                     dimension=dimension, index_space=index_space)
+            if result.audit.events and audit is not None:
+                audit.append(result.audit)
+            if result.audit.deltas_after < result.audit.deltas_before:
+                factors = _flatten_product(result.expression)
+                changed = True
         if changed:
             continue
 
@@ -311,6 +300,8 @@ def _simplify_metric_product(
             if not isinstance(factor, Tensor) or factor.name != metric_name or len(factor.indices) != 2:
                 continue
             first, second = factor.indices
+            if first.space != index_space or second.space != index_space:
+                continue
             if first.variance is not second.variance:
                 continue
             for metric_slot, metric_index in enumerate((first, second)):
@@ -348,55 +339,58 @@ def simplify_metrics(
     metric_name: str = "g",
     delta_name: str = "delta",
     dimension: int | str | Expr = "D",
+    *, index_space: str = "M", audit: list[DeltaContractionAudit] | None = None,
 ) -> Expr:
-    """Contrae métricas y deltas en productos tensoriales directos."""
+    """Contrae métricas directas y delega todos los deltas al reductor común."""
+
+    def recurse(child: Expr) -> Expr:
+        return simplify_metrics(child, metric_name, delta_name, dimension,
+                                index_space=index_space, audit=audit)
+
+    def identity(child: Expr) -> Expr:
+        result = contract_deltas(child, delta_name=delta_name, dimension=dimension,
+                                 index_space=index_space)
+        if result.audit.events and audit is not None:
+            audit.append(result.audit)
+        return result.expression
 
     if isinstance(expr, (Number, Scalar, Tensor, VolumeElement)):
-        if isinstance(expr, Tensor) and expr.name == delta_name and len(expr.indices) == 2:
-            upper, lower = expr.indices
-            if upper.variance is Variance.DOWN:
-                upper, lower = lower, upper
-            if upper.variance is Variance.UP and lower.variance is Variance.DOWN:
-                if index_key(upper) == index_key(lower):
-                    return _dimension_expr(dimension)
+        if isinstance(expr, Tensor) and expr.name == delta_name:
+            return identity(expr)
         if isinstance(expr, Tensor) and expr.name == metric_name and len(expr.indices) == 2:
             first, second = expr.indices
-            if first.variance is not second.variance:
+            if first.space == second.space == index_space and first.variance is not second.variance:
                 upper, lower = (first, second) if first.variance is Variance.UP else (second, first)
-                if index_key(upper) == index_key(lower):
-                    return _dimension_expr(dimension)
-                return Tensor(delta_name, (upper, lower))
+                return identity(Tensor(delta_name, (upper, lower)))
         return expr
     if isinstance(expr, Add):
-        return add(*(simplify_metrics(term, metric_name, delta_name, dimension) for term in expr.terms))
+        return add(*(recurse(term) for term in expr.terms))
     if isinstance(expr, Mul):
         simplified = mul(
-            *(simplify_metrics(factor, metric_name, delta_name, dimension) for factor in expr.factors)
+            *(recurse(factor) for factor in expr.factors)
         )
-        return _simplify_metric_product(simplified, metric_name, delta_name, dimension)
+        return _simplify_metric_product(simplified, metric_name, delta_name, dimension, index_space, audit)
     if isinstance(expr, Power):
         return Power(
-            simplify_metrics(expr.base, metric_name, delta_name, dimension),
-            simplify_metrics(expr.exponent, metric_name, delta_name, dimension),
+            recurse(expr.base), recurse(expr.exponent),
         )
     if isinstance(expr, Function):
         return Function(
             expr.name,
-            tuple(simplify_metrics(arg, metric_name, delta_name, dimension) for arg in expr.arguments),
+            tuple(recurse(arg) for arg in expr.arguments),
         )
     if isinstance(expr, FunctionDerivative):
         return FunctionDerivative(
             expr.name,
             expr.derivative_orders,
-            tuple(simplify_metrics(arg, metric_name, delta_name, dimension) for arg in expr.arguments),
+            tuple(recurse(arg) for arg in expr.arguments),
         )
     if isinstance(expr, CovariantDerivative):
-        return CovariantDerivative(
-            expr.index,
-            simplify_metrics(expr.operand, metric_name, delta_name, dimension),
-        )
+        operand = recurse(expr.operand)
+        return Number(0) if operand == Number(0) else CovariantDerivative(expr.index, operand)
     if isinstance(expr, Variation):
-        return Variation(simplify_metrics(expr.operand, metric_name, delta_name, dimension))
+        operand = recurse(expr.operand)
+        return Number(0) if isinstance(operand, Number) else Variation(operand)
     raise TypeError(f"Nodo IR no reconocido: {type(expr).__name__}")
 
 
