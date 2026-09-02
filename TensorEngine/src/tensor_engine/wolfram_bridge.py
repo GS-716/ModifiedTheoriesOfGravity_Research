@@ -12,7 +12,7 @@ import subprocess
 import tempfile
 from typing import Any, Mapping
 
-from .contracts import VerificationRecord, VerificationStatus
+from .contracts import VerificationDiagnostic, VerificationRecord, VerificationStatus
 from .errors import BackendExecutionError, BackendUnavailableError
 from .differential import DifferentialContext
 from .euler import EulerLagrangeResult, curvature_derivative_metric_term
@@ -112,6 +112,7 @@ class WolframPhase5Check:
     residual: str | None = None
     strategy: str | None = None
     adjudicates: tuple[str, ...] = ()
+    diagnostic: VerificationDiagnostic | None = None
 
     def __post_init__(self) -> None:
         object.__setattr__(self, "adjudicates", tuple(self.adjudicates))
@@ -134,6 +135,11 @@ class WolframPhase5Check:
         except (KeyError, ValueError) as error:
             raise BackendExecutionError("La comprobación xAct tiene un contrato inválido.") from error
         residual = data.get("residual")
+        diagnostic_data = data.get("transport_diagnostic")
+        if diagnostic_data is not None and not isinstance(diagnostic_data, Mapping):
+            raise BackendExecutionError(
+                "El diagnóstico de transporte IR-xAct debe ser un objeto JSON."
+            )
         return cls(
             key=key,
             status=status,
@@ -141,10 +147,15 @@ class WolframPhase5Check:
             residual=None if residual is None else str(residual),
             strategy=None if data.get("strategy") is None else str(data["strategy"]),
             adjudicates=tuple(str(item) for item in data.get("adjudicates", ())),
+            diagnostic=(
+                None
+                if diagnostic_data is None
+                else VerificationDiagnostic.from_data(diagnostic_data)
+            ),
         )
 
     def to_data(self) -> dict[str, Any]:
-        return {
+        data = {
             "key": self.key,
             "status": self.status.value,
             "message": self.message,
@@ -152,6 +163,9 @@ class WolframPhase5Check:
             "strategy": self.strategy,
             "adjudicates": list(self.adjudicates),
         }
+        if self.diagnostic is not None:
+            data["transport_diagnostic"] = self.diagnostic.to_data()
+        return data
 
     def to_verification_record(self) -> VerificationRecord:
         """Adapta el resultado al contrato común sin fingir traducir el residual xAct."""
@@ -162,7 +176,19 @@ class WolframPhase5Check:
             safe_key = re.sub(r"[^a-zA-Z0-9_]", "_", self.key)
             residual_marker = Scalar(f"wolfram_residual_{safe_key}")
             message = f"{message} Residual xAct: {self.residual}"
-        return VerificationRecord(self.key, self.status, residual_marker, message)
+        if self.diagnostic is not None:
+            location = ".".join(self.diagnostic.path) or "residual"
+            message = (
+                f"{message} Diagnóstico IR→xAct: {self.diagnostic.code} "
+                f"en {location}; {self.diagnostic.reason}"
+            )
+        return VerificationRecord(
+            self.key,
+            self.status,
+            residual_marker,
+            message,
+            self.diagnostic,
+        )
 
 
 @dataclass(frozen=True, slots=True)
@@ -491,7 +517,15 @@ class WolframXActBridge:
             try:
                 response = json.loads(response_path.read_text(encoding="utf-8"))
             except (OSError, json.JSONDecodeError) as error:
-                raise BackendExecutionError("La respuesta Wolfram no es JSON válido.") from error
+                diagnostic = "\n".join(
+                    item.strip()
+                    for item in (completed.stderr, completed.stdout)
+                    if item and item.strip()
+                )
+                suffix = "" if not diagnostic else f" Salida del kernel: {diagnostic}"
+                raise BackendExecutionError(
+                    "La respuesta Wolfram no es JSON válido." + suffix
+                ) from error
         if not isinstance(response, dict):
             raise BackendExecutionError("La respuesta Wolfram debe ser un objeto JSON.")
         return response

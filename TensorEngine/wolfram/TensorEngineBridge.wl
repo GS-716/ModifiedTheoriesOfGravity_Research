@@ -6,6 +6,7 @@ ClearAll[
   makeCheck, zeroCheck, phaseFiveValidation, phaseSixValidation, phaseSevenValidation,
   genericModelValidation, setupGenericEnvironment, decodeGenericExpr,
   decodeGenericIndex, genericCanonicalResidual, validGenericNameQ, genericSetupStep,
+  genericInternalSymbol, genericDecodeFailure, jsonSafeIRFragment, genericPathString,
   summarizeChecks,
   canonicalResidual, residualString, xTensorLoadedAtStartup,
   xPertLoadedAtStartup, xTrasLoadedAtStartup, xCobaLoadedAtStartup
@@ -87,15 +88,22 @@ makeCheck[
   message_String,
   residual_: Null,
   strategy_: Null,
-  adjudicates_: {}
-] := <|
-  "key" -> key,
-  "status" -> status,
-  "message" -> message,
-  "residual" -> residual,
-  "strategy" -> strategy,
-  "adjudicates" -> adjudicates
-|>;
+  adjudicates_: {},
+  transportDiagnostic_: Null
+] := Module[{data},
+  data = <|
+    "key" -> key,
+    "status" -> status,
+    "message" -> message,
+    "residual" -> residual,
+    "strategy" -> strategy,
+    "adjudicates" -> adjudicates
+  |>;
+  If[transportDiagnostic =!= Null,
+    AssociateTo[data, "transport_diagnostic" -> transportDiagnostic]
+  ];
+  data
+];
 
 canonicalResidual[expression_] := ToCanonical[ContractMetric[expression]];
 
@@ -664,6 +672,51 @@ phaseSevenValidation[xTensorLoaded_, xCobaLoaded_] := Module[
 validGenericNameQ[value_] := StringQ[value] &&
   StringMatchQ[value, RegularExpression["^[A-Za-z][A-Za-z0-9_]*$"]];
 
+(* Los nombres válidos de la IR admiten guion bajo, pero los nombres de símbolos
+   de Wolfram Language no. Este mapeo es inyectivo porque '$' no pertenece al
+   alfabeto de nombres de la IR. Nunca se evalúa texto procedente del usuario. *)
+genericInternalSymbol[role_String, value_String] := Symbol[
+  "TensorEngineGeneric`" <> role <> "$" <> StringReplace[value, "_" -> "$u$"]
+];
+
+jsonSafeIRFragment[value_] := Which[
+  AssociationQ[value], Association @ KeyValueMap[#1 -> jsonSafeIRFragment[#2] &, value],
+  ListQ[value], jsonSafeIRFragment /@ value,
+  value === Null || StringQ[value] || IntegerQ[value] || RealQ[value] ||
+    value === True || value === False, value,
+  Head[value] === Missing, <|"missing" -> ToString[value, InputForm]|>,
+  True, ToString[value, InputForm]
+];
+
+genericPathString[path_List] := If[path === {}, "residual", StringRiffle[path, "."]];
+
+genericDecodeFailure[
+  code_String,
+  category_String,
+  reason_,
+  path_List,
+  fragment_,
+  nodeType_: Null,
+  symbol_: Null
+] := Module[{},
+  If[!AssociationQ[$te11DecodeDiagnostic] || Length[$te11DecodeDiagnostic] === 0,
+    $te11DecodeDiagnostic = <|
+      "code" -> code,
+      "category" -> category,
+      "reason" -> ToString[reason],
+      "path" -> path,
+      "node_type" -> nodeType,
+      "symbol" -> symbol,
+      "fragment" -> jsonSafeIRFragment[fragment]
+    |>
+  ];
+  $Failed
+];
+
+genericDecodeFailure[reason_] := genericDecodeFailure[
+  "transport_exception", "expression", reason, {"residual"}, Null
+];
+
 SetAttributes[genericSetupStep, HoldRest];
 genericSetupStep[label_String, expression_] := Module[{value},
   $te11Progress = "setup:" <> label;
@@ -680,7 +733,7 @@ setupGenericEnvironment[model_Association, indexNames_List] := Module[
   {dimensionData, dimension, names, indexSymbols, functionData, parameterData, symbols, head},
   If[!AllTrue[indexNames, validGenericNameQ], Return[$Failed]];
   names = DeleteDuplicates@Join[indexNames, {"teFallbackA", "teFallbackB", "teFallbackC"}];
-  indexSymbols = Symbol["TensorEngineGeneric`i$" <> #] & /@ names;
+  indexSymbols = genericInternalSymbol["i", #] & /@ names;
   $te11IndexMap = AssociationThread[names, indexSymbols];
   $te11Manifold = Symbol["TensorEngineGeneric`M"];
   $te11Metric = Symbol["TensorEngineGeneric`g"];
@@ -691,12 +744,13 @@ setupGenericEnvironment[model_Association, indexNames_List] := Module[
   $te11Delta = Symbol["TensorEngineGeneric`delta"];
   $te11DeltaGamma = Symbol["TensorEngineGeneric`deltaGamma"];
   $te11SetupDiagnostic = "unknown";
+  $te11DecodeDiagnostic = <||>;
 
   dimensionData = Lookup[model, "dimension", <|"value" -> 4|>];
   dimension = Lookup[dimensionData, "value", 4];
   If[StringQ[dimension],
     If[!validGenericNameQ[dimension], Return[$Failed]];
-    dimension = Symbol["TensorEngineGeneric`constant$" <> dimension];
+    dimension = genericInternalSymbol["constant", dimension];
     If[genericSetupStep["DefConstantSymbol dimension", DefConstantSymbol[Evaluate[dimension]]] === $Failed, Return[$Failed]]
   ];
   symbols = Lookup[model, "symbols", <||>];
@@ -704,8 +758,9 @@ setupGenericEnvironment[model_Association, indexNames_List] := Module[
   $te11CurvatureName = Lookup[symbols, "curvature", "Riemann"];
   $te11ScalarName = Lookup[symbols, "scalar", "phi"];
   $te11GradientName = Lookup[symbols, "scalar_gradient", "u"];
+  $te11IndexSpaceName = Lookup[symbols, "index_space", "M"];
   If[!AllTrue[
-      {$te11MetricName, $te11CurvatureName, $te11ScalarName, $te11GradientName},
+      {$te11MetricName, $te11CurvatureName, $te11ScalarName, $te11GradientName, $te11IndexSpaceName},
       validGenericNameQ
     ], Return[$Failed]];
 
@@ -753,12 +808,17 @@ setupGenericEnvironment[model_Association, indexNames_List] := Module[
   $te11Riemann = Riemann[$te11CD];
 
   $te11FunctionMap = <||>;
+  $te11FunctionArityMap = <||>;
   functionData = Lookup[model, "functions", {}];
   Do[
-    If[!AssociationQ[item] || !validGenericNameQ[Lookup[item, "name", ""]], Return[$Failed]];
-    head = Symbol["TensorEngineGeneric`function$" <> item["name"]];
+    If[!AssociationQ[item] || !validGenericNameQ[Lookup[item, "name", ""]] ||
+        !IntegerQ[Lookup[item, "arity", 0]] || Lookup[item, "arity", 0] < 1,
+      Return[$Failed]
+    ];
+    head = genericInternalSymbol["function", item["name"]];
     If[genericSetupStep["DefScalarFunction " <> item["name"], DefScalarFunction[Evaluate[head]]] === $Failed, Return[$Failed]];
-    AssociateTo[$te11FunctionMap, item["name"] -> head],
+    AssociateTo[$te11FunctionMap, item["name"] -> head];
+    AssociateTo[$te11FunctionArityMap, item["name"] -> item["arity"]],
     {item, functionData}
   ];
 
@@ -766,7 +826,7 @@ setupGenericEnvironment[model_Association, indexNames_List] := Module[
   parameterData = Lookup[model, "parameters", {}];
   Do[
     If[!AssociationQ[item] || !validGenericNameQ[Lookup[item, "name", ""]], Return[$Failed]];
-    head = Symbol["TensorEngineGeneric`constant$" <> item["name"]];
+    head = genericInternalSymbol["constant", item["name"]];
     If[genericSetupStep["DefConstantSymbol " <> item["name"], DefConstantSymbol[Evaluate[head]]] === $Failed, Return[$Failed]];
     AssociateTo[$te11ScalarMap, item["name"] -> head],
     {item, parameterData}
@@ -777,75 +837,174 @@ setupGenericEnvironment[model_Association, indexNames_List] := Module[
   True
 ];
 
-decodeGenericIndex[data_Association] := Module[{name, symbol, variance},
-  name = Lookup[data, "name", ""];
-  variance = Lookup[data, "variance", ""];
-  If[!KeyExistsQ[$te11IndexMap, name], Return[$Failed]];
+decodeGenericIndex[data_Association] := decodeGenericIndex[data, {"residual", "index"}];
+decodeGenericIndex[data_Association, path_List] := Module[{name, symbol, variance, space},
+  name = Lookup[data, "name", Missing["name"]];
+  variance = Lookup[data, "variance", Missing["variance"]];
+  space = Lookup[data, "space", $te11IndexSpaceName];
+  If[!StringQ[name] || !KeyExistsQ[$te11IndexMap, name],
+    Return[genericDecodeFailure[
+      "unregistered_index", "index", "índice no registrado: " <> ToString[name],
+      path, data, "index", If[StringQ[name], name, Null]
+    ]]
+  ];
+  If[space =!= $te11IndexSpaceName,
+    Return[genericDecodeFailure[
+      "incompatible_index_space", "index",
+      "espacio de índices incompatible: " <> ToString[space] <> " (esperado " <> $te11IndexSpaceName <> ")",
+      path, data, "index", name
+    ]]
+  ];
   symbol = $te11IndexMap[name];
-  Which[variance === "up", symbol, variance === "down", -symbol, True, $Failed]
+  Which[
+    variance === "up", symbol,
+    variance === "down", -symbol,
+    True, genericDecodeFailure[
+      "invalid_index_variance", "index", "varianza de índice inválida: " <> ToString[variance],
+      path, data, "index", name
+    ]
+  ]
 ];
+decodeGenericIndex[data_, path_List] := genericDecodeFailure[
+  "malformed_index", "index", "el índice IR no es una asociación",
+  path, data, "index", Null
+];
+decodeGenericIndex[data_] := decodeGenericIndex[data, {"residual", "index"}];
 
-decodeGenericExpr[data_Association] := Module[
-  {type, children, indices, name, head, orders, derivative},
-  type = Lookup[data, "type", ""];
+decodeGenericExpr[data_Association] := decodeGenericExpr[data, {"residual"}];
+decodeGenericExpr[data_Association, path_List] := Module[
+  {type, children, indices, name, head, orders, derivative, numerator, denominator,
+   argumentsData, indexData, operandData, metricName},
+  type = Lookup[data, "type", Missing["type"]];
+  If[!StringQ[type], Return[genericDecodeFailure[
+    "missing_node_type", "node", "nodo IR sin tipo textual", path, data, Null, Null
+  ]]];
   Switch[type,
     "number",
-      Lookup[data, "numerator", 0]/Lookup[data, "denominator", 1],
+      numerator = Lookup[data, "numerator", Missing["numerator"]];
+      denominator = Lookup[data, "denominator", Missing["denominator"]];
+      If[!IntegerQ[numerator] || !IntegerQ[denominator] || denominator === 0,
+        genericDecodeFailure[
+          "invalid_rational", "node", "número racional IR inválido",
+          path, data, type, Null
+        ],
+        numerator/denominator
+      ],
     "scalar",
-      name = Lookup[data, "name", ""];
+      name = Lookup[data, "name", Missing["name"]];
       Which[
         name === $te11ScalarName, $te11Phi[],
         KeyExistsQ[$te11ScalarMap, name], $te11ScalarMap[name],
-        True, $Failed
+        True, genericDecodeFailure[
+          "undeclared_scalar", "scalar", "escalar no declarado: " <> ToString[name],
+          path, data, type, If[StringQ[name], name, Null]
+        ]
       ],
     "tensor",
-      name = Lookup[data, "name", ""];
-      indices = decodeGenericIndex /@ Lookup[data, "indices", {}];
+      name = Lookup[data, "name", Missing["name"]];
+      indexData = Lookup[data, "indices", Missing["indices"]];
+      If[!ListQ[indexData], Return[genericDecodeFailure[
+        "invalid_tensor_indices", "tensor", "lista de índices tensoriales inválida",
+        Append[path, "indices"], indexData, type, If[StringQ[name], name, Null]
+      ]]];
+      indices = MapIndexed[
+        Function[{index, position},
+          decodeGenericIndex[index, Join[path, {"indices", ToString[First[position] - 1]}]]
+        ],
+        indexData
+      ];
       If[MemberQ[indices, $Failed], Return[$Failed]];
       Switch[name,
-        $te11MetricName, Apply[$te11Metric, indices],
-        $te11CurvatureName, If[Length[indices] === 4, -Apply[$te11Riemann, indices[[{3, 4, 2, 1}]]], $Failed],
-        $te11GradientName, If[Length[indices] === 1, Apply[$te11CD, indices][$te11Phi[]], $Failed],
-        "xi", If[Length[indices] === 1, Apply[$te11Xi, indices], $Failed],
-        "delta", Apply[$te11Metric, indices],
-        "delta_Gamma", Apply[$te11DeltaGamma, indices],
-        _, $Failed
+        $te11MetricName, If[Length[indices] === 2, Apply[$te11Metric, indices], genericDecodeFailure["invalid_tensor_rank", "tensor", "la métrica no tiene rango 2", path, data, type, name]],
+        $te11CurvatureName, If[Length[indices] === 4, -Apply[$te11Riemann, indices[[{3, 4, 2, 1}]]], genericDecodeFailure["invalid_tensor_rank", "tensor", "Riemann no tiene rango 4", path, data, type, name]],
+        $te11GradientName, If[Length[indices] === 1, Apply[$te11CD, indices][$te11Phi[]], genericDecodeFailure["invalid_tensor_rank", "tensor", "el gradiente escalar no tiene rango 1", path, data, type, name]],
+        "xi", If[Length[indices] === 1, Apply[$te11Xi, indices], genericDecodeFailure["invalid_tensor_rank", "tensor", "xi no tiene rango 1", path, data, type, name]],
+        "delta", If[Length[indices] === 2, Apply[$te11Metric, indices], genericDecodeFailure["invalid_tensor_rank", "tensor", "delta no tiene rango 2", path, data, type, name]],
+        "delta_Gamma", If[Length[indices] === 3, Apply[$te11DeltaGamma, indices], genericDecodeFailure["invalid_tensor_rank", "tensor", "delta_Gamma no tiene rango 3", path, data, type, name]],
+        _, genericDecodeFailure[
+          "undeclared_tensor", "tensor", "tensor no declarado: " <> ToString[name],
+          path, data, type, If[StringQ[name], name, Null]
+        ]
       ],
     "add",
-      children = decodeGenericExpr /@ Lookup[data, "terms", {}];
+      argumentsData = Lookup[data, "terms", Missing["terms"]];
+      If[!ListQ[argumentsData] || Length[argumentsData] < 2, Return[genericDecodeFailure["invalid_add", "node", "suma IR inválida", path, data, type, Null]]];
+      children = MapIndexed[
+        Function[{child, position}, decodeGenericExpr[child, Join[path, {"terms", ToString[First[position] - 1]}]]],
+        argumentsData
+      ];
       If[MemberQ[children, $Failed], $Failed, Total[children]],
     "mul",
-      children = decodeGenericExpr /@ Lookup[data, "factors", {}];
+      argumentsData = Lookup[data, "factors", Missing["factors"]];
+      If[!ListQ[argumentsData] || Length[argumentsData] < 2, Return[genericDecodeFailure["invalid_mul", "node", "producto IR inválido", path, data, type, Null]]];
+      children = MapIndexed[
+        Function[{child, position}, decodeGenericExpr[child, Join[path, {"factors", ToString[First[position] - 1]}]]],
+        argumentsData
+      ];
       If[MemberQ[children, $Failed], $Failed, Times @@ children],
     "power",
-      children = decodeGenericExpr /@ {Lookup[data, "base", <||>], Lookup[data, "exponent", <||>]};
+      If[!KeyExistsQ[data, "base"] || !KeyExistsQ[data, "exponent"], Return[genericDecodeFailure["invalid_power", "node", "potencia IR incompleta", path, data, type, Null]]];
+      children = {
+        decodeGenericExpr[data["base"], Append[path, "base"]],
+        decodeGenericExpr[data["exponent"], Append[path, "exponent"]]
+      };
       If[MemberQ[children, $Failed], $Failed, children[[1]]^children[[2]]],
     "function",
-      name = Lookup[data, "name", ""];
-      If[!KeyExistsQ[$te11FunctionMap, name], Return[$Failed]];
-      children = decodeGenericExpr /@ Lookup[data, "arguments", {}];
+      name = Lookup[data, "name", Missing["name"]];
+      If[!KeyExistsQ[$te11FunctionMap, name], Return[genericDecodeFailure["undeclared_function", "function", "función no declarada: " <> ToString[name], path, data, type, If[StringQ[name], name, Null]]]];
+      argumentsData = Lookup[data, "arguments", Missing["arguments"]];
+      If[!ListQ[argumentsData] || Length[argumentsData] =!= $te11FunctionArityMap[name], Return[genericDecodeFailure["invalid_function_arity", "function", "aridad inválida para " <> ToString[name], path, data, type, name]]];
+      children = MapIndexed[
+        Function[{child, position}, decodeGenericExpr[child, Join[path, {"arguments", ToString[First[position] - 1]}]]],
+        argumentsData
+      ];
       If[MemberQ[children, $Failed], $Failed, Apply[$te11FunctionMap[name], children]],
     "function_derivative",
-      name = Lookup[data, "name", ""];
-      If[!KeyExistsQ[$te11FunctionMap, name], Return[$Failed]];
-      children = decodeGenericExpr /@ Lookup[data, "arguments", {}];
-      orders = Lookup[data, "derivative_orders", {}];
+      name = Lookup[data, "name", Missing["name"]];
+      If[!KeyExistsQ[$te11FunctionMap, name], Return[genericDecodeFailure["undeclared_function", "function", "derivada de función no declarada: " <> ToString[name], path, data, type, If[StringQ[name], name, Null]]]];
+      argumentsData = Lookup[data, "arguments", Missing["arguments"]];
+      orders = Lookup[data, "derivative_orders", Missing["derivative_orders"]];
+      If[!ListQ[argumentsData] || !ListQ[orders] || Length[argumentsData] =!= $te11FunctionArityMap[name] ||
+          Length[orders] =!= Length[argumentsData] || !AllTrue[orders, IntegerQ[#] && # >= 0 &] || !AnyTrue[orders, # > 0 &],
+        Return[genericDecodeFailure["invalid_function_derivative", "function", "firma inválida de FunctionDerivative para " <> ToString[name], path, data, type, name]]
+      ];
+      children = MapIndexed[
+        Function[{child, position}, decodeGenericExpr[child, Join[path, {"arguments", ToString[First[position] - 1]}]]],
+        argumentsData
+      ];
       If[MemberQ[children, $Failed], Return[$Failed]];
       derivative = Apply[Derivative, orders][$te11FunctionMap[name]];
       Apply[derivative, children],
     "covariant_derivative",
-      indices = decodeGenericIndex[Lookup[data, "index", <||>]];
-      children = decodeGenericExpr[Lookup[data, "operand", <||>]];
-      If[indices === $Failed || children === $Failed, $Failed, Apply[$te11CD, {indices}][children]],
+      indexData = Lookup[data, "index", Missing["index"]];
+      operandData = Lookup[data, "operand", Missing["operand"]];
+      indices = decodeGenericIndex[indexData, Append[path, "index"]];
+      children = decodeGenericExpr[operandData, Append[path, "operand"]];
+      If[indices === $Failed || children === $Failed, $Failed,
+        If[Lookup[indexData, "variance", ""] =!= "down",
+          genericDecodeFailure["invalid_derivative_index", "index", "la derivada covariante requiere índice inferior", Append[path, "index"], indexData, "index", Lookup[indexData, "name", Null]],
+          Apply[$te11CD, {indices}][children]
+        ]
+      ],
     "variation",
-      children = decodeGenericExpr[Lookup[data, "operand", <||>]];
+      operandData = Lookup[data, "operand", Missing["operand"]];
+      children = decodeGenericExpr[operandData, Append[path, "operand"]];
       If[children === $Failed, $Failed, Perturbation[children]],
     "volume_element",
-      $te11Volume[],
+      metricName = Lookup[data, "metric_name", $te11MetricName];
+      If[metricName === $te11MetricName, $te11Volume[], genericDecodeFailure["incompatible_volume_metric", "tensor", "densidad asociada a una métrica distinta", path, data, type, metricName]],
     _,
-      $Failed
+      genericDecodeFailure[
+        "unsupported_node_type", "node", "tipo de nodo IR no soportado: " <> ToString[type],
+        path, data, type, Lookup[data, "name", Null]
+      ]
   ]
 ];
+decodeGenericExpr[data_, path_List] := genericDecodeFailure[
+  "malformed_expression", "expression", "el nodo IR no es una asociación",
+  path, data, Null, Null
+];
+decodeGenericExpr[data_] := decodeGenericExpr[data, {"residual"}];
 
 genericCanonicalResidual[expression_, xTrasLoaded_, strategy_] := Module[{value, candidate},
   value = expression;
@@ -885,7 +1044,7 @@ genericCanonicalResidual[expression_, xTrasLoaded_, strategy_] := Module[{value,
 
 genericModelValidation[xTensorLoaded_, xPertLoaded_, xTrasLoaded_] := Module[
   {options, subject, model, indexNames, checkData, checks = {}, decoded, reduced,
-   status, summary, conventions, strategy, adjudicates},
+   status, summary, conventions, strategy, adjudicates, diagnosticReason, diagnosticPath},
   $te11Progress = "generic:start";
   options = Lookup[request, "options", <||>];
   subject = Lookup[options, "subject", <||>];
@@ -919,19 +1078,23 @@ genericModelValidation[xTensorLoaded_, xPertLoaded_, xTrasLoaded_] := Module[
     $te11Progress = "check:" <> ToString[Lookup[item, "key", "invalid_check"]];
     strategy = ToString[Lookup[item, "strategy", "algebraic"]];
     adjudicates = Lookup[item, "adjudicates", {}];
+    $te11DecodeDiagnostic = <||>;
     decoded = Catch[
-      Quiet@Check[decodeGenericExpr[Lookup[item, "residual", <||>]], $Failed],
+      Quiet[decodeGenericExpr[Lookup[item, "residual", Missing["residual"]]]],
       _,
-      Function[{thrown, tag}, $Failed]
+      Function[{thrown, tag}, genericDecodeFailure["excepción durante el transporte IR"]]
     ];
     If[decoded === $Failed,
+      diagnosticReason = ToString[Lookup[$te11DecodeDiagnostic, "reason", "fallo de transporte no clasificado"]];
+      diagnosticPath = Lookup[$te11DecodeDiagnostic, "path", {"residual"}];
       AppendTo[checks, makeCheck[
         ToString[Lookup[item, "key", "invalid_check"]],
         "undetermined",
-        ToString[Lookup[item, "message", ""]] <> " El residual IR no pudo transportarse.",
-        "IR decode failed",
+        ToString[Lookup[item, "message", ""]] <> " El residual IR fue rechazado de forma conservadora.",
+        "IR transport rejected at " <> genericPathString[diagnosticPath] <> ": " <> diagnosticReason,
         strategy,
-        adjudicates
+        adjudicates,
+        $te11DecodeDiagnostic
       ]],
       reduced = Catch[
         genericCanonicalResidual[decoded, xTrasLoaded, strategy],

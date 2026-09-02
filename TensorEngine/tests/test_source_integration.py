@@ -10,7 +10,7 @@ from tensor_engine import (
     DimensionSpec, EngineOptions, LagrangianSourceSpec, ParameterSpec,
     RunExporter, RunPackage, TensorEngine, WolframXActBridge,
     draft4_circular_ansatz, spatially_flat_flrw_ansatz,
-    delta_count,
+    SympyComponentBackend, build_presentation, delta_count,
 )
 from tensor_engine.components import ir_scalar_to_sympy
 
@@ -89,6 +89,7 @@ def test_source_views_manifest_and_latex_survive_roundtrip(compiled_run, tmp_pat
     report = (bundle.output_directory / "report.tex").read_text(encoding="utf-8")
     assert report.count(r"\section*{") == 2
     assert report.count(r"\subsection*{") == 22
+    assert report.count("Descomposición compacta adicional") == 2
     manifest = json.loads(bundle.manifest_path.read_text(encoding="utf-8"))
     assert len(manifest["result_views"]["abstract"]) == 11
     assert len(manifest["result_views"]["projected"]) == 11
@@ -98,6 +99,19 @@ def test_source_views_manifest_and_latex_survive_roundtrip(compiled_run, tmp_pat
     for quantity in run.projected.quantities:
         if quantity.components is None:
             assert "Motivo:" in report
+    presentation = json.loads(
+        (bundle.output_directory / "presentation.json").read_text(encoding="utf-8")
+    )
+    assert [item["key"] for item in presentation["compact_decompositions"]] == [
+        "metric_euler",
+        "scalar_euler",
+        "curvature_momentum",
+    ]
+    # RunPackage does not persist the full ansatz geometry. Re-exporting keeps
+    # presentation-only intermediate projections symbolic with a concrete reason.
+    metric_blocks = presentation["compact_decompositions"][0]["blocks"]
+    assert any(item["projection"]["status"] == "symbolic" for item in metric_blocks)
+    assert all("latex" in item["compact"] for item in metric_blocks)
 
 
 def test_case2_canonical_deltas_are_resolved_before_projection_and_validation(compiled_run):
@@ -113,6 +127,54 @@ def test_case2_canonical_deltas_are_resolved_before_projection_and_validation(co
         assert run.projected.scalar_euler.scalar == Number(0)
 
 
+@pytest.mark.skipif(
+    os.environ.get("TENSOR_ENGINE_RUN_WOLFRAM_TESTS") != "1",
+    reason="La integración Wolfram/xAct es opt-in.",
+)
+def test_case2_draft4_with_underscored_parameter_cross_validates_and_serializes(tmp_path):
+    source = LagrangianSourceSpec(
+        name="eqt_case2_draft4",
+        expression=(
+            "R + 2/ell**2 - alpha_1*X "
+            "+ ell**2*beta0*(3*RicciUU - X*R)"
+        ),
+        dimension=DimensionSpec(3),
+        parameters=tuple(
+            ParameterSpec(name) for name in ("alpha_1", "ell", "beta0", "p")
+        ),
+        assumptions=("ell != 0", "beta0 != 0"),
+    )
+    run = TensorEngine(options=EngineOptions(include_noether=True)).run(
+        source.compile(),
+        ansatz=draft4_circular_ansatz(),
+        wolfram_bridge=WolframXActBridge(timeout_seconds=300),
+    )
+    external = tuple(
+        check
+        for check in run.package.verification.checks
+        if check.key.startswith("external.model.")
+    )
+    assert len(external) == 12
+    assert sum(check.status.value == "passed" for check in external) == 11
+    assert sum(check.status.value == "undetermined" for check in external) == 1
+    assert not any("IR decode failed" in check.message for check in external)
+    assert run.projected.ansatz_name == "draft4_circular"
+    assert run.projected.lagrangian.status.value == "completed"
+
+    payload = json.loads(json.dumps(run.package.to_data()))
+    rebuilt = RunPackage.from_data(payload)
+    assert rebuilt.run_id == run.package.run_id
+    assert rebuilt.projected.ansatz_name == "draft4_circular"
+    assert [item.name for item in rebuilt.model.parameters] == [
+        "alpha_1", "ell", "beta0", "p"
+    ]
+    bundle = RunExporter(tmp_path, compile_pdf=False).export(rebuilt)
+    stored = json.loads(
+        (bundle.output_directory / "results.json").read_text(encoding="utf-8")
+    )
+    assert stored["run_id"] == run.package.run_id
+
+
 def test_presentation_is_read_only_and_more_compact(compiled_run):
     from tensor_engine import DisplayPolicy, build_presentation
     from tensor_engine.exporting import display_expr_to_latex, expr_to_latex, latex_report
@@ -121,7 +183,11 @@ def test_presentation_is_read_only_and_more_compact(compiled_run):
     before = json.dumps(package.to_data(), sort_keys=True)
     source_id = package.run_id
     ansatz = draft4_circular_ansatz() if kind == "draft4" else spatially_flat_flrw_ansatz()
-    view = build_presentation(package, projected_assumptions=ansatz.assumptions)
+    view = build_presentation(
+        package,
+        projected_assumptions=ansatz.assumptions,
+        component_backend=SympyComponentBackend.from_model(package.model, ansatz),
+    )
     assert view.run_id == source_id
     assert not any(r.status == "fallback" for _, r in view.expressions)
     expected_count = len(package.abstract.records) + 1
@@ -138,6 +204,19 @@ def test_presentation_is_read_only_and_more_compact(compiled_run):
     tex = latex_report(package, presentation=view)
     assert tex.count(r"\section*{") == 2
     assert tex.count(r"\subsection*{") == 22
+    assert tex.count("Descomposición compacta adicional") == 2
+    assert tex.count("forma expandida de auditoría") > 0
+    assert r"\mathcal{A}_{" not in tex
+    assert "La forma expandida completa se omite" in tex
+    assert r"E_{\phi}=F_{\phi}-\nabla_aJ^a" in tex
+    assert all(
+        item.reconstruction_status == "verified"
+        for item in view.compact_decompositions
+    )
+    assert all(
+        item.projection_reconstruction_status == "verified"
+        for item in view.compact_decompositions
+    )
     assert "% display:" in tex
     assert "presentation.json" in tex
     assert json.dumps(package.to_data(), sort_keys=True) == before
@@ -169,3 +248,9 @@ def test_presentation_does_not_change_canonical_files_or_manifest_bindings(compi
         assert audit["purpose"] == "presentation_only"
         for record in audit["expressions"].values():
             assert "latex" in record and "assumptions_used" in record and "operations" in record
+        for decomposition in audit["compact_decompositions"]:
+            assert "latex" in decomposition["compact"]
+            assert "expanded_latex" in decomposition
+            for block in decomposition["blocks"]:
+                assert "latex" in block["compact"]
+                assert "expanded_latex" in block

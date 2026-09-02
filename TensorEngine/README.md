@@ -150,7 +150,10 @@ TensorEngine/
 
 Los reportes usan una [política de presentación configurable](docs/display-policy.md)
 que simplifica y mejora la tipografía sin cambiar la IR canónica, el JSON o la
-evidencia xAct. La auditoría de esa vista se guarda en presentation.json.
+evidencia xAct. La auditoría de esa vista se guarda en presentation.json. Tras
+los resultados existentes, las mismas dos secciones incluyen una descomposición
+compacta y expandida de `E_ab`, `E_phi` y `P^{abcd}`, construida exclusivamente
+a partir de cantidades ya calculadas.
 
 Las [contracciones seguras de Kronecker](docs/delta-contractions.md) se aplican
 en la IR canónica, también sobre bloques con derivadas, antes de xAct y de la

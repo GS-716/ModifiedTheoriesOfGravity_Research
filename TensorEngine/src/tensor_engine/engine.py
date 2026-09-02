@@ -606,6 +606,7 @@ class TensorEngine:
                 lambda: RunExporter(
                     output_root, display_policy=display_policy,
                     projected_assumptions=() if ansatz is None else ansatz.assumptions,
+                    component_backend=component_backend,
                 ).export(package),
                 lambda value, duration: value.to_stage_result(duration),
                 completed,

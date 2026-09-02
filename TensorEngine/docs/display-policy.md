@@ -58,12 +58,53 @@ presentar una expresión aislada. La caché pertenece a una exportación y reuti
 las expresiones repetidas; no modifica ni sustituye objetos de run.abstract,
 run.projected, momentos, ecuaciones, verificaciones o backends.
 
+## Descomposición compacta de ecuaciones y momento de curvatura
+
+Después de las once cantidades que ya presenta cada una de las dos secciones,
+el informe añade una vista de auditoría para `E_ab`, `E_phi` y `P^{abcd}`. No
+reemplaza ni reordena la salida anterior. Sus bloques son genéricos:
+
+~~~text
+E_ab  = M_ab + término algebraico de curvatura
+             - (1/2) g_ab L + E_ab^(nabla nabla P)
+E_phi = F_phi - nabla_a J^a
+P     = derivada del lagrangiano respecto de R_abcd
+~~~
+
+El término algebraico y el término de derivadas son exactamente los objetos que
+usa `metric_euler_expression`; `-nabla_a J^a` se recupera como la diferencia
+canónica ya calculada `E_phi-F_phi`. Por tanto, esta vista no deriva nuevamente
+las ecuaciones. Cada bloque conserva una forma compacta de presentación, la IR
+expandida para auditoría, sus fuentes y el resultado de reconstrucción.
+
+Las formas expandidas breves se muestran también en LaTeX/PDF. Si una expansión
+supera el umbral seguro de página, el reporte muestra solo la forma compacta y
+una referencia a `presentation.json`, donde la expansión permanece completa.
+No se introducen símbolos auxiliares del tipo `A_1 + A_2 + ...` en la salida
+final.
+
+`ReportPresentation.compact_decompositions` permite consultar los tres grupos y
+sus bloques. En `presentation.json` aparecen bajo `compact_decompositions`, con
+estados separados para reconstrucción abstracta y por componentes. Una corrida
+activa pasa al exportador el backend del ansatz y proyecta los bloques. Al
+reexportar solamente un `RunPackage`, la geometría completa del ansatz no está
+persistida: los bloques intermedios que no eran resultados de primera clase se
+conservan simbólicos con ese motivo explícito. Los objetivos y los bloques ya
+almacenados (`M_ab`, `F_phi` y `P`) se siguen reutilizando.
+
+La comprobación de reconstrucción usa suma IR canónica y, para componentes,
+álgebra escalar exacta. No conmuta derivadas, no usa ecuaciones de campo, no
+introduce etiquetas físicas inferidas y no participa en resultados, hashes,
+manifiestos ni evidencia xAct.
+
 ## Archivos y trazabilidad
 
 - results.json y verification.json conservan exactamente sus datos y formato.
 - presentation.json es un archivo adicional con la IR de presentación, LaTeX,
   estado, operaciones, hipótesis usadas, notas y SHA-256 de la expresión
   canónica de origen. Su propósito es presentation_only.
+- El mismo archivo contiene las descomposiciones compactas adicionales, sus
+  bloques, formas expandidas, componentes y estados de reconstrucción.
 - El registro cubre las once cantidades abstractas, la contribución métrica
   de nabla_nabla_P y **todas** las componentes dispersas obtenidas, incluso las
   que no se imprimen por el límite de doce componentes por tensor. Los ceros

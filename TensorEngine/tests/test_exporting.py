@@ -19,6 +19,7 @@ from tensor_engine import (
     Scalar,
     StructuralTensorBackend,
     Tensor,
+    VerificationDiagnostic,
     VerificationRecord,
     VerificationReport,
     VerificationStatus,
@@ -77,6 +78,55 @@ def test_latex_report_escapes_machine_identifiers() -> None:
     report = latex_report(package)
     assert r"run\_" in report
     assert r"structural\_python" in report
+
+
+def test_reports_preserve_structured_ir_xact_diagnostic(tmp_path) -> None:
+    package = make_package()
+    diagnostic = VerificationDiagnostic.from_data({
+        "code": "unregistered_index",
+        "reason": "índice no registrado: ghost",
+        "category": "index",
+        "path": ["residual", "factors", "2", "indices", "0"],
+        "node_type": "index",
+        "symbol": "ghost",
+        "fragment": {"name": "ghost", "variance": "up", "space": "M"},
+    })
+    check = VerificationRecord(
+        "external.model.invalid_index",
+        VerificationStatus.UNDETERMINED,
+        Scalar("wolfram_residual_invalid_index"),
+        "El índice no pudo transportarse.",
+        diagnostic,
+    )
+    verification = replace(
+        package.verification,
+        checks=package.verification.checks + (check,),
+    )
+    package = replace(package, verification=verification)
+    report = latex_report(package)
+    assert report.count(r"\section*{") == 2
+    assert "Diagnósticos estructurados IR--xAct" in report
+    assert r"residual.factors.2.indices.0" in report
+    assert r"ghost" in report
+
+    bundle = RunExporter(tmp_path, compile_pdf=False).export(package)
+    verification_data = json.loads(
+        (bundle.output_directory / "verification.json").read_text(encoding="utf-8")
+    )
+    results_data = json.loads(
+        (bundle.output_directory / "results.json").read_text(encoding="utf-8")
+    )
+    stored = next(
+        item for item in verification_data["checks"]
+        if item["key"] == "external.model.invalid_index"
+    )
+    assert stored["diagnostic"]["symbol"] == "ghost"
+    assert stored["diagnostic"]["fragment"]["variance"] == "up"
+    nested = next(
+        item for item in results_data["verification"]["checks"]
+        if item["key"] == "external.model.invalid_index"
+    )
+    assert nested["diagnostic"] == stored["diagnostic"]
 
 
 def test_component_labels_respect_the_stored_free_axis_order() -> None:

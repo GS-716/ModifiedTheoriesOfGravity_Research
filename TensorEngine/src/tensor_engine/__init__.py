@@ -7,7 +7,13 @@ from .delta import (
 )
 from .invariants import DEFAULT_INVARIANTS, InvariantRegistry, InvariantSpec
 from .presentation import (
-    DisplayPolicy, DisplayExpression, PresentationBuilder, ReportPresentation,
+    CompactBlock,
+    CompactDecomposition,
+    CompactProjection,
+    DisplayPolicy,
+    DisplayExpression,
+    PresentationBuilder,
+    ReportPresentation,
     build_presentation,
 )
 from .catalog import CatalogEntry, catalog_entries, catalog_model
@@ -38,6 +44,7 @@ from .contracts import (
     StageResult,
     StageSpec,
     StageStatus,
+    VerificationDiagnostic,
     VerificationRecord,
     VerificationStatus,
     validate_stage_result,
@@ -248,6 +255,9 @@ __all__ = [
     "delta_count",
     "DisplayPolicy",
     "DisplayExpression",
+    "CompactProjection",
+    "CompactBlock",
+    "CompactDecomposition",
     "PresentationBuilder",
     "ReportPresentation",
     "build_presentation",
@@ -341,6 +351,7 @@ __all__ = [
     "Variation",
     "VariationalContext",
     "VERIFICATION_SCHEMA_VERSION",
+    "VerificationDiagnostic",
     "VerificationRecord",
     "VerificationReport",
     "VerificationStatus",

@@ -18,7 +18,7 @@ import subprocess
 import tempfile
 from typing import Any, Mapping
 
-from .components import ComponentFieldEquations
+from .components import ComponentFieldEquations, SympyComponentBackend
 from .delta import DeltaContractionAudit, delta_count
 from .contracts import (
     ArtifactRecord,
@@ -55,7 +55,15 @@ from .ir import (
     expr_from_data,
 )
 from .model import ModelSpec
-from .presentation import DisplayPolicy, ReportPresentation, build_presentation
+from .presentation import (
+    CompactBlock,
+    CompactDecomposition,
+    CompactProjection,
+    DisplayExpression,
+    DisplayPolicy,
+    ReportPresentation,
+    build_presentation,
+)
 from .noether import NoetherWaldResult
 from .variational import LagrangianMomenta
 from .verification import VerificationReport
@@ -704,8 +712,30 @@ def display_expr_to_latex(expr: Expr, parent_precedence: int = 0) -> str:
 
 def _presentation_latex(view: ReportPresentation, key: str) -> str:
     record = view.record(key)
+    return _display_record_latex(view, record)
+
+
+def _display_record_latex(
+    view: ReportPresentation,
+    record: DisplayExpression,
+) -> str:
     printer = display_expr_to_latex if view.policy.enabled else expr_to_latex
     return printer(record.presentation)
+
+
+def _compact_audit(key: str, record: DisplayExpression) -> str:
+    data = {
+        "key": key,
+        "status": record.status,
+        "operations": record.operations,
+        "assumptions_used": record.assumptions_used,
+        "notes": record.notes,
+    }
+    return "% compact-display: " + json.dumps(
+        data,
+        ensure_ascii=True,
+        sort_keys=True,
+    )
 
 
 def _presentation_audit(view: ReportPresentation, key: str) -> str:
@@ -783,6 +813,203 @@ def _component_label(
     return result
 
 
+_COMPACT_PROJECTION_STATUS = {
+    "completed": "completada",
+    "symbolic": "simbólica",
+    "unavailable": "no disponible",
+}
+
+
+def _append_compact_expression_pair(
+    lines: list[str],
+    view: ReportPresentation,
+    *,
+    key: str,
+    label: str,
+    record: DisplayExpression,
+) -> None:
+    lines.extend(
+        (
+            _compact_audit(key, record),
+            r"\begin{dmath*}[breakdepth={5}]",
+            rf"\text{{forma compacta:}}\quad {label} = {_display_record_latex(view, record)}",
+            r"\end{dmath*}",
+        )
+    )
+    _append_expanded_audit(lines, label, record.canonical)
+
+
+def _append_expanded_audit(
+    lines: list[str],
+    label: str,
+    expression: Expr,
+) -> None:
+    rendered = expr_to_latex(expression)
+    if not isinstance(expression, Add) or len(rendered) <= 2200:
+        lines.extend(
+            (
+                r"\begin{dmath*}[breakdepth={5}]",
+                rf"\text{{forma expandida de auditoría:}}\quad {label} = {rendered}",
+                r"\end{dmath*}",
+            )
+        )
+        return
+
+    lines.extend(
+        (
+            r"\par\smallskip\noindent\textit{La forma expandida completa se omite "
+            r"del PDF por su extensión. Permanece íntegra y auditable en "
+            r"\texttt{presentation.json}.}\par",
+        )
+    )
+
+
+def _append_compact_abstract(
+    lines: list[str],
+    view: ReportPresentation,
+) -> None:
+    if not view.compact_decompositions:
+        return
+    lines.extend(
+        (
+            r"\Needspace{12\baselineskip}",
+            r"\par\bigskip\noindent{\large\bfseries Descomposición compacta adicional}\par",
+            r"Esta vista se agrega después de los resultados anteriores y reutiliza exactamente "
+            r"la IR canónica ya calculada. No interviene en la validación ni en los fingerprints.\par",
+        )
+    )
+    for decomposition in view.compact_decompositions:
+        lines.extend(
+            (
+                r"\Needspace{10\baselineskip}",
+                rf"\par\medskip\noindent\textbf{{Descomposición de $ {decomposition.label_latex} $.}}\par",
+                r"\begin{dmath*}[breakdepth={5}]",
+                decomposition.formula_latex,
+                r"\end{dmath*}",
+                (
+                    rf"\textbf{{Reconstrucción IR:}} {_latex_text(decomposition.reconstruction_status)}. "
+                    rf"{_latex_text(decomposition.reconstruction_reason)}\par"
+                ),
+            )
+        )
+        _append_compact_expression_pair(
+            lines,
+            view,
+            key=f"abstract.compact.{decomposition.key}",
+            label=decomposition.label_latex,
+            record=decomposition.expression,
+        )
+        if decomposition.key == "curvature_momentum":
+            continue
+        for block in decomposition.blocks:
+            lines.append(
+                rf"\par\smallskip\noindent\textbf{{Bloque $ {block.label_latex} $}} "
+                rf"(fuentes: \texttt{{{_latex_text(', '.join(block.source_keys))}}}).\par"
+            )
+            _append_compact_expression_pair(
+                lines,
+                view,
+                key=f"abstract.compact.{decomposition.key}.{block.key}",
+                label=block.label_latex,
+                record=block.expression,
+            )
+
+
+def _append_compact_projection(
+    lines: list[str],
+    view: ReportPresentation,
+    *,
+    key: str,
+    label: str,
+    projection: CompactProjection,
+) -> None:
+    lines.append(
+        rf"\textbf{{Estado de proyección:}} "
+        rf"{_COMPACT_PROJECTION_STATUS[projection.status]}. "
+        rf"{_latex_text(projection.reason)}\par"
+    )
+    if projection.status != "completed":
+        return
+    if not projection.free_indices:
+        position, record = projection.components[0]
+        _append_compact_expression_pair(
+            lines,
+            view,
+            key=key,
+            label=rf"{label}\big|_{{\mathrm{{ansatz}}}}",
+            record=record,
+        )
+        return
+    if not projection.components:
+        lines.append(r"Todas las componentes de este bloque son nulas.\par")
+        return
+    displayed = projection.components[:12]
+    for position, record in displayed:
+        component_label = _component_label(
+            label,
+            projection.free_indices,
+            position,
+            component_indices=projection.free_indices,
+        )
+        _append_compact_expression_pair(
+            lines,
+            view,
+            key=f"{key}[{','.join(map(str, position))}]",
+            label=component_label,
+            record=record,
+        )
+    if len(projection.components) > len(displayed):
+        lines.append(
+            rf"Se muestran {len(displayed)} de {len(projection.components)} "
+            r"componentes no nulas; el conjunto completo está en "
+            r"\texttt{presentation.json}.\par"
+        )
+
+
+def _append_compact_projected(
+    lines: list[str],
+    view: ReportPresentation,
+    ansatz_name: str,
+) -> None:
+    if not view.compact_decompositions:
+        return
+    lines.extend(
+        (
+            r"\Needspace{12\baselineskip}",
+            r"\par\bigskip\noindent{\large\bfseries Descomposición compacta adicional}\par",
+            rf"\textbf{{Ansatz de estos bloques:}} \texttt{{{_latex_text(ansatz_name)}}}. "
+            r"Las formas compacta y expandida siguientes son únicamente vistas de las "
+            r"componentes canónicas.\par",
+        )
+    )
+    for decomposition in view.compact_decompositions:
+        lines.extend(
+            (
+                r"\Needspace{10\baselineskip}",
+                rf"\par\medskip\noindent\textbf{{Descomposición proyectada de $ {decomposition.label_latex} $.}}\par",
+                r"\begin{dmath*}[breakdepth={5}]",
+                decomposition.formula_latex,
+                r"\end{dmath*}",
+                (
+                    rf"\textbf{{Reconstrucción por componentes:}} "
+                    rf"{_latex_text(decomposition.projection_reconstruction_status)}. "
+                    rf"{_latex_text(decomposition.projection_reconstruction_reason)}\par"
+                ),
+            )
+        )
+        for block in decomposition.blocks:
+            lines.append(
+                rf"\par\smallskip\noindent\textbf{{Bloque $ {block.label_latex} $.}}\par"
+            )
+            _append_compact_projection(
+                lines,
+                view,
+                key=f"projected.compact.{decomposition.key}.{block.key}",
+                label=block.label_latex,
+                projection=block.projection,
+            )
+
+
 def _append_abstract_results(lines: list[str], package: RunPackage, view: ReportPresentation) -> None:
     lines.append(r"\section*{Expresiones tensoriales abstractas}")
     lines.append(
@@ -832,6 +1059,7 @@ def _append_abstract_results(lines: list[str], package: RunPackage, view: Report
                     r"\end{minipage}",
                 )
             )
+    _append_compact_abstract(lines, view)
 
 
 def _append_projected_results(lines: list[str], package: RunPackage, view: ReportPresentation) -> None:
@@ -918,6 +1146,7 @@ def _append_projected_results(lines: list[str], package: RunPackage, view: Repor
             rf"Proyección completa almacenada: {nonzero} componentes no nulas de {total}. "
             rf"{_latex_text(projected.reason)}\par\medskip"
         )
+    _append_compact_projected(lines, view, ansatz_text)
 
 
 def latex_report(package: RunPackage, display_policy: DisplayPolicy | None = None, *,
@@ -959,6 +1188,32 @@ def latex_report(package: RunPackage, display_policy: DisplayPolicy | None = Non
             rf"en las pasadas del álgebra (incluidas verificaciones); {remaining} deltas explícitos "
             r"en las once cantidades finales. Detalle e índices sustituidos en \texttt{delta\_contractions.json}.\par"
         )
+    transport_failures = tuple(
+        check for check in package.verification.checks if check.diagnostic is not None
+    )
+    if transport_failures:
+        lines.extend(
+            (
+                r"\par\smallskip\textbf{Diagnósticos estructurados IR--xAct.} "
+                r"El fragmento JSON completo se conserva en \texttt{verification.json} "
+                r"y \texttt{results.json}.",
+                r"\begin{itemize}",
+            )
+        )
+        for check in transport_failures:
+            diagnostic = check.diagnostic
+            assert diagnostic is not None
+            path = ".".join(diagnostic.path) or "residual"
+            identity = diagnostic.node_type or diagnostic.category
+            if diagnostic.symbol is not None:
+                identity += f" {diagnostic.symbol}"
+            lines.append(
+                rf"\item \texttt{{{_latex_text(check.key)}}}: "
+                rf"\texttt{{{_latex_text(diagnostic.code)}}} en "
+                rf"\texttt{{{_latex_text(path)}}}; "
+                rf"{_latex_text(identity)}. {_latex_text(diagnostic.reason)}"
+            )
+        lines.extend((r"\end{itemize}", r"\par\smallskip"))
     _append_abstract_results(lines, package, view)
     _append_projected_results(lines, package, view)
     lines.extend(
@@ -1048,12 +1303,16 @@ class RunExporter:
         pdf_timeout_seconds: float = 90.0,
         display_policy: DisplayPolicy | None = None,
         projected_assumptions: tuple[str, ...] = (),
+        component_backend: SympyComponentBackend | None = None,
     ) -> None:
         self.output_root = Path(output_root)
         self.compile_pdf = compile_pdf
         self.pdf_timeout_seconds = pdf_timeout_seconds
         self.display_policy = display_policy or DisplayPolicy()
         self.projected_assumptions = tuple(projected_assumptions)
+        # This optional backend is used only to project presentation-only
+        # decomposition blocks that are not persisted independently in a run.
+        self.component_backend = component_backend
 
     def _compile_pdf(self, directory: Path) -> tuple[bytes | None, str | None]:
         compiler = shutil.which("pdflatex") or shutil.which("xelatex")
@@ -1131,13 +1390,66 @@ class RunExporter:
             raise ValueError("La carpeta calculada de exportación escapa de la raíz autorizada.")
         directory.mkdir(parents=True, exist_ok=True)
 
-        presentation = build_presentation(package, self.display_policy, projected_assumptions=self.projected_assumptions)
+        presentation = build_presentation(
+            package,
+            self.display_policy,
+            projected_assumptions=self.projected_assumptions,
+            component_backend=self.component_backend,
+        )
         presentation_data = presentation.to_data()
         for key, record in presentation.expressions:
             presentation_data["expressions"][key]["latex"] = _presentation_latex(presentation, key)
             presentation_data["expressions"][key]["formatting_operations"] = (
                 ["latex_signs_fractions_index_groups"] if self.display_policy.enabled else []
             )
+        for decomposition, decomposition_data in zip(
+            presentation.compact_decompositions,
+            presentation_data["compact_decompositions"],
+            strict=True,
+        ):
+            decomposition_data["compact"]["latex"] = _display_record_latex(
+                presentation,
+                decomposition.expression,
+            )
+            decomposition_data["expanded_latex"] = expr_to_latex(
+                decomposition.expression.canonical
+            )
+            for (_, component), component_data in zip(
+                decomposition.projection.components,
+                decomposition_data["projection"]["components"],
+                strict=True,
+            ):
+                component_data["latex"] = _display_record_latex(
+                    presentation,
+                    component,
+                )
+                component_data["expanded_latex"] = expr_to_latex(
+                    component.canonical
+                )
+            for block, block_data in zip(
+                decomposition.blocks,
+                decomposition_data["blocks"],
+                strict=True,
+            ):
+                block_data["compact"]["latex"] = _display_record_latex(
+                    presentation,
+                    block.expression,
+                )
+                block_data["expanded_latex"] = expr_to_latex(
+                    block.expression.canonical
+                )
+                for (_, component), component_data in zip(
+                    block.projection.components,
+                    block_data["projection"]["components"],
+                    strict=True,
+                ):
+                    component_data["latex"] = _display_record_latex(
+                        presentation,
+                        component,
+                    )
+                    component_data["expanded_latex"] = expr_to_latex(
+                        component.canonical
+                    )
         contents = {
             "results": ("results.json", "application/json", _canonical_json(package.to_data(), pretty=True)),
             "verification": ("verification.json", "application/json", _canonical_json(package.verification.to_data(), pretty=True)),

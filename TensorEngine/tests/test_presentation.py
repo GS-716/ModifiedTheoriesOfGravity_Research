@@ -6,6 +6,8 @@ import sympy as sp
 
 from tensor_engine import (
     DisplayPolicy, PresentationBuilder, ModelBuilder, ModelSpec, ParameterSpec,
+    FunctionSpec, DimensionSpec, LagrangianSourceSpec, EngineOptions, TensorEngine,
+    build_presentation, add, mul,
     Scalar, Number, Tensor, Index, Variance, Function, FunctionDerivative,
     CovariantDerivative, StructuralTensorBackend,
 )
@@ -198,3 +200,110 @@ def test_engine_accepts_display_policy_with_a_user_defined_ansatz(tmp_path, monk
     )
     assert run.projected.ansatz_name == "user_geometry"
     assert all(record.status == "disabled" for _, record in run.export_bundle.presentation.expressions)
+    assert {
+        item.key for item in run.export_bundle.presentation.compact_decompositions
+    } == {"metric_euler", "scalar_euler", "curvature_momentum"}
+    assert all(
+        block.projection.status == "completed"
+        for item in run.export_bundle.presentation.compact_decompositions
+        for block in item.blocks
+    )
+
+
+@pytest.mark.parametrize(
+    "name,expression,parameters,functions,dimension",
+    (
+        ("compact_eh", "R", (), (), 4),
+        (
+            "compact_scalar",
+            "R - alpha*X",
+            (ParameterSpec("alpha"),),
+            (),
+            4,
+        ),
+        (
+            "compact_case2",
+            "R + 2/ell**2 + ell**2*beta0*(3*RicciUU - X*R)",
+            tuple(ParameterSpec(item) for item in ("ell", "beta0", "p")),
+            (),
+            3,
+        ),
+        (
+            "compact_functions",
+            "F(phi)*R + K(phi, X)",
+            (),
+            (FunctionSpec("F", 1), FunctionSpec("K", 2)),
+            4,
+        ),
+        (
+            "compact_quadratic",
+            "R + alpha*R**2",
+            (ParameterSpec("alpha"),),
+            (),
+            4,
+        ),
+    ),
+)
+def test_compact_decompositions_are_generic_exact_and_presentation_only(
+    name, expression, parameters, functions, dimension,
+):
+    model = LagrangianSourceSpec(
+        name,
+        expression,
+        dimension=DimensionSpec(dimension),
+        parameters=parameters,
+        functions=functions,
+    ).compile()
+    run = TensorEngine(
+        options=EngineOptions(
+            include_noether=False,
+            include_components=False,
+            include_export=False,
+        )
+    ).run(model)
+    before = json.dumps(run.package.to_data(), sort_keys=True)
+    old_keys = tuple(key for key, _ in build_presentation(run.package).expressions)
+    view = build_presentation(run.package)
+    backend = StructuralTensorBackend.from_model(model)
+
+    assert tuple(item.key for item in view.compact_decompositions) == (
+        "metric_euler",
+        "scalar_euler",
+        "curvature_momentum",
+    )
+    assert tuple(key for key, _ in view.expressions) == old_keys
+    expected_blocks = {
+        "metric_euler": (
+            "metric_momentum",
+            "curvature_algebraic",
+            "volume_term",
+            "curvature_derivative",
+        ),
+        "scalar_euler": ("scalar_force", "scalar_current_divergence"),
+        "curvature_momentum": ("curvature_momentum",),
+    }
+    for decomposition in view.compact_decompositions:
+        assert decomposition.reconstruction_status == "verified"
+        assert tuple(block.key for block in decomposition.blocks) == expected_blocks[
+            decomposition.key
+        ]
+        residual = backend.simplify(
+            add(
+                *(block.expression.canonical for block in decomposition.blocks),
+                mul(-1, decomposition.expression.canonical),
+            )
+        )
+        assert residual == Number(0)
+        for record in (
+            decomposition.expression,
+            *(block.expression for block in decomposition.blocks),
+        ):
+            assert backend.simplify(
+                add(record.canonical, mul(-1, record.presentation))
+            ) == Number(0)
+
+    payload = view.to_data()
+    assert payload["purpose"] == "presentation_only"
+    assert len(payload["compact_decompositions"]) == 3
+    assert json.dumps(run.package.to_data(), sort_keys=True) == before
+    assert run.package.run_id == view.run_id

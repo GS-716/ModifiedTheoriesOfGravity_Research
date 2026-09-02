@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from enum import Enum
+import json
 from typing import Any, Mapping
 
 from .errors import ContractValidationError
@@ -71,11 +72,78 @@ class Diagnostic:
 
 
 @dataclass(frozen=True, slots=True)
+class VerificationDiagnostic:
+    """Contexto estructurado y JSON-seguro de una verificación no concluida."""
+
+    code: str
+    reason: str
+    category: str = "expression"
+    path: tuple[str, ...] = ()
+    node_type: str | None = None
+    symbol: str | None = None
+    fragment_json: str | None = None
+
+    def __post_init__(self) -> None:
+        object.__setattr__(self, "path", tuple(str(item) for item in self.path))
+        if not self.code or not self.reason or not self.category:
+            raise ContractValidationError(
+                "Un diagnóstico de verificación requiere código, categoría y motivo."
+            )
+        if self.fragment_json is not None:
+            try:
+                fragment = json.loads(self.fragment_json)
+            except (TypeError, json.JSONDecodeError) as error:
+                raise ContractValidationError(
+                    "El fragmento diagnóstico no contiene JSON válido."
+                ) from error
+            _validate_json_value(fragment, "diagnostic.fragment")
+
+    @property
+    def fragment(self) -> Any:
+        return None if self.fragment_json is None else json.loads(self.fragment_json)
+
+    def to_data(self) -> dict[str, Any]:
+        return {
+            "code": self.code,
+            "reason": self.reason,
+            "category": self.category,
+            "path": list(self.path),
+            "node_type": self.node_type,
+            "symbol": self.symbol,
+            "fragment": self.fragment,
+        }
+
+    @classmethod
+    def from_data(cls, data: Mapping[str, Any]) -> "VerificationDiagnostic":
+        fragment = data.get("fragment")
+        _validate_json_value(fragment, "diagnostic.fragment")
+        return cls(
+            code=str(data["code"]),
+            reason=str(data["reason"]),
+            category=str(data.get("category", "expression")),
+            path=tuple(str(item) for item in data.get("path", ())),
+            node_type=None if data.get("node_type") is None else str(data["node_type"]),
+            symbol=None if data.get("symbol") is None else str(data["symbol"]),
+            fragment_json=(
+                None
+                if fragment is None
+                else json.dumps(
+                    fragment,
+                    ensure_ascii=False,
+                    separators=(",", ":"),
+                    sort_keys=True,
+                )
+            ),
+        )
+
+
+@dataclass(frozen=True, slots=True)
 class VerificationRecord:
     key: str
     status: VerificationStatus
     residual: Expr | None = None
     message: str = ""
+    diagnostic: VerificationDiagnostic | None = None
 
     def __post_init__(self) -> None:
         if self.status is VerificationStatus.PASSED and self.residual is not None:
@@ -88,21 +156,32 @@ class VerificationRecord:
             )
 
     def to_data(self) -> dict[str, Any]:
-        return {
+        data = {
             "key": self.key,
             "status": self.status.value,
             "residual": None if self.residual is None else self.residual.to_data(),
             "message": self.message,
         }
+        if self.diagnostic is not None:
+            data["diagnostic"] = self.diagnostic.to_data()
+        return data
 
     @classmethod
     def from_data(cls, data: Mapping[str, Any]) -> "VerificationRecord":
         residual_data = data.get("residual")
+        diagnostic_data = data.get("diagnostic")
+        if diagnostic_data is not None and not isinstance(diagnostic_data, Mapping):
+            raise ContractValidationError("El diagnóstico de verificación debe ser un objeto JSON.")
         return cls(
             str(data["key"]),
             VerificationStatus(data["status"]),
             None if residual_data is None else expr_from_data(residual_data),
             str(data.get("message", "")),
+            (
+                None
+                if diagnostic_data is None
+                else VerificationDiagnostic.from_data(diagnostic_data)
+            ),
         )
 
 

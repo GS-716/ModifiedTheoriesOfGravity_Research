@@ -26,6 +26,18 @@ diferencial. Esta última ordena derivadas covariantes y aplica la Bianchi
 contraída mediante xTras. La respuesta repite los fingerprints del modelo y del
 cálculo; Python comprueba el eco antes de aceptar la evidencia.
 
+Los identificadores de la IR se codifican en símbolos internos de Wolfram sin
+evaluar texto. Esto mantiene nombres válidos de Python como `alpha_1` y evita
+que `_` se interprete como patrón. El decodificador valida cada nodo y devuelve
+`undetermined` con un motivo concreto cuando el transporte no es seguro. La
+ausencia de transporte o de reducción nunca produce un `passed`.
+
+Cuando el transporte falla, cada check conserva un `transport_diagnostic`
+JSON-seguro con código, categoría, ruta dentro del residual, tipo de nodo,
+símbolo y el fragmento IR concreto. El residual textual permanece disponible
+para consumidores anteriores. TensorEngine integra estos datos en
+`verification.json`, `results.json` y en el resumen LaTeX/PDF.
+
 Cada comprobación puede declarar `adjudicates`: una lista explícita de controles
 internos que esa evidencia puede resolver. El puente no realiza la adjudicación;
 solo devuelve la prueba. Python aplica la política una vez validados los

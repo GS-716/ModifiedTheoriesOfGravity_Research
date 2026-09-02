@@ -11,6 +11,7 @@ from tensor_engine import (
     Severity,
     StageResult,
     StageStatus,
+    VerificationDiagnostic,
     VerificationRecord,
     VerificationStatus,
     validate_pipeline,
@@ -34,6 +35,34 @@ class ContractTests(unittest.TestCase):
             residual=Number(1),
         )
         self.assertEqual(record.residual, Number(1))
+
+    def test_verification_diagnostic_round_trip_preserves_json_fragment(self) -> None:
+        diagnostic = VerificationDiagnostic.from_data({
+            "code": "undeclared_tensor",
+            "reason": "tensor no declarado: Mystery",
+            "category": "tensor",
+            "path": ["residual", "terms", "1"],
+            "node_type": "tensor",
+            "symbol": "Mystery",
+            "fragment": {
+                "type": "tensor",
+                "name": "Mystery",
+                "indices": [],
+            },
+        })
+        record = VerificationRecord(
+            "transport",
+            VerificationStatus.UNDETERMINED,
+            residual=Number(1),
+            diagnostic=diagnostic,
+        )
+        encoded = json.loads(json.dumps(record.to_data(), ensure_ascii=False))
+        rebuilt = VerificationRecord.from_data(encoded)
+        self.assertEqual(rebuilt, record)
+        self.assertEqual(rebuilt.diagnostic.fragment["name"], "Mystery")
+        legacy = dict(encoded)
+        legacy.pop("diagnostic")
+        self.assertIsNone(VerificationRecord.from_data(legacy).diagnostic)
 
     def test_failed_stage_requires_diagnostic(self) -> None:
         with self.assertRaises(ContractValidationError):

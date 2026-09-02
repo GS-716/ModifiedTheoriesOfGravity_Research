@@ -7,10 +7,13 @@ import unittest
 
 from tensor_engine import (
     BackendUnavailableError,
+    BackendExecutionError,
     DimensionSpec,
+    LagrangianSourceSpec,
     ModelSpec,
     ModelBuilder,
     Number,
+    ParameterSpec,
     StructuralTensorBackend,
     TensorDeclaration,
     TensorSymmetry,
@@ -32,6 +35,31 @@ class WolframBridgeTests(unittest.TestCase):
         momenta = backend.derive_momenta(model.lagrangian)
         euler = backend.derive_euler_lagrange(model.lagrangian, momenta)
         return model, momenta, euler
+
+    @staticmethod
+    def case2_underscored_calculation(*, include_noether: bool = False):
+        source = LagrangianSourceSpec(
+            name="eqt_case2_draft4",
+            expression=(
+                "R + 2/ell**2 - alpha_1*X "
+                "+ ell**2*beta0*(3*RicciUU - X*R)"
+            ),
+            dimension=DimensionSpec(3),
+            parameters=tuple(
+                ParameterSpec(name) for name in ("alpha_1", "ell", "beta0", "p")
+            ),
+            assumptions=("ell != 0", "beta0 != 0"),
+        )
+        model = source.compile()
+        backend = StructuralTensorBackend.from_model(model)
+        momenta = backend.derive_momenta(model.lagrangian)
+        euler = backend.derive_euler_lagrange(model.lagrangian, momenta)
+        noether = (
+            backend.derive_noether_wald(model.lagrangian, momenta, euler)
+            if include_noether
+            else None
+        )
+        return model, momenta, euler, noether
 
     def test_missing_runtime_is_reported_without_crashing(self) -> None:
         status = detect_wolfram_runtime("C:\\missing-wolfram\\wolframscript.exe")
@@ -116,6 +144,11 @@ class WolframBridgeTests(unittest.TestCase):
             VerificationStatus.PASSED,
         )
         self.assertEqual(WolframPhase5Report.from_data(report.to_data()), report)
+        data["checks"][0]["residual"] = "residual no reducido"
+        with self.assertRaisesRegex(
+            BackendExecutionError, "aprobada no puede conservar residual"
+        ):
+            WolframPhase5Report.from_data(data)
 
     def test_model_and_calculation_fingerprints_are_stable_and_distinct(self) -> None:
         model, momenta, euler = self.constant_calculation()
@@ -145,6 +178,18 @@ class WolframBridgeTests(unittest.TestCase):
         self.assertEqual(strategies, {"algebraic", "riemann_bianchi", "differential"})
         json.dumps(request)
 
+    def test_generic_request_preserves_underscored_ir_names_and_json(self) -> None:
+        model, momenta, euler, _ = self.case2_underscored_calculation()
+        bridge = WolframXActBridge(executable="C:\\missing-wolfram\\wolframscript.exe")
+        request = bridge.build_model_validation_request(model, momenta, euler)
+        encoded = json.dumps(request, ensure_ascii=False, sort_keys=True)
+        self.assertIn('"name": "alpha_1"', encoded)
+        self.assertEqual(
+            [item["name"] for item in request["options"]["model"]["parameters"]],
+            ["alpha_1", "ell", "beta0", "p"],
+        )
+        self.assertNotIn("IR decode failed", encoded)
+
     def test_check_strategy_and_adjudication_round_trip(self) -> None:
         data = {
             "schema_version": "1.3",
@@ -173,12 +218,30 @@ class WolframBridgeTests(unittest.TestCase):
                 "residual": "residual",
                 "strategy": "differential",
                 "adjudicates": ["diffeomorphism_noether_identity"],
+                "transport_diagnostic": {
+                    "code": "undeclared_tensor",
+                    "reason": "tensor no declarado: Mystery",
+                    "category": "tensor",
+                    "path": ["residual", "terms", "1"],
+                    "node_type": "tensor",
+                    "symbol": "Mystery",
+                    "fragment": {
+                        "type": "tensor",
+                        "name": "Mystery",
+                        "indices": [],
+                    },
+                },
             }],
         }
         report = WolframPhase5Report.from_data(data)
         check = report.checks[0]
         self.assertEqual(check.strategy, "differential")
         self.assertEqual(check.adjudicates, ("diffeomorphism_noether_identity",))
+        self.assertEqual(check.diagnostic.code, "undeclared_tensor")
+        self.assertEqual(check.diagnostic.path, ("residual", "terms", "1"))
+        self.assertEqual(check.diagnostic.fragment["name"], "Mystery")
+        record = check.to_verification_record()
+        self.assertEqual(record.diagnostic, check.diagnostic)
         self.assertEqual(WolframPhase5Report.from_data(report.to_data()), report)
 
     def test_generic_report_requires_valid_subject_fingerprints(self) -> None:
@@ -277,6 +340,120 @@ class WolframBridgeTests(unittest.TestCase):
         self.assertEqual(
             {item.strategy for item in report.checks},
             {"algebraic", "riemann_bianchi", "differential"},
+        )
+
+    @unittest.skipUnless(
+        os.environ.get("TENSOR_ENGINE_RUN_WOLFRAM_TESTS") == "1",
+        "La integración Wolfram/xAct es opt-in.",
+    )
+    def test_live_case2_underscored_parameter_transports_all_checks(self) -> None:
+        model, momenta, euler, noether = self.case2_underscored_calculation(
+            include_noether=True
+        )
+        report = WolframXActBridge(timeout_seconds=300).validate_model(
+            model,
+            momenta,
+            euler,
+            noether=noether,
+        )
+        self.assertEqual(report.summary, {"passed": 11, "failed": 0, "undetermined": 1})
+        self.assertTrue(
+            all(
+                item.status is VerificationStatus.PASSED
+                for item in report.checks
+                if item.strategy in {"algebraic", "riemann_bianchi"}
+            ),
+            report.to_data(),
+        )
+        self.assertFalse(
+            any("IR decode failed" in (item.residual or "") for item in report.checks)
+        )
+        self.assertTrue(all(item.diagnostic is None for item in report.checks))
+
+    @unittest.skipUnless(
+        os.environ.get("TENSOR_ENGINE_RUN_WOLFRAM_TESTS") == "1",
+        "La integración Wolfram/xAct es opt-in.",
+    )
+    def test_live_unsupported_ir_is_never_reported_as_passed(self) -> None:
+        model, momenta, euler = self.constant_calculation()
+        bridge = WolframXActBridge(timeout_seconds=180)
+        request = bridge.build_model_validation_request(model, momenta, euler)
+        request["options"]["checks"] = [
+            {
+                "key": "unsupported_node",
+                "message": "Un nodo desconocido no constituye una identidad validada.",
+                "residual": {
+                    "type": "add",
+                    "terms": [
+                        {"type": "number", "numerator": 1, "denominator": 1},
+                        {"type": "future_ir_node", "payload": {"source": "test"}},
+                    ],
+                },
+                "on_nonzero": "failed",
+                "strategy": "algebraic",
+                "adjudicates": [],
+            },
+            {
+                "key": "undeclared_tensor",
+                "message": "Un tensor desconocido debe identificarse.",
+                "residual": {"type": "tensor", "name": "Mystery", "indices": []},
+                "on_nonzero": "failed",
+                "strategy": "algebraic",
+                "adjudicates": [],
+            },
+            {
+                "key": "invalid_index",
+                "message": "Un índice desconocido debe identificarse.",
+                "residual": {
+                    "type": "tensor",
+                    "name": "g",
+                    "indices": [
+                        {"name": "ghost", "variance": "up", "space": "M"},
+                        {"name": "teFallbackA", "variance": "down", "space": "M"},
+                    ],
+                },
+                "on_nonzero": "failed",
+                "strategy": "algebraic",
+                "adjudicates": [],
+            },
+            {
+                "key": "malformed_expression",
+                "message": "Una expresión malformada debe conservarse.",
+                "residual": ["not", "an", "association"],
+                "on_nonzero": "failed",
+                "strategy": "algebraic",
+                "adjudicates": [],
+            },
+        ]
+        report = WolframPhase5Report.from_data(bridge.execute(request))
+        self.assertEqual(report.summary, {"passed": 0, "failed": 0, "undetermined": 4})
+        self.assertTrue(
+            all(item.status is VerificationStatus.UNDETERMINED for item in report.checks)
+        )
+        diagnostics = {item.key: item.diagnostic for item in report.checks}
+        self.assertEqual(diagnostics["unsupported_node"].code, "unsupported_node_type")
+        self.assertEqual(
+            diagnostics["unsupported_node"].path,
+            ("residual", "terms", "1"),
+        )
+        self.assertEqual(
+            diagnostics["unsupported_node"].fragment["payload"],
+            {"source": "test"},
+        )
+        self.assertEqual(diagnostics["undeclared_tensor"].category, "tensor")
+        self.assertEqual(diagnostics["undeclared_tensor"].symbol, "Mystery")
+        self.assertEqual(diagnostics["invalid_index"].category, "index")
+        self.assertEqual(diagnostics["invalid_index"].symbol, "ghost")
+        self.assertEqual(
+            diagnostics["invalid_index"].path,
+            ("residual", "indices", "0"),
+        )
+        self.assertEqual(
+            diagnostics["malformed_expression"].fragment,
+            ["not", "an", "association"],
+        )
+        self.assertTrue(
+            all("IR transport rejected at" in (item.residual or "") for item in report.checks)
         )
 
 
