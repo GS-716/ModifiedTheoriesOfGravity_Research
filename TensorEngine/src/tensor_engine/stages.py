@@ -119,6 +119,16 @@ DEFAULT_PIPELINE: tuple[StageSpec, ...] = (
         description="Organiza las vistas abstracta y proyectada sin recalcular la variación.",
     ),
     StageSpec(
+        "specialize_ansatz",
+        ("abstract_results", "projected_results"),
+        ("specialized_results",),
+        optional=True,
+        description=(
+            "Aplica funciones métricas y un perfil escalar proporcionados por el usuario "
+            "después de la derivación y de la proyección genérica."
+        ),
+    ),
+    StageSpec(
         "export",
         (
             "validated_model",

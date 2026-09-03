@@ -11,6 +11,7 @@ from dataclasses import dataclass, field
 from enum import Enum
 from itertools import product
 import re
+from types import MappingProxyType
 from typing import Any, Mapping, Sequence
 
 import sympy as sp
@@ -33,6 +34,7 @@ from .ir import (
     Variation,
     VolumeElement,
     add,
+    as_expr,
     expr_from_data,
     infer_free_indices,
     mul,
@@ -265,6 +267,113 @@ class GeometryAnsatz:
                 else ScalarFieldMode(str(data["scalar_field_mode"]))
             ),
             schema_version=str(data.get("schema_version", COMPONENT_SCHEMA_VERSION)),
+        )
+
+
+@dataclass(frozen=True, slots=True)
+class AnsatzSpecialization:
+    """Sustituciones coordenadas aplicadas después de la proyección genérica.
+
+    Los valores son expresiones escalares de la IR. La especialización crea un
+    nuevo ``GeometryAnsatz`` y nunca modifica el modelo ni su derivación
+    covariante.
+    """
+
+    metric_functions: Mapping[str, Expr] = field(default_factory=dict)
+    scalar_field: Expr | None = None
+    name: str | None = None
+    assumptions: tuple[str, ...] = ()
+
+    def __post_init__(self) -> None:
+        normalized: dict[str, Expr] = {}
+        for function_name, value in self.metric_functions.items():
+            _validate_name(function_name, "nombre de función métrica")
+            expression = as_expr(value)
+            _require_scalar(expression, f"La especialización de {function_name}")
+            normalized[function_name] = expression
+        object.__setattr__(
+            self,
+            "metric_functions",
+            MappingProxyType(dict(sorted(normalized.items()))),
+        )
+        if self.scalar_field is not None:
+            scalar = as_expr(self.scalar_field)
+            _require_scalar(scalar, "El perfil escalar especializado")
+            object.__setattr__(self, "scalar_field", scalar)
+        if self.name is not None:
+            _validate_name(self.name, "nombre de especialización")
+        object.__setattr__(self, "assumptions", tuple(self.assumptions))
+        if len(set(self.assumptions)) != len(self.assumptions):
+            raise ModelValidationError("La especialización contiene hipótesis repetidas.")
+        if not normalized and self.scalar_field is None:
+            raise ModelValidationError(
+                "AnsatzSpecialization requiere al menos una función métrica o un campo escalar."
+            )
+
+    def apply(self, ansatz: GeometryAnsatz) -> GeometryAnsatz:
+        """Aplica la sustitución a una copia del ansatz base."""
+
+        from .transform import substitute
+
+        available: dict[str, set[Function]] = {}
+        for row in ansatz.metric_covariant:
+            for entry in row:
+                for node in walk(entry):
+                    if isinstance(node, Function):
+                        available.setdefault(node.name, set()).add(node)
+        missing = set(self.metric_functions).difference(available)
+        if missing:
+            raise ModelValidationError(
+                "El ansatz no contiene las funciones métricas solicitadas: "
+                + ", ".join(sorted(missing))
+            )
+        replacements = {
+            function: self.metric_functions[name]
+            for name, functions in available.items()
+            if name in self.metric_functions
+            for function in functions
+        }
+        metric = tuple(
+            tuple(substitute(entry, replacements) for entry in row)
+            for row in ansatz.metric_covariant
+        )
+        scalar = ansatz.scalar_field if self.scalar_field is None else self.scalar_field
+        mode = ansatz.scalar_field_mode
+        if self.scalar_field is not None:
+            mode = ScalarFieldMode.SPECIALIZED
+        return GeometryAnsatz(
+            name=self.name or f"{ansatz.name}_specialized",
+            chart=ansatz.chart,
+            metric_covariant=metric,
+            scalar_field=scalar,
+            assumptions=tuple(dict.fromkeys((*ansatz.assumptions, *self.assumptions))),
+            scalar_field_mode=mode,
+        )
+
+    def to_data(self) -> dict[str, Any]:
+        return {
+            "metric_functions": {
+                name: expression.to_data()
+                for name, expression in self.metric_functions.items()
+            },
+            "scalar_field": (
+                None if self.scalar_field is None else self.scalar_field.to_data()
+            ),
+            "name": self.name,
+            "assumptions": list(self.assumptions),
+        }
+
+    @classmethod
+    def from_data(cls, data: Mapping[str, Any]) -> "AnsatzSpecialization":
+        scalar = data.get("scalar_field")
+        return cls(
+            metric_functions={
+                str(name): expr_from_data(expression)
+                for name, expression in data.get("metric_functions", {}).items()
+            },
+            scalar_field=None if scalar is None else expr_from_data(scalar),
+            name=None if data.get("name") is None else str(data["name"]),
+            assumptions=tuple(str(item) for item in data.get("assumptions", ())),
         )
 
 

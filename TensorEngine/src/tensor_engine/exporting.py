@@ -40,6 +40,7 @@ from .derived import (
     DerivedQuantities,
     ProjectedTensorResults,
     ProjectionStatus,
+    SpecializedTensorResults,
     XActValidationStatus,
 )
 from .euler import EulerLagrangeResult
@@ -58,6 +59,7 @@ from .ir import (
     Variation,
     VolumeElement,
     expr_from_data,
+    walk,
 )
 from .model import ModelSpec
 from .presentation import (
@@ -117,6 +119,7 @@ class RunPackage:
     derived: DerivedQuantities | None = None
     abstract: AbstractTensorResults | None = None
     projected: ProjectedTensorResults | None = None
+    specialized: SpecializedTensorResults | None = None
     duration_seconds: float = 0.0
     stage_durations: tuple[tuple[str, float], ...] = ()
     delta_contractions: tuple[DeltaContractionAudit, ...] = ()
@@ -133,6 +136,12 @@ class RunPackage:
             raise ValueError("Las duraciones por etapa contienen claves repetidas.")
         if (self.abstract is None) != (self.projected is None):
             raise ValueError("Las vistas abstracta y proyectada deben conservarse juntas.")
+        if self.specialized is not None and (
+            self.abstract is None or self.projected is None
+        ):
+            raise ValueError(
+                "Una vista especializada requiere las vistas abstracta y proyectada."
+            )
 
     @property
     def lagrangian(self) -> Expr:
@@ -206,7 +215,7 @@ class RunPackage:
     def semantic_data(self) -> dict[str, Any]:
         """Contenido que identifica la corrida; excluye reloj, rutas y tiempos."""
 
-        return {
+        data = {
             "export_schema_version": EXPORT_SCHEMA_VERSION,
             "model": self.model.to_data(),
             "normalized_lagrangian": self.lagrangian.to_data(),
@@ -226,6 +235,9 @@ class RunPackage:
             ),
             "verification": self.verification.to_data(),
         }
+        if self.specialized is not None:
+            data["specialized_results"] = self.specialized.to_data()
+        return data
 
     @property
     def run_id(self) -> str:
@@ -260,6 +272,7 @@ class RunPackage:
             "derived_quantities",
             "abstract_results",
             "projected_results",
+            "specialized_results",
             "verification",
         )
         stored_semantic = {
@@ -272,6 +285,7 @@ class RunPackage:
         derived_data = data.get("derived_quantities")
         abstract_data = data.get("abstract_results")
         projected_data = data.get("projected_results")
+        specialized_data = data.get("specialized_results")
         noether_data = data.get("noether_wald")
         package = cls(
             model=model,
@@ -300,6 +314,11 @@ class RunPackage:
                 None
                 if projected_data is None
                 else ProjectedTensorResults.from_data(projected_data)
+            ),
+            specialized=(
+                None
+                if specialized_data is None
+                else SpecializedTensorResults.from_data(specialized_data)
             ),
             duration_seconds=float(timing.get("duration_seconds", 0.0)),
             stage_durations=tuple(
@@ -385,6 +404,7 @@ class RunManifest:
     files: tuple[ExportedFile, ...]
     abstract_quantities: tuple[str, ...] = ()
     projected_quantities: tuple[tuple[str, str, str], ...] = ()
+    specialized_quantities: tuple[tuple[str, str, str], ...] = ()
     external_bindings: tuple[tuple[str, str, str], ...] = ()
     adjudications: tuple[tuple[str, str, str], ...] = ()
     schema_version: str = EXPORT_SCHEMA_VERSION
@@ -396,6 +416,7 @@ class RunManifest:
         object.__setattr__(self, "files", tuple(self.files))
         object.__setattr__(self, "abstract_quantities", tuple(self.abstract_quantities))
         object.__setattr__(self, "projected_quantities", tuple(tuple(item) for item in self.projected_quantities))
+        object.__setattr__(self, "specialized_quantities", tuple(tuple(item) for item in self.specialized_quantities))
         object.__setattr__(self, "external_bindings", tuple(tuple(item) for item in self.external_bindings))
         object.__setattr__(self, "adjudications", tuple(tuple(item) for item in self.adjudications))
         if self.schema_version != EXPORT_SCHEMA_VERSION:
@@ -414,12 +435,28 @@ class RunManifest:
             raise ValueError("El manifiesto repite cantidades proyectadas.")
         if any(len(item) != 3 for item in self.projected_quantities):
             raise ValueError("Las proyecciones del manifiesto tienen un contrato inválido.")
+        if len({item[0] for item in self.specialized_quantities}) != len(self.specialized_quantities):
+            raise ValueError("El manifiesto repite cantidades especializadas.")
+        if any(len(item) != 3 for item in self.specialized_quantities):
+            raise ValueError("Las especializaciones del manifiesto tienen un contrato inválido.")
         if any(len(item) != 3 for item in self.external_bindings):
             raise ValueError("Los vínculos externos del manifiesto tienen un contrato inválido.")
         if any(len(item) != 3 for item in self.adjudications):
             raise ValueError("Las adjudicaciones del manifiesto tienen un contrato inválido.")
 
     def to_data(self) -> dict[str, Any]:
+        result_views = {
+            "abstract": list(self.abstract_quantities),
+            "projected": [
+                {"key": key, "status": status, "sha256": digest}
+                for key, status, digest in self.projected_quantities
+            ],
+        }
+        if self.specialized_quantities:
+            result_views["specialized"] = [
+                {"key": key, "status": status, "sha256": digest}
+                for key, status, digest in self.specialized_quantities
+            ]
         return {
             "schema_version": self.schema_version,
             "run_id": self.run_id,
@@ -460,13 +497,7 @@ class RunManifest:
                 {"key": key, "form": form, "sha256": digest}
                 for key, form, digest in self.expressions
             ],
-            "result_views": {
-                "abstract": list(self.abstract_quantities),
-                "projected": [
-                    {"key": key, "status": status, "sha256": digest}
-                    for key, status, digest in self.projected_quantities
-                ],
-            },
+            "result_views": result_views,
             "files": [item.to_data() for item in self.files],
         }
 
@@ -529,6 +560,14 @@ class RunManifest:
                     str(item.get("sha256", "")),
                 )
                 for item in result_views.get("projected", ())
+            ),
+            specialized_quantities=tuple(
+                (
+                    str(item["key"]),
+                    str(item["status"]),
+                    str(item.get("sha256", "")),
+                )
+                for item in result_views.get("specialized", ())
             ),
             external_bindings=tuple(
                 (
@@ -1217,10 +1256,134 @@ def _append_projected_results(lines: list[str], package: RunPackage, view: Repor
         )
 
 
+def _append_specialized_results(
+    lines: list[str],
+    package: RunPackage,
+    view: ReportPresentation,
+) -> None:
+    if package.specialized is None or package.abstract is None or package.projected is None:
+        return
+    specialized = package.specialized
+    lines.append(r"\section*{Resultados especializados mediante el ansatz}")
+    lines.append(
+        rf"\textbf{{Ansatz base:}} \texttt{{{_latex_text(specialized.base_ansatz_name)}}}; "
+        rf"\textbf{{ansatz especializado:}} \texttt{{{_latex_text(specialized.ansatz_name)}}}.\par"
+    )
+    base_geometry = package.projected.ansatz_geometry
+
+    def metric_function_label(name: str) -> str:
+        if base_geometry is not None:
+            for row in base_geometry.metric_covariant:
+                for entry in row:
+                    for node in walk(entry):
+                        if isinstance(node, Function) and node.name == name:
+                            arguments = ", ".join(expr_to_latex(arg) for arg in node.arguments)
+                            return rf"{_latex_name(name)}\!\left({arguments}\right)"
+        return _latex_name(name)
+
+    metric_inputs = r",\quad ".join(
+        rf"{metric_function_label(name)} = {display_expr_to_latex(expression)}"
+        for name, expression in specialized.specialization.metric_functions.items()
+    ) or r"\text{sin sustituciones métricas}"
+    scalar_input = (
+        r"\text{sin sustitución escalar}"
+        if specialized.specialization.scalar_field is None
+        else display_expr_to_latex(specialized.specialization.scalar_field)
+    )
+    lines.extend(
+        (
+            r"\begin{dmath*}[breakdepth={4}]",
+            rf"{metric_inputs},\qquad \phi = {scalar_input}",
+            r"\end{dmath*}",
+            r"La derivación abstracta y la proyección genérica preceden a esta etapa. "
+            r"Las componentes especializadas completas se conservan en \texttt{results.json}; "
+            r"el documento muestra como máximo doce componentes no nulas por tensor.",
+        )
+    )
+    for key in REPORT_QUANTITY_KEYS:
+        label = _REPORT_LABELS[key]
+        abstract_record = package.abstract.record(key)
+        projected = package.projected.quantity(key)
+        result = specialized.quantity(key)
+        lines.extend(
+            (
+                r"\Needspace{10\baselineskip}",
+                rf"\subsection*{{$ {label} $}}",
+                rf"\textbf{{Funciones usadas:}} $ {metric_inputs},\;\phi={scalar_input} $.\par",
+                r"\textbf{Resultado abstracto:}",
+                _presentation_audit(view, f"abstract.{key}"),
+                r"\begin{dmath*}[breakdepth={5}]",
+                rf"{label} = {_presentation_latex(view, f'abstract.{key}')}",
+                r"\end{dmath*}",
+                (
+                    rf"\textbf{{Resultado proyectado:}} "
+                    rf"{_PROJECTION_STATUS_TEXT[projected.status]}. "
+                    rf"{_latex_text(projected.reason)}\par"
+                ),
+                (
+                    rf"\textbf{{Resultado especializado:}} "
+                    rf"{_PROJECTION_STATUS_TEXT[result.status]}.\par"
+                ),
+            )
+        )
+        if result.components is None:
+            lines.extend(
+                (
+                    _presentation_audit(view, f"specialized.{key}.abstract_fallback"),
+                    r"\begin{dmath*}[breakdepth={5}]",
+                    rf"{label} = {_presentation_latex(view, f'specialized.{key}.abstract_fallback')}",
+                    r"\end{dmath*}",
+                    rf"\textbf{{Motivo:}} {_latex_text(result.reason)}\par",
+                )
+            )
+        else:
+            components = result.components
+            total = components.dimension ** len(abstract_record.free_indices)
+            nonzero = len(components.values)
+            if not abstract_record.free_indices:
+                display_key = f"specialized.{key}.scalar"
+                lines.extend(
+                    (
+                        _presentation_audit(view, display_key),
+                        r"\begin{dmath*}[breakdepth={5}]",
+                        rf"{label}\big|_{{\mathrm{{especializado}}}} = {_presentation_latex(view, display_key)}",
+                        r"\end{dmath*}",
+                    )
+                )
+            elif nonzero == 0:
+                lines.append(_presentation_audit(view, f"specialized.{key}.zero"))
+                lines.append(r"Todas las componentes especializadas son nulas.\par")
+            else:
+                for position, _ in components.values[:12]:
+                    display_key = f"specialized.{key}[{','.join(map(str, position))}]"
+                    lines.extend(
+                        (
+                            _presentation_audit(view, display_key),
+                            r"\begin{dmath*}[breakdepth={5}]",
+                            rf"{_component_label(label, abstract_record.free_indices, position, component_indices=components.free_indices)} = {_presentation_latex(view, display_key)}",
+                            r"\end{dmath*}",
+                        )
+                    )
+                if nonzero > 12:
+                    lines.append(
+                        rf"Se muestran 12 de {nonzero} componentes no nulas; "
+                        r"el conjunto completo está en \texttt{results.json}.\par"
+                    )
+            lines.append(
+                rf"\textbf{{Almacenamiento:}} {nonzero} componentes no nulas de {total}. "
+                rf"{_latex_text(result.reason)}\par"
+            )
+        lines.append(
+            rf"\textbf{{Wolfram/xAct:}} {_XACT_STATUS_TEXT[abstract_record.xact_status]}. "
+            rf"{_latex_text(abstract_record.validation_note)} "
+            r"La especialización coordenada no se presenta como una validación xAct independiente.\par\medskip"
+        )
+
+
 def latex_report(package: RunPackage, display_policy: DisplayPolicy | None = None, *,
                  projected_assumptions: tuple[str, ...] = (),
                  presentation: ReportPresentation | None = None) -> str:
-    """Presenta la corrida mediante exactamente dos secciones matemáticas."""
+    """Presenta las vistas abstracta, proyectada y, si existe, especializada."""
 
     view = presentation or build_presentation(package, display_policy, projected_assumptions=projected_assumptions)
     if view.run_id != package.run_id:
@@ -1284,6 +1447,7 @@ def latex_report(package: RunPackage, display_policy: DisplayPolicy | None = Non
         lines.extend((r"\end{itemize}", r"\par\smallskip"))
     _append_abstract_results(lines, package, view)
     _append_projected_results(lines, package, view)
+    _append_specialized_results(lines, package, view)
     lines.extend(
         (
             r"\bigskip\noindent\textbf{Política de lectura.} "
@@ -1593,6 +1757,25 @@ class RunExporter:
                         ),
                     )
                     for item in package.projected.quantities
+                )
+            ),
+            specialized_quantities=(
+                ()
+                if package.specialized is None
+                else tuple(
+                    (
+                        item.key,
+                        item.status.value,
+                        _sha256_data(
+                            item.components.to_data()
+                            if item.components is not None
+                            else {
+                                "reason": item.reason,
+                                "ansatz": item.ansatz_name,
+                            }
+                        ),
+                    )
+                    for item in package.specialized.quantities
                 )
             ),
             external_bindings=package.verification.external_bindings,

@@ -65,6 +65,47 @@ Las sustituciones son estructurales y exigen expresiones escalares compatibles.
 La secuencia queda separada en: derivación abstracta, proyección con la métrica,
 especialización escalar opcional y evaluación con funciones solución.
 
+## Especialización integrada en una corrida
+
+`AnsatzSpecialization` conserva esa secuencia dentro de `TensorEngine.run` y
+acepta expresiones escalares de la IR elegidas por el usuario:
+
+```python
+from tensor_engine import AnsatzSpecialization, Scalar, TensorEngine
+
+draft4 = draft4_circular_ansatz()
+tau, r, varphi = draft4.chart.coordinates
+ell, p, mass = Scalar("ell"), Scalar("p"), Scalar("lambda")
+
+specialization = AnsatzSpecialization(
+    metric_functions={"f": r**2 / ell**2 - mass},
+    scalar_field=p * varphi,
+)
+run = TensorEngine().run(
+    model,
+    ansatz=draft4,
+    specialization=specialization,
+    output_root="outputs",
+)
+```
+
+La API no contiene soluciones predeterminadas. `f(r)` y `phi` proceden siempre
+del objeto entregado por el usuario. La salida conserva tres niveles:
+
+- `run.abstract`: derivación covariante, independiente del ansatz;
+- `run.projected`: proyección sobre el Draft 4 genérico con `f(r)` y `Phi`;
+- `run.specialized`: componentes obtenidas tras aplicar la especialización.
+
+Cuando existe `run.specialized`, `results.json` almacena la especialización, la
+geometría resultante y las trece cantidades completas. El informe añade al final
+`Resultados especializados mediante el ansatz`. La validación xAct continúa
+ligada a la teoría covariante: el informe no presenta la sustitución coordenada
+como si fuera una validación xAct independiente.
+
+El notebook de inicio incluye una celda separada para cada Caso 0, 1 y 2 del
+Draft 4. En cada una, `f_input` y `phi_input` son las únicas entradas que hay que
+editar para ensayar otra solución.
+
 `results.json` conserva bajo `projected_results.ansatz_geometry` la carta, la
 métrica, el campo escalar, su modo (`generic`, `specialized` o `absent`) y las
 hipótesis. Los bundles antiguos, que solo guardaban el nombre del ansatz, siguen

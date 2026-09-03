@@ -10,6 +10,7 @@ from typing import Any, Callable, TypeVar
 from .backends.base import TensorBackend
 from .backends.structural import StructuralTensorBackend
 from .components import (
+    AnsatzSpecialization,
     ComponentFieldEquations,
     GeometryAnsatz,
     SympyComponentBackend,
@@ -29,7 +30,10 @@ from .derived import (
     AbstractTensorResults,
     DerivedQuantities,
     ProjectedTensorResults,
+    ProjectionStatus,
+    SpecializedTensorResults,
     build_result_views,
+    build_specialized_results,
     derive_intermediate_quantities,
 )
 from .errors import PipelineExecutionError, TensorEngineError
@@ -134,6 +138,10 @@ class EngineRun:
         return self.package.projected
 
     @property
+    def specialized(self) -> SpecializedTensorResults | None:
+        return self.package.specialized
+
+    @property
     def delta_contractions(self):
         return self.package.delta_contractions
 
@@ -223,12 +231,19 @@ class TensorEngine:
         model: ModelSpec,
         *,
         ansatz: GeometryAnsatz | None = None,
+        specialization: AnsatzSpecialization | None = None,
         output_root: str | Path | None = None,
         external_reports: tuple[WolframValidationReport, ...] = (),
         wolfram_bridge: WolframXActBridge | None = None,
         display_policy: DisplayPolicy | None = None,
     ) -> EngineRun:
         """Calcula, verifica y opcionalmente exporta una teoría declarada."""
+
+        if specialization is not None and ansatz is None:
+            raise PipelineExecutionError(
+                "specialize_ansatz",
+                "Una especialización requiere proporcionar primero un ansatz base.",
+            )
 
         completed: list[StageResult] = []
         skipped: list[str] = []
@@ -588,6 +603,90 @@ class TensorEngine:
             completed,
         )
 
+        specialized_results: SpecializedTensorResults | None = None
+        if specialization is not None and ansatz is not None:
+            specialized_ansatz = specialization.apply(ansatz)
+
+            def specialization_operation() -> SpecializedTensorResults:
+                specialized_backend: SympyComponentBackend | None = None
+                specialized_components: ComponentFieldEquations | None = None
+                failure_reason: str | None = None
+                if self.options.include_components:
+                    try:
+                        specialized_backend = SympyComponentBackend.from_model(
+                            calculation_model,
+                            specialized_ansatz,
+                        )
+                        limit_reason = (
+                            specialized_backend.projection_limit_reason(euler.metric_euler)
+                            or specialized_backend.projection_limit_reason(euler.scalar_euler)
+                        )
+                        if limit_reason is None:
+                            specialized_components = evaluate_field_equations(
+                                euler.metric_euler,
+                                euler.scalar_euler,
+                                specialized_backend,
+                            )
+                        else:
+                            failure_reason = limit_reason
+                    except (TensorEngineError, OverflowError, RecursionError) as error:
+                        failure_reason = str(error)
+                else:
+                    failure_reason = (
+                        "La evaluación por componentes fue desactivada mediante EngineOptions."
+                    )
+                return build_specialized_results(
+                    calculation_model,
+                    normalized_lagrangian,
+                    momenta,
+                    euler,
+                    derived,
+                    base_ansatz_name=ansatz.name,
+                    specialization=specialization,
+                    specialized_ansatz=specialized_ansatz,
+                    component_backend=specialized_backend,
+                    field_components=specialized_components,
+                    unavailable_reason=failure_reason,
+                )
+
+            specialized_results = self._execute(
+                "specialize_ansatz",
+                specialization_operation,
+                lambda value, duration: StageResult(
+                    "specialize_ansatz",
+                    (
+                        StageStatus.SUCCESS
+                        if all(
+                            item.status is ProjectionStatus.COMPLETED
+                            for item in value.quantities
+                        )
+                        else StageStatus.PARTIAL
+                    ),
+                    "sympy-components",
+                    "apply_ansatz_specialization",
+                    inputs=("abstract_results", "projected_results"),
+                    artifacts=(
+                        ArtifactRecord(
+                            "specialized_results",
+                            "specialized_tensor_results",
+                            tuple(value.to_data().items()),
+                            ("abstract_results", "projected_results"),
+                        ),
+                    ),
+                    diagnostics=tuple(
+                        Diagnostic(
+                            "W_SPECIALIZED_QUANTITY_UNAVAILABLE",
+                            f"{item.key}: {item.reason}",
+                            Severity.WARNING,
+                        )
+                        for item in value.quantities
+                        if item.status is not ProjectionStatus.COMPLETED
+                    ),
+                    duration_seconds=duration,
+                ),
+                completed,
+            )
+
         pre_export_duration = sum(stage.duration_seconds for stage in completed)
         package = RunPackage(
             validated_model,
@@ -601,6 +700,7 @@ class TensorEngine:
             derived=derived,
             abstract=abstract_results,
             projected=projected_results,
+            specialized=specialized_results,
             duration_seconds=pre_export_duration,
             stage_durations=tuple((stage.stage_key, stage.duration_seconds) for stage in completed),
             delta_contractions=tuple(getattr(backend, "delta_contractions", ())),

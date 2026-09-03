@@ -50,6 +50,7 @@ from .contracts import (
     validate_stage_result,
 )
 from .components import (
+    AnsatzSpecialization,
     COMPONENT_SCHEMA_VERSION,
     ComponentEvaluation,
     ComponentFieldEquations,
@@ -89,9 +90,11 @@ from .derived import (
     ProjectedQuantityResult,
     ProjectedTensorResults,
     ProjectionStatus,
+    SpecializedTensorResults,
     SymbolicEvaluationStatus,
     XActValidationStatus,
     build_result_views,
+    build_specialized_results,
     derive_intermediate_quantities,
 )
 from .euler import (
@@ -317,6 +320,7 @@ __all__ = [
     "FunctionSpec",
     "GeometrySymbols",
     "GeometryAnsatz",
+    "AnsatzSpecialization",
     "ScalarFieldMode",
     "IRValidationError",
     "Index",
@@ -336,6 +340,7 @@ __all__ = [
     "ProjectedQuantityResult",
     "ProjectedTensorResults",
     "ProjectionStatus",
+    "SpecializedTensorResults",
     "REPORT_QUANTITY_KEYS",
     "Scalar",
     "Severity",
@@ -383,6 +388,7 @@ __all__ = [
     "canonicalize_dummy_indices",
     "calculation_fingerprint",
     "build_result_views",
+    "build_specialized_results",
     "catalog_entries",
     "catalog_model",
     "canonicalize_monoterm",

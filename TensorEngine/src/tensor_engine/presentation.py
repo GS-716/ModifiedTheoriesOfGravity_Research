@@ -841,6 +841,34 @@ def build_presentation(
                     for position, expr in item.components.values:
                         suffix = ",".join(map(str, position))
                         entries.append((f"projected.{item.key}[{suffix}]", builder.expression(expr, assumptions=projected_assumptions)))
+        if package.specialized is not None:
+            specialized_assumptions = package.specialized.ansatz_geometry.assumptions
+            for item in package.specialized.quantities:
+                if item.components is None:
+                    entries.append((
+                        f"specialized.{item.key}.abstract_fallback",
+                        builder.expression(getattr(package.abstract, item.key)),
+                    ))
+                elif not item.components.free_indices:
+                    entries.append((
+                        f"specialized.{item.key}.scalar",
+                        builder.expression(
+                            item.components.scalar,
+                            assumptions=specialized_assumptions,
+                        ),
+                    ))
+                elif not item.components.values:
+                    entries.append((
+                        f"specialized.{item.key}.zero",
+                        builder.expression(Number(0)),
+                    ))
+                else:
+                    for position, expr in item.components.values:
+                        suffix = ",".join(map(str, position))
+                        entries.append((
+                            f"specialized.{item.key}[{suffix}]",
+                            builder.expression(expr, assumptions=specialized_assumptions),
+                        ))
     decompositions = (
         ()
         if package.abstract is None

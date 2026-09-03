@@ -9,6 +9,7 @@ from typing import Any, Mapping
 from .backends.base import TensorBackend
 from .builders import ModelBuilder
 from .components import (
+    AnsatzSpecialization,
     ComponentEvaluation,
     ComponentFieldEquations,
     GeometryAnsatz,
@@ -382,6 +383,105 @@ class ProjectedTensorResults:
                 None
                 if ansatz_data is None
                 else GeometryAnsatz.from_data(ansatz_data)
+            ),
+        )
+
+
+@dataclass(frozen=True, slots=True)
+class SpecializedTensorResults:
+    """Tercera vista obtenida al evaluar la IR sobre una especialización posterior."""
+
+    base_ansatz_name: str
+    specialization: AnsatzSpecialization
+    ansatz_geometry: GeometryAnsatz
+    quantities: tuple[ProjectedQuantityResult, ...]
+
+    def __post_init__(self) -> None:
+        object.__setattr__(self, "quantities", tuple(self.quantities))
+        keys = tuple(item.key for item in self.quantities)
+        if len(keys) != len(set(keys)) or set(keys) != set(REPORT_QUANTITY_KEYS):
+            raise ValueError(
+                f"La vista especializada debe contener las {len(REPORT_QUANTITY_KEYS)} cantidades."
+            )
+        if any(item.ansatz_name != self.ansatz_geometry.name for item in self.quantities):
+            raise ValueError("Las cantidades especializadas pertenecen a otro ansatz.")
+
+    @property
+    def ansatz_name(self) -> str:
+        return self.ansatz_geometry.name
+
+    def quantity(self, key: str) -> ProjectedQuantityResult:
+        return next(item for item in self.quantities if item.key == key)
+
+    @property
+    def lagrangian(self) -> ProjectedQuantityResult:
+        return self.quantity("lagrangian")
+
+    @property
+    def metric_momentum(self) -> ProjectedQuantityResult:
+        return self.quantity("metric_momentum")
+
+    @property
+    def curvature_momentum(self) -> ProjectedQuantityResult:
+        return self.quantity("curvature_momentum")
+
+    @property
+    def scalar_gradient_momentum(self) -> ProjectedQuantityResult:
+        return self.quantity("scalar_gradient_momentum")
+
+    @property
+    def scalar_derivative(self) -> ProjectedQuantityResult:
+        return self.quantity("scalar_derivative")
+
+    @property
+    def metric_euler(self) -> ProjectedQuantityResult:
+        return self.quantity("metric_euler")
+
+    @property
+    def scalar_euler(self) -> ProjectedQuantityResult:
+        return self.quantity("scalar_euler")
+
+    @property
+    def ricci_scalar(self) -> ProjectedQuantityResult:
+        return self.quantity("ricci_scalar")
+
+    @property
+    def ricci_squared(self) -> ProjectedQuantityResult:
+        return self.quantity("ricci_squared")
+
+    @property
+    def riemann_tensor(self) -> ProjectedQuantityResult:
+        return self.quantity("riemann_tensor")
+
+    @property
+    def riemann_squared(self) -> ProjectedQuantityResult:
+        return self.quantity("riemann_squared")
+
+    @property
+    def nabla_P(self) -> ProjectedQuantityResult:
+        return self.quantity("nabla_P")
+
+    @property
+    def nabla_nabla_P(self) -> ProjectedQuantityResult:
+        return self.quantity("nabla_nabla_P")
+
+    def to_data(self) -> dict[str, Any]:
+        return {
+            "base_ansatz": self.base_ansatz_name,
+            "specialization": self.specialization.to_data(),
+            "ansatz_geometry": self.ansatz_geometry.to_data(),
+            "quantities": [item.to_data() for item in self.quantities],
+        }
+
+    @classmethod
+    def from_data(cls, data: Mapping[str, Any]) -> "SpecializedTensorResults":
+        return cls(
+            base_ansatz_name=str(data["base_ansatz"]),
+            specialization=AnsatzSpecialization.from_data(data["specialization"]),
+            ansatz_geometry=GeometryAnsatz.from_data(data["ansatz_geometry"]),
+            quantities=tuple(
+                ProjectedQuantityResult.from_data(item)
+                for item in data["quantities"]
             ),
         )
 
@@ -903,29 +1003,13 @@ def _projection_result(
     return ProjectedQuantityResult(key, mapped, ansatz_name, components, reason)
 
 
-def build_result_views(
+def _result_expressions_and_signatures(
     model: ModelSpec,
     lagrangian: Expr,
     momenta: LagrangianMomenta,
     euler: EulerLagrangeResult,
     derived: DerivedQuantities,
-    verification: VerificationReport,
-    *,
-    ansatz_name: str | None = None,
-    ansatz: GeometryAnsatz | None = None,
-    component_backend: SympyComponentBackend | None = None,
-    field_components: ComponentFieldEquations | None = None,
-    projection_unavailable_reason: str | None = None,
-    field_equation_failure_reason: str | None = None,
-    component_budget: int = 2048,
-) -> tuple[AbstractTensorResults, ProjectedTensorResults]:
-    """Organiza dos vistas sin volver a derivar ninguna expresión covariante."""
-
-    if ansatz is not None:
-        if ansatz_name is not None and ansatz.name != ansatz_name:
-            raise ValueError("ansatz y ansatz_name identifican geometrías distintas.")
-        ansatz_name = ansatz.name
-
+) -> tuple[dict[str, Expr], dict[str, tuple[Index, ...]]]:
     space = model.symbols.index_space
     down = lambda name: Index(name, Variance.DOWN, space)
     up = lambda name: Index(name, Variance.UP, space)
@@ -963,6 +1047,35 @@ def build_result_views(
             down("f"),
         ),
     }
+    return expressions, signatures
+
+
+def build_result_views(
+    model: ModelSpec,
+    lagrangian: Expr,
+    momenta: LagrangianMomenta,
+    euler: EulerLagrangeResult,
+    derived: DerivedQuantities,
+    verification: VerificationReport,
+    *,
+    ansatz_name: str | None = None,
+    ansatz: GeometryAnsatz | None = None,
+    component_backend: SympyComponentBackend | None = None,
+    field_components: ComponentFieldEquations | None = None,
+    projection_unavailable_reason: str | None = None,
+    field_equation_failure_reason: str | None = None,
+    component_budget: int = 2048,
+) -> tuple[AbstractTensorResults, ProjectedTensorResults]:
+    """Organiza dos vistas sin volver a derivar ninguna expresión covariante."""
+
+    if ansatz is not None:
+        if ansatz_name is not None and ansatz.name != ansatz_name:
+            raise ValueError("ansatz y ansatz_name identifican geometrías distintas.")
+        ansatz_name = ansatz.name
+
+    expressions, signatures = _result_expressions_and_signatures(
+        model, lagrangian, momenta, euler, derived
+    )
 
     abstract_records: list[AbstractQuantityRecord] = []
     for key in REPORT_QUANTITY_KEYS:
@@ -1079,4 +1192,67 @@ def build_result_views(
         ansatz_name,
         tuple(projected),
         ansatz_geometry=ansatz,
+    )
+
+
+def build_specialized_results(
+    model: ModelSpec,
+    lagrangian: Expr,
+    momenta: LagrangianMomenta,
+    euler: EulerLagrangeResult,
+    derived: DerivedQuantities,
+    *,
+    base_ansatz_name: str,
+    specialization: AnsatzSpecialization,
+    specialized_ansatz: GeometryAnsatz,
+    component_backend: SympyComponentBackend | None,
+    field_components: ComponentFieldEquations | None = None,
+    unavailable_reason: str | None = None,
+    component_budget: int = 2048,
+) -> SpecializedTensorResults:
+    """Proyecta resultados ya derivados sobre una especialización posterior."""
+
+    expressions, signatures = _result_expressions_and_signatures(
+        model, lagrangian, momenta, euler, derived
+    )
+    quantities: list[ProjectedQuantityResult] = []
+    for key in REPORT_QUANTITY_KEYS:
+        if key == "metric_euler" and field_components is not None:
+            quantities.append(
+                ProjectedQuantityResult(
+                    key,
+                    ProjectionStatus.COMPLETED,
+                    specialized_ansatz.name,
+                    field_components.metric,
+                    "Reutilizada desde la evaluación especializada de E_ab.",
+                )
+            )
+            continue
+        if key == "scalar_euler" and field_components is not None:
+            quantities.append(
+                ProjectedQuantityResult(
+                    key,
+                    ProjectionStatus.COMPLETED,
+                    specialized_ansatz.name,
+                    field_components.scalar,
+                    "Reutilizada desde la evaluación especializada de E_phi.",
+                )
+            )
+            continue
+        quantities.append(
+            _projection_result(
+                key,
+                expressions[key],
+                signatures[key],
+                specialized_ansatz.name,
+                component_backend,
+                component_budget=component_budget,
+                unavailable_reason=unavailable_reason,
+            )
+        )
+    return SpecializedTensorResults(
+        base_ansatz_name=base_ansatz_name,
+        specialization=specialization,
+        ansatz_geometry=specialized_ansatz,
+        quantities=tuple(quantities),
     )
