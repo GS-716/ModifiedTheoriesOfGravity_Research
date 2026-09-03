@@ -18,6 +18,18 @@ El contrato exige dimensión entera, coincidencia entre la dimensión del modelo
 y la carta, matriz cuadrada y no degenerada, y componentes escalares. Tanto la
 carta como el ansatz admiten ida y vuelta JSON sin introducir código evaluable.
 
+`draft4_circular_ansatz()` define
+
+\[
+ds^2=-f(r)d\tau^2+\frac{dr^2}{f(r)}+r^2d\varphi^2,
+\qquad \phi=\Phi(\tau,r,\varphi),
+\]
+
+sin introducir `p`. Los perfiles particulares y las soluciones métricas se
+aplican después mediante `GeometryAnsatz.specialize_scalar()` y
+`GeometryAnsatz.specialize()`; véase la
+[guía de especialización](../ansatz-specialization.md).
+
 ## Referencia de aceptación
 
 La función `spatially_flat_flrw_ansatz()` define

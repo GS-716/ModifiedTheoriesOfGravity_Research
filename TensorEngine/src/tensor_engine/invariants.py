@@ -82,5 +82,7 @@ DEFAULT_INVARIANTS = InvariantRegistry((
     InvariantSpec("R", ModelBuilder.ricci_scalar, "Escalar de Ricci"),
     InvariantSpec("X", ModelBuilder.kinetic_scalar, "g^ab u_a u_b; sin factor -1/2"),
     InvariantSpec("RicciUU", ModelBuilder.ricci_uu, "R_ab u^a u^b"),
+    InvariantSpec("RicciSq", ModelBuilder.ricci_squared, "R_ab R^ab"),
+    InvariantSpec("RiemannSq", ModelBuilder.riemann_squared, "R_abcd R^abcd"),
     InvariantSpec("phi", lambda builder: builder.phi, "Campo escalar"),
 ))

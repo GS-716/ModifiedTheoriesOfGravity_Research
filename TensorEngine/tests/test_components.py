@@ -24,6 +24,7 @@ from tensor_engine import (
     Tensor,
     Variance,
     evaluate_field_equations,
+    draft4_angular_scalar_profile,
     draft4_circular_ansatz,
     ir_scalar_to_sympy,
     mul,
@@ -63,9 +64,11 @@ class Draft4GeometryTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
         cls.geometry = CoordinateGeometry.build(draft4_circular_ansatz())
+        cls.tau = cls.geometry.coordinates[0]
         cls.r = cls.geometry.coordinates[1]
+        cls.varphi = cls.geometry.coordinates[2]
         cls.f = sp.Function("f")(cls.r)
-        cls.p = sp.Symbol("p")
+        cls.Phi = sp.Function("Phi")(cls.tau, cls.r, cls.varphi)
 
     def test_metric_inverse_and_determinant(self) -> None:
         self.assertEqual(
@@ -76,12 +79,73 @@ class Draft4GeometryTests(unittest.TestCase):
         )
         self.assertEqual(sp.simplify(self.geometry.determinant + self.r**2), 0)
 
-    def test_axial_scalar_profile(self) -> None:
+    def test_default_scalar_profile_is_generic(self) -> None:
         self.assertEqual(
             self.geometry.scalar_gradient_covariant(),
-            (sp.S.Zero, sp.S.Zero, self.p),
+            tuple(sp.diff(self.Phi, coordinate) for coordinate in self.geometry.coordinates),
         )
-        self.assertEqual(sp.simplify(self.geometry.scalar_laplacian()), 0)
+        self.assertNotIn(sp.Symbol("p"), self.geometry.scalar_field.free_symbols)
+
+    def test_axial_scalar_profile_is_an_explicit_later_specialization(self) -> None:
+        base = draft4_circular_ansatz()
+        specialized = base.specialize_scalar(
+            draft4_angular_scalar_profile(),
+            assumptions=("phi=p*varphi",),
+        )
+        geometry = CoordinateGeometry.build(specialized)
+        p = sp.Symbol("p")
+        self.assertEqual(
+            geometry.scalar_gradient_covariant(),
+            (sp.S.Zero, sp.S.Zero, p),
+        )
+        self.assertEqual(sp.simplify(geometry.scalar_laplacian()), 0)
+        self.assertNotEqual(base.scalar_field, specialized.scalar_field)
+
+    def test_metric_and_scalar_solutions_can_be_specialized_together(self) -> None:
+        base = draft4_circular_ansatz()
+        tau, radial, angle = base.chart.coordinates
+        f = Function("f", (radial,))
+        Phi = Function("Phi", (tau, radial, angle))
+        specialized = base.specialize(
+            {
+                f: Number(1),
+                Phi: mul(Scalar("p"), angle),
+            },
+            assumptions=("phi=p*varphi",),
+        )
+        self.assertEqual(specialized.metric_covariant[0][0], Number(-1))
+        self.assertEqual(
+            sp.simplify(ir_scalar_to_sympy(specialized.metric_covariant[1][1])),
+            sp.S.One,
+        )
+        self.assertEqual(specialized.scalar_field, mul(Scalar("p"), angle))
+        self.assertEqual(GeometryAnsatz.from_data(specialized.to_data()), specialized)
+
+    def test_kinetic_scalar_only_contains_p_after_explicit_specialization(self) -> None:
+        base = draft4_circular_ansatz()
+        specialized = base.specialize_scalar(draft4_angular_scalar_profile())
+        X = ModelBuilder().kinetic_scalar()
+        generic_x = SympyComponentBackend(base).evaluate_sympy(X).scalar
+        specialized_x = SympyComponentBackend(specialized).evaluate_sympy(X).scalar
+        p = sp.Symbol("p")
+        self.assertNotIn(p, generic_x.free_symbols)
+        self.assertEqual(sp.simplify(specialized_x - p**2 / self.r**2), 0)
+
+    def test_generic_multivariate_projection_budget_is_structural(self) -> None:
+        base = draft4_circular_ansatz()
+        expression = Scalar("phi")
+        for position in range(25):
+            expression = CovariantDerivative(
+                Index(f"q{position}", Variance.DOWN),
+                expression,
+            )
+        reason = SympyComponentBackend(base).projection_limit_reason(expression)
+        self.assertIsNotNone(reason)
+        self.assertIn("25 nodos", reason)
+        specialized = base.specialize_scalar(draft4_angular_scalar_profile())
+        self.assertIsNone(
+            SympyComponentBackend(specialized).projection_limit_reason(expression)
+        )
 
 
 class ScalarTranslationTests(unittest.TestCase):

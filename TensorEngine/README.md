@@ -27,6 +27,10 @@ identidad fuera de capa y potencial de carga de Iyer–Wald; sus nueve referenci
 externas también están aprobadas con xAct.
 La fase 7 incorpora ansatz serializables, geometría coordenada de Levi-Civita y
 proyección de las ecuaciones abstractas a componentes mediante SymPy.
+`draft4_circular_ansatz()` conserva ahora `Phi(tau,r,varphi)` genérica. La
+[guía de especialización posterior](docs/ansatz-specialization.md) muestra cómo
+imponer `phi=p*varphi` o sustituir soluciones concretas para `f(r)` y `phi` sin
+modificar la derivación covariante.
 La fase 8 agrega todas las verificaciones en un informe versionado con estados
 `success`, `partial` y `failed`, y admite evidencia externa xAct/xCoba.
 La fase 9 cierra el pipeline con paquetes de corrida reconstruibles, identidad
@@ -46,7 +50,10 @@ La fase 14 añade un frontend declarativo seguro: expresiones textuales en
 `R`, `X`, `phi`, parámetros y funciones declaradas se compilan a la misma IR sin
 usar `eval`, conservando un fingerprint de la fuente dentro del modelo.
 
-El frontend también reconoce `RicciUU` y contracciones tensoriales genéricas.
+El frontend también reconoce `RicciUU`, `RicciSq`, `RiemannSq` y contracciones
+tensoriales genéricas. Los dos invariantes cuadráticos se expanden a Riemann,
+métricas e índices dentro de la IR existente; no activan identidades especiales
+dependientes de la dimensión.
 El [registro extensible y la guía de autoría](docs/frontend-invariants.md) explican
 cómo introducir un lagrangiano, añadir invariantes y usar la API avanzada sin
 cambiar el backend variacional.

@@ -8,7 +8,8 @@ from tensor_engine import (
     DEFAULT_INVARIANTS, DimensionSpec, FunctionSpec, GeometrySymbols,
     InvariantRegistry, InvariantSpec, LagrangianSourceSpec, ModelBuilder,
     ModelSpec, Number, ParameterSpec, SourceCompilationError,
-    StructuralTensorBackend, TensorAlgebraError, model_fingerprint, mul,
+    StructuralTensorBackend, Tensor, TensorAlgebraError, model_fingerprint, mul,
+    walk,
 )
 
 
@@ -17,6 +18,16 @@ PARAMETERS = tuple(ParameterSpec(name) for name in ("ell", "beta0", "p"))
 GENERIC = (
     'contract(Riemann("a","b","c","d"), metric("a","c"), '
     'metric("b","e"), metric("d","f"), gradient("e"), gradient("f"))'
+)
+RICCI_SQ_GENERIC = (
+    'contract(metric("a","c"), Riemann("a","b","c","d"), '
+    'metric("b","e"), metric("d","f"), metric("g","h"), '
+    'Riemann("g","e","h","f"))'
+)
+RIEMANN_SQ_GENERIC = (
+    'contract(metric("a","e"), metric("b","f"), metric("c","g"), '
+    'metric("d","h"), Riemann("a","b","c","d"), '
+    'Riemann("e","f","g","h"))'
 )
 
 
@@ -28,12 +39,34 @@ def manual_ricci_uu(b):
     )
 
 
-@pytest.mark.parametrize("alias", ("R", "X", "RicciUU", "phi"))
+def manual_ricci_squared(b):
+    return b.contract(
+        b.metric("a", "c"), b.riemann("a", "b", "c", "d"),
+        b.metric("b", "e"), b.metric("d", "f"), b.metric("g", "h"),
+        b.riemann("g", "e", "h", "f"),
+    )
+
+
+def manual_riemann_squared(b):
+    return b.contract(
+        b.metric("a", "e"), b.metric("b", "f"),
+        b.metric("c", "g"), b.metric("d", "h"),
+        b.riemann("a", "b", "c", "d"),
+        b.riemann("e", "f", "g", "h"),
+    )
+
+
+@pytest.mark.parametrize(
+    "alias", ("R", "X", "RicciUU", "RicciSq", "RiemannSq", "phi")
+)
 def test_aliases_are_existing_ir_not_new_tensor_heads(alias):
     b = ModelBuilder()
     expected = {
         "R": b.ricci_scalar(), "X": b.kinetic_scalar(),
-        "RicciUU": manual_ricci_uu(b), "phi": b.phi,
+        "RicciUU": manual_ricci_uu(b),
+        "RicciSq": manual_ricci_squared(b),
+        "RiemannSq": manual_riemann_squared(b),
+        "phi": b.phi,
     }[alias]
     model = LagrangianSourceSpec("alias", alias).compile()
     assert model.lagrangian == expected
@@ -90,6 +123,60 @@ def test_generic_contraction_equals_alias_after_index_canonicalization(expressio
     backend = StructuralTensorBackend.from_model(model)
     alias = LagrangianSourceSpec("alias", "RicciUU").compile()
     assert backend.canonicalize(model.lagrangian) == backend.canonicalize(alias.lagrangian)
+
+
+@pytest.mark.parametrize(
+    "alias,generic,builder_method",
+    (
+        ("RicciSq", RICCI_SQ_GENERIC, "ricci_squared"),
+        ("RiemannSq", RIEMANN_SQ_GENERIC, "riemann_squared"),
+    ),
+)
+def test_quadratic_curvature_alias_builder_and_low_level_ir_are_equivalent(
+    alias, generic, builder_method,
+):
+    b = ModelBuilder()
+    alias_model = LagrangianSourceSpec("alias_" + alias, alias).compile()
+    generic_model = LagrangianSourceSpec("generic_" + alias, generic).compile()
+    expected = getattr(b, builder_method)()
+    backend = StructuralTensorBackend.from_model(alias_model)
+
+    assert alias_model.lagrangian.to_data() == expected.to_data()
+    assert backend.canonicalize(generic_model.lagrangian) == backend.canonicalize(expected)
+    assert {
+        node.name for node in walk(alias_model.lagrangian) if isinstance(node, Tensor)
+    } == {b.symbols.metric, b.symbols.curvature}
+
+
+@pytest.mark.parametrize(
+    "alias,builder_method",
+    (("RicciSq", "ricci_squared"), ("RiemannSq", "riemann_squared")),
+)
+def test_quadratic_curvature_aliases_reuse_the_generic_variational_pipeline(
+    alias, builder_method,
+):
+    b = ModelBuilder()
+    alpha = ParameterSpec("alpha")
+    model = LagrangianSourceSpec(
+        "quadratic_" + alias,
+        f"R + alpha*{alias}",
+        parameters=(alpha,),
+    ).compile()
+    low_level = b.ricci_scalar() + b.scalar("alpha") * getattr(b, builder_method)()
+    backend = StructuralTensorBackend.from_model(model)
+
+    assert model.lagrangian == low_level
+    alias_momenta = backend.derive_momenta(model.lagrangian)
+    low_level_momenta = backend.derive_momenta(low_level)
+    assert alias_momenta == low_level_momenta
+    assert alias_momenta.metric != Number(0)
+    assert alias_momenta.curvature != Number(0)
+    assert alias_momenta.scalar_gradient == Number(0)
+    assert alias_momenta.scalar == Number(0)
+    assert (
+        backend.derive_euler_lagrange(model.lagrangian, alias_momenta)
+        == backend.derive_euler_lagrange(low_level, low_level_momenta)
+    )
 
 
 def test_repeated_scalar_aliases_preserve_dummy_index_scopes():
@@ -161,7 +248,13 @@ def test_expansion_hash_binds_custom_meaning_even_if_source_text_is_unchanged():
     assert model_fingerprint(model1) != model_fingerprint(model2)
 
 
-@pytest.mark.parametrize("name", ("R", "X", "RicciUU", "phi", "contract", "metric", "gradient", "Riemann"))
+@pytest.mark.parametrize(
+    "name",
+    (
+        "R", "X", "RicciUU", "RicciSq", "RiemannSq", "phi",
+        "contract", "metric", "gradient", "Riemann",
+    ),
+)
 def test_reserved_names_cannot_shadow_syntax(name):
     with pytest.raises(SourceCompilationError, match="reservados"):
         LagrangianSourceSpec("shadow", "R", parameters=(ParameterSpec(name),))
@@ -190,7 +283,10 @@ def test_generic_syntax_is_safe_and_checks_indices(expression):
         LagrangianSourceSpec("bad_syntax", expression).compile()
 
 
-@pytest.mark.parametrize("normalization", ("R", "X", "RicciUU", "phi", GENERIC))
+@pytest.mark.parametrize(
+    "normalization",
+    ("R", "X", "RicciUU", "RicciSq", "RiemannSq", "phi", GENERIC),
+)
 def test_geometry_cannot_enter_constant_normalization(normalization):
     with pytest.raises(SourceCompilationError):
         LagrangianSourceSpec("normalization", "R", normalization=normalization).compile()

@@ -190,6 +190,30 @@ class WolframBridgeTests(unittest.TestCase):
         )
         self.assertNotIn("IR decode failed", encoded)
 
+    def test_quadratic_curvature_ir_is_transportable_and_json_serializable(self) -> None:
+        bridge = WolframXActBridge(executable="C:\\missing-wolfram\\wolframscript.exe")
+        for alias in ("RicciSq", "RiemannSq"):
+            model = LagrangianSourceSpec(
+                "quadratic_" + alias,
+                f"R + alpha*{alias}",
+                parameters=(ParameterSpec("alpha"),),
+            ).compile()
+            backend = StructuralTensorBackend.from_model(model)
+            momenta = backend.derive_momenta(model.lagrangian)
+            euler = backend.derive_euler_lagrange(model.lagrangian, momenta)
+            request = bridge.build_model_validation_request(model, momenta, euler)
+            encoded = json.dumps(request, ensure_ascii=False, sort_keys=True)
+            encoded_expression = json.dumps(
+                request["expression"], ensure_ascii=False, sort_keys=True
+            )
+
+            self.assertIn('"name": "Riemann"', encoded)
+            self.assertIn('"name": "g"', encoded)
+            # La procedencia conserva el alias, pero el árbol matemático enviado
+            # a xAct contiene únicamente nodos de la IR tensorial canónica.
+            self.assertNotIn(alias, encoded_expression)
+            self.assertNotIn("IR decode failed", encoded)
+
     def test_check_strategy_and_adjudication_round_trip(self) -> None:
         data = {
             "schema_version": "1.3",
@@ -369,6 +393,30 @@ class WolframBridgeTests(unittest.TestCase):
             any("IR decode failed" in (item.residual or "") for item in report.checks)
         )
         self.assertTrue(all(item.diagnostic is None for item in report.checks))
+
+    @unittest.skipUnless(
+        os.environ.get("TENSOR_ENGINE_RUN_WOLFRAM_TESTS") == "1",
+        "La integración Wolfram/xAct es opt-in.",
+    )
+    def test_live_quadratic_curvature_models_have_no_transport_failures(self) -> None:
+        bridge = WolframXActBridge(timeout_seconds=300)
+        for alias in ("RicciSq", "RiemannSq"):
+            model = LagrangianSourceSpec(
+                "quadratic_" + alias,
+                f"R + alpha*{alias}",
+                parameters=(ParameterSpec("alpha"),),
+            ).compile()
+            backend = StructuralTensorBackend.from_model(model)
+            momenta = backend.derive_momenta(model.lagrangian)
+            euler = backend.derive_euler_lagrange(model.lagrangian, momenta)
+            report = bridge.validate_model(model, momenta, euler)
+
+            self.assertEqual(report.summary["failed"], 0, report.to_data())
+            self.assertGreater(report.summary["passed"], 0, report.to_data())
+            self.assertFalse(
+                any("IR decode failed" in (item.residual or "") for item in report.checks)
+            )
+            self.assertTrue(all(item.diagnostic is None for item in report.checks))
 
     @unittest.skipUnless(
         os.environ.get("TENSOR_ENGINE_RUN_WOLFRAM_TESTS") == "1",

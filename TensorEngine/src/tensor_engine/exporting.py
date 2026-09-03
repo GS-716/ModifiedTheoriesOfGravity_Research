@@ -18,7 +18,12 @@ import subprocess
 import tempfile
 from typing import Any, Mapping
 
-from .components import ComponentFieldEquations, SympyComponentBackend
+from .components import (
+    ComponentFieldEquations,
+    GeometryAnsatz,
+    ScalarFieldMode,
+    SympyComponentBackend,
+)
 from .delta import DeltaContractionAudit, delta_count
 from .contracts import (
     ArtifactRecord,
@@ -243,14 +248,33 @@ class RunPackage:
 
     @classmethod
     def from_data(cls, data: Mapping[str, Any]) -> "RunPackage":
+        semantic_keys = (
+            "export_schema_version",
+            "model",
+            "normalized_lagrangian",
+            "momenta",
+            "raw_variation",
+            "euler_lagrange",
+            "noether_wald",
+            "components",
+            "derived_quantities",
+            "abstract_results",
+            "projected_results",
+            "verification",
+        )
+        stored_semantic = {
+            key: data[key] for key in semantic_keys if key in data
+        }
+        stored_run_id = f"run_{_sha256_data(stored_semantic)[:20]}"
         timing = data.get("timing", {})
+        model = ModelSpec.from_data(data["model"])
         component_data = data.get("components")
         derived_data = data.get("derived_quantities")
         abstract_data = data.get("abstract_results")
         projected_data = data.get("projected_results")
         noether_data = data.get("noether_wald")
         package = cls(
-            model=ModelSpec.from_data(data["model"]),
+            model=model,
             momenta=LagrangianMomenta.from_data(data["momenta"]),
             raw_variation=expr_from_data(data["raw_variation"]),
             euler=EulerLagrangeResult.from_data(data["euler_lagrange"]),
@@ -265,12 +289,12 @@ class RunPackage:
             derived=(
                 None
                 if derived_data is None
-                else DerivedQuantities.from_data(derived_data)
+                else DerivedQuantities.from_data(derived_data, symbols=model.symbols)
             ),
             abstract=(
                 None
                 if abstract_data is None
-                else AbstractTensorResults.from_data(abstract_data)
+                else AbstractTensorResults.from_data(abstract_data, symbols=model.symbols)
             ),
             projected=(
                 None
@@ -301,7 +325,7 @@ class RunPackage:
             legacy_ids = {
                 f"run_{_sha256_data(candidate)[:20]}" for candidate in legacy_candidates
             }
-            if supplied not in legacy_ids:
+            if supplied != stored_run_id and supplied not in legacy_ids:
                 raise ValueError("El run_id no coincide con el contenido reconstruido.")
         return package
 
@@ -527,7 +551,10 @@ class RunManifest:
 
 
 _LATEX_NAMES = {
+    "Phi": r"\Phi",
     "phi": r"\phi",
+    "tau": r"\tau",
+    "varphi": r"\varphi",
     "xi": r"\xi",
     "kappa": r"\kappa",
     "lambda": r"\lambda",
@@ -754,7 +781,9 @@ _REPORT_LABELS = {
     "metric_euler": r"E_{ab}",
     "scalar_euler": r"E_{\phi}",
     "ricci_scalar": r"\mathcal{R}",
+    "ricci_squared": r"R_{ab}R^{ab}",
     "riemann_tensor": r"R_{abcd}",
+    "riemann_squared": r"R_{abcd}R^{abcd}",
     "nabla_P": r"\nabla_e P^{abcd}",
     "nabla_nabla_P": r"\nabla_f\nabla_e P^{abcd}",
 }
@@ -771,6 +800,69 @@ _PROJECTION_STATUS_TEXT = {
     ProjectionStatus.SYMBOLIC: "simbólica",
     ProjectionStatus.UNAVAILABLE: "no disponible por limitación del backend",
 }
+
+
+def _coordinate_latex(coordinate: Scalar) -> str:
+    return expr_to_latex(coordinate)
+
+
+def _signed_line_element_term(expression: Expr, differential: str) -> tuple[int, str]:
+    rendered = display_expr_to_latex(expression)
+    sign = -1 if rendered.startswith("-") else 1
+    magnitude = rendered[1:] if sign < 0 else rendered
+    if magnitude.startswith(r"1\,"):
+        magnitude = magnitude[3:]
+    return sign, rf"{magnitude}\,d{differential}^2"
+
+
+def _ansatz_summary_latex(ansatz: GeometryAnsatz) -> tuple[str, ...]:
+    coordinates = tuple(_coordinate_latex(item) for item in ansatz.chart.coordinates)
+    terms: list[tuple[int, str]] = []
+    diagonal = all(
+        entry == Number(0)
+        for row, entries in enumerate(ansatz.metric_covariant)
+        for column, entry in enumerate(entries)
+        if row != column
+    )
+    if diagonal:
+        for position, coordinate in enumerate(coordinates):
+            entry = ansatz.metric_covariant[position][position]
+            if entry != Number(0):
+                terms.append(_signed_line_element_term(entry, coordinate))
+        line_element = ""
+        for position, (sign, term) in enumerate(terms):
+            if position == 0:
+                line_element = ("-" if sign < 0 else "") + term
+            else:
+                line_element += (" - " if sign < 0 else " + ") + term
+        metric_line = rf"ds^2 = {line_element}"
+    else:
+        rows = r" \\ ".join(
+            " & ".join(expr_to_latex(entry) for entry in row)
+            for row in ansatz.metric_covariant
+        )
+        metric_line = rf"(g_{{\mu\nu}})=\begin{{pmatrix}}{rows}\end{{pmatrix}}"
+
+    mode_text = {
+        ScalarFieldMode.ABSENT: "no fijado",
+        ScalarFieldMode.GENERIC: "genérico, sin especialización",
+        ScalarFieldMode.SPECIALIZED: "perfil especializado explícitamente",
+    }[ansatz.scalar_field_mode]
+    scalar_line = (
+        rf"\phi\ \text{{{mode_text}}}"
+        if ansatz.scalar_field is None
+        else rf"\phi = {expr_to_latex(ansatz.scalar_field)}"
+        rf"\qquad\text{{({mode_text})}}"
+    )
+    chart_line = rf"(x^\mu)=\left({', '.join(coordinates)}\right)"
+    return (
+        r"\begin{dmath*}[breakdepth={3}]",
+        rf"{chart_line},\qquad {metric_line}",
+        r"\end{dmath*}",
+        r"\begin{dmath*}[breakdepth={3}]",
+        scalar_line,
+        r"\end{dmath*}",
+    )
 
 
 def _indices_to_latex(indices: tuple[Any, ...]) -> str:
@@ -820,7 +912,7 @@ _COMPACT_PROJECTION_STATUS = {
 }
 
 
-def _append_compact_expression_pair(
+def _append_compact_expression(
     lines: list[str],
     view: ReportPresentation,
     *,
@@ -834,32 +926,6 @@ def _append_compact_expression_pair(
             r"\begin{dmath*}[breakdepth={5}]",
             rf"\text{{forma compacta:}}\quad {label} = {_display_record_latex(view, record)}",
             r"\end{dmath*}",
-        )
-    )
-    _append_expanded_audit(lines, label, record.canonical)
-
-
-def _append_expanded_audit(
-    lines: list[str],
-    label: str,
-    expression: Expr,
-) -> None:
-    rendered = expr_to_latex(expression)
-    if not isinstance(expression, Add) or len(rendered) <= 2200:
-        lines.extend(
-            (
-                r"\begin{dmath*}[breakdepth={5}]",
-                rf"\text{{forma expandida de auditoría:}}\quad {label} = {rendered}",
-                r"\end{dmath*}",
-            )
-        )
-        return
-
-    lines.extend(
-        (
-            r"\par\smallskip\noindent\textit{La forma expandida completa se omite "
-            r"del PDF por su extensión. Permanece íntegra y auditable en "
-            r"\texttt{presentation.json}.}\par",
         )
     )
 
@@ -892,7 +958,7 @@ def _append_compact_abstract(
                 ),
             )
         )
-        _append_compact_expression_pair(
+        _append_compact_expression(
             lines,
             view,
             key=f"abstract.compact.{decomposition.key}",
@@ -906,7 +972,7 @@ def _append_compact_abstract(
                 rf"\par\smallskip\noindent\textbf{{Bloque $ {block.label_latex} $}} "
                 rf"(fuentes: \texttt{{{_latex_text(', '.join(block.source_keys))}}}).\par"
             )
-            _append_compact_expression_pair(
+            _append_compact_expression(
                 lines,
                 view,
                 key=f"abstract.compact.{decomposition.key}.{block.key}",
@@ -932,7 +998,7 @@ def _append_compact_projection(
         return
     if not projection.free_indices:
         position, record = projection.components[0]
-        _append_compact_expression_pair(
+        _append_compact_expression(
             lines,
             view,
             key=key,
@@ -951,7 +1017,7 @@ def _append_compact_projection(
             position,
             component_indices=projection.free_indices,
         )
-        _append_compact_expression_pair(
+        _append_compact_expression(
             lines,
             view,
             key=f"{key}[{','.join(map(str, position))}]",
@@ -978,8 +1044,9 @@ def _append_compact_projected(
             r"\Needspace{12\baselineskip}",
             r"\par\bigskip\noindent{\large\bfseries Descomposición compacta adicional}\par",
             rf"\textbf{{Ansatz de estos bloques:}} \texttt{{{_latex_text(ansatz_name)}}}. "
-            r"Las formas compacta y expandida siguientes son únicamente vistas de las "
-            r"componentes canónicas.\par",
+            r"Las formas compactas siguientes son únicamente vistas de las "
+            r"componentes canónicas. Las formas expandidas permanecen disponibles en "
+            r"\texttt{presentation.json}.\par",
         )
     )
     for decomposition in view.compact_decompositions:
@@ -1075,6 +1142,8 @@ def _append_projected_results(lines: list[str], package: RunPackage, view: Repor
         else package.projected.ansatz_name
     )
     lines.append(rf"\textbf{{Ansatz utilizado:}} \texttt{{{_latex_text(ansatz_text)}}}.")
+    if package.projected.ansatz_geometry is not None:
+        lines.extend(_ansatz_summary_latex(package.projected.ansatz_geometry))
     lines.append(
         r"Las componentes completas se conservan de forma dispersa en "
         r"\texttt{results.json}; el documento muestra como máximo doce componentes "
@@ -1146,7 +1215,6 @@ def _append_projected_results(lines: list[str], package: RunPackage, view: Repor
             rf"Proyección completa almacenada: {nonzero} componentes no nulas de {total}. "
             rf"{_latex_text(projected.reason)}\par\medskip"
         )
-    _append_compact_projected(lines, view, ansatz_text)
 
 
 def latex_report(package: RunPackage, display_policy: DisplayPolicy | None = None, *,
@@ -1186,7 +1254,7 @@ def latex_report(package: RunPackage, display_policy: DisplayPolicy | None = Non
         lines.append(
             rf"\textbf{{Deltas canónicos:}} {substitutions} sustituciones y {traces} trazas registradas "
             rf"en las pasadas del álgebra (incluidas verificaciones); {remaining} deltas explícitos "
-            r"en las once cantidades finales. Detalle e índices sustituidos en \texttt{delta\_contractions.json}.\par"
+            rf"en las {len(REPORT_QUANTITY_KEYS)} cantidades finales. Detalle e índices sustituidos en \texttt{{delta\_contractions.json}}.\par"
         )
     transport_failures = tuple(
         check for check in package.verification.checks if check.diagnostic is not None

@@ -84,3 +84,27 @@ class ModelBuilder:
             self.scalar_gradient("e"),
             self.scalar_gradient("f"),
         )
+
+    def ricci_squared(self) -> Expr:
+        """R_ab R^ab con R_bd=g^ac R_abcd, sin identidades dimensionales."""
+
+        return self.contract(
+            self.metric("a", "c"),
+            self.riemann("a", "b", "c", "d"),
+            self.metric("b", "e"),
+            self.metric("d", "f"),
+            self.metric("g", "h"),
+            self.riemann("g", "e", "h", "f"),
+        )
+
+    def riemann_squared(self) -> Expr:
+        """R_abcd R^abcd por contracción métrica completa."""
+
+        return self.contract(
+            self.metric("a", "e"),
+            self.metric("b", "f"),
+            self.metric("c", "g"),
+            self.metric("d", "h"),
+            self.riemann("a", "b", "c", "d"),
+            self.riemann("e", "f", "g", "h"),
+        )

@@ -9,10 +9,18 @@ import sympy as sp
 from tensor_engine import (
     DimensionSpec, EngineOptions, LagrangianSourceSpec, ParameterSpec,
     RunExporter, RunPackage, TensorEngine, WolframXActBridge,
-    draft4_circular_ansatz, spatially_flat_flrw_ansatz,
+    draft4_angular_scalar_profile, draft4_circular_ansatz,
+    spatially_flat_flrw_ansatz,
     SympyComponentBackend, build_presentation, delta_count,
 )
 from tensor_engine.components import ir_scalar_to_sympy
+
+
+def _draft4_p_varphi_ansatz():
+    return draft4_circular_ansatz().specialize_scalar(
+        draft4_angular_scalar_profile(),
+        assumptions=("phi=p*varphi",),
+    )
 
 
 @pytest.fixture(scope="module", params=("draft4", "flrw"))
@@ -27,7 +35,11 @@ def compiled_run(request):
     live = os.environ.get("TENSOR_ENGINE_RUN_WOLFRAM_TESTS") == "1"
     run = TensorEngine(options=EngineOptions(include_noether=live)).run(
         source.compile(),
-        ansatz=draft4_circular_ansatz() if draft4 else spatially_flat_flrw_ansatz(),
+        ansatz=(
+            _draft4_p_varphi_ansatz()
+            if draft4
+            else spatially_flat_flrw_ansatz()
+        ),
         wolfram_bridge=WolframXActBridge(timeout_seconds=300) if live else None,
     )
     return request.param, source, run
@@ -36,10 +48,12 @@ def compiled_run(request):
 def test_case2_runs_on_both_ansatz_without_hiding_limitations(compiled_run):
     kind, source, run = compiled_run
     assert run.abstract is not None and run.projected is not None
-    assert len(run.projected.quantities) == 11
+    assert len(run.projected.quantities) == 13
     assert run.package.verification.summary["failed"] == 0
     assert run.projected.ansatz_name == ("draft4_circular" if kind == "draft4" else "flat_flrw")
     assert run.projected.lagrangian.status.value == "completed"
+    assert run.projected.ricci_squared.status.value == "completed"
+    assert run.projected.riemann_squared.status.value == "completed"
     for quantity in run.projected.quantities:
         if quantity.components is None:
             assert quantity.reason
@@ -88,11 +102,16 @@ def test_source_views_manifest_and_latex_survive_roundtrip(compiled_run, tmp_pat
     bundle = RunExporter(tmp_path, compile_pdf=False).export(rebuilt)
     report = (bundle.output_directory / "report.tex").read_text(encoding="utf-8")
     assert report.count(r"\section*{") == 2
-    assert report.count(r"\subsection*{") == 22
-    assert report.count("Descomposición compacta adicional") == 2
+    assert report.count(r"\subsection*{") == 26
+    assert r"R_{ab}R^{ab}" in report
+    assert r"R_{abcd}R^{abcd}" in report
+    assert report.count("Descomposición compacta adicional") == 1
     manifest = json.loads(bundle.manifest_path.read_text(encoding="utf-8"))
-    assert len(manifest["result_views"]["abstract"]) == 11
-    assert len(manifest["result_views"]["projected"]) == 11
+    assert len(manifest["result_views"]["abstract"]) == 13
+    assert len(manifest["result_views"]["projected"]) == 13
+    assert {"ricci_squared", "riemann_squared"}.issubset(
+        manifest["result_views"]["abstract"]
+    )
     audit = json.loads((bundle.output_directory / "delta_contractions.json").read_text(encoding="utf-8"))
     assert audit["passes"] == [a.to_data() for a in run.delta_contractions]
     assert all(count == 0 for count in audit["final_abstract_counts"].values())
@@ -146,7 +165,7 @@ def test_case2_draft4_with_underscored_parameter_cross_validates_and_serializes(
     )
     run = TensorEngine(options=EngineOptions(include_noether=True)).run(
         source.compile(),
-        ansatz=draft4_circular_ansatz(),
+        ansatz=_draft4_p_varphi_ansatz(),
         wolfram_bridge=WolframXActBridge(timeout_seconds=300),
     )
     external = tuple(
@@ -182,7 +201,7 @@ def test_presentation_is_read_only_and_more_compact(compiled_run):
     package = run.package
     before = json.dumps(package.to_data(), sort_keys=True)
     source_id = package.run_id
-    ansatz = draft4_circular_ansatz() if kind == "draft4" else spatially_flat_flrw_ansatz()
+    ansatz = _draft4_p_varphi_ansatz() if kind == "draft4" else spatially_flat_flrw_ansatz()
     view = build_presentation(
         package,
         projected_assumptions=ansatz.assumptions,
@@ -203,11 +222,11 @@ def test_presentation_is_read_only_and_more_compact(compiled_run):
     assert presented_size < canonical_size * 0.85
     tex = latex_report(package, presentation=view)
     assert tex.count(r"\section*{") == 2
-    assert tex.count(r"\subsection*{") == 22
-    assert tex.count("Descomposición compacta adicional") == 2
-    assert tex.count("forma expandida de auditoría") > 0
+    assert tex.count(r"\subsection*{") == 26
+    assert tex.count("Descomposición compacta adicional") == 1
+    assert "forma expandida de auditoría" not in tex
     assert r"\mathcal{A}_{" not in tex
-    assert "La forma expandida completa se omite" in tex
+    assert "La forma expandida completa se omite" not in tex
     assert r"E_{\phi}=F_{\phi}-\nabla_aJ^a" in tex
     assert all(
         item.reconstruction_status == "verified"
@@ -228,7 +247,7 @@ def test_presentation_is_read_only_and_more_compact(compiled_run):
 def test_presentation_does_not_change_canonical_files_or_manifest_bindings(compiled_run, tmp_path):
     from tensor_engine import DisplayPolicy, RunManifest
     kind, _, run = compiled_run
-    ansatz = draft4_circular_ansatz() if kind == "draft4" else spatially_flat_flrw_ansatz()
+    ansatz = _draft4_p_varphi_ansatz() if kind == "draft4" else spatially_flat_flrw_ansatz()
     bundles = [RunExporter(tmp_path / name, compile_pdf=False,
                            display_policy=policy, projected_assumptions=ansatz.assumptions).export(
                                run.package, created_at_utc="2026-08-30T00:00:00Z")

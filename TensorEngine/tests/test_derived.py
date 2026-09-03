@@ -11,6 +11,7 @@ from tensor_engine import (
     EngineOptions,
     FunctionSpec,
     LagrangianSourceSpec,
+    ParameterSpec,
     RunExporter,
     RunPackage,
     StructuralTensorBackend,
@@ -60,6 +61,12 @@ def test_derived_quantities_are_first_class_and_json_roundtrip() -> None:
     assert derived.record("riemann_tensor").symbolic_status is (
         SymbolicEvaluationStatus.GEOMETRIC_INPUT
     )
+    assert derived.record("ricci_squared").symbolic_status is (
+        SymbolicEvaluationStatus.CALCULATED
+    )
+    assert derived.record("riemann_squared").symbolic_status is (
+        SymbolicEvaluationStatus.CALCULATED
+    )
     assert derived.record("nabla_P").component_status is (
         ComponentProjectionStatus.NOT_REQUESTED
     )
@@ -79,11 +86,19 @@ def test_derived_projection_respects_the_supplied_draft4_ansatz() -> None:
     assert result.projected is result.package.projected
     assert result.abstract is not None
     assert result.projected is not None
+    assert result.projected.ansatz_geometry == draft4_circular_ansatz()
+    assert result.projected.ansatz_geometry.scalar_field_mode.value == "generic"
     ricci = result.derived.record("ricci_scalar")
     assert ricci.component_status is ComponentProjectionStatus.PROJECTED
     assert ricci.components is not None
     assert ricci.components.dimension == 3
     assert ricci.components.scalar != 0
+    assert result.derived.record("ricci_squared").component_status is (
+        ComponentProjectionStatus.PROJECTED
+    )
+    assert result.derived.record("riemann_squared").component_status is (
+        ComponentProjectionStatus.PROJECTED
+    )
     nabla_p = result.derived.record("nabla_P")
     assert nabla_p.component_status is ComponentProjectionStatus.PROJECTED
     assert nabla_p.components is not None
@@ -109,6 +124,24 @@ def test_component_budget_preserves_abstract_expression_instead_of_failing() -> 
     assert riemann.component_status is ComponentProjectionStatus.BACKEND_LIMITATION
     assert riemann.components is None
     assert derived.riemann_tensor is not None
+
+
+def test_generic_draft4_keeps_large_ricciuu_equation_symbolic_nonfatally() -> None:
+    model = LagrangianSourceSpec(
+        "generic_ricciuu_budget",
+        "R+alpha*RicciUU",
+        dimension=DimensionSpec(3),
+        parameters=(ParameterSpec("alpha"),),
+    ).compile()
+    run = TensorEngine(options=EngineOptions(include_noether=False)).run(
+        model,
+        ansatz=draft4_circular_ansatz(),
+    )
+    assert run.projected.lagrangian.status.value == "completed"
+    assert run.projected.metric_euler.status.value == "unavailable"
+    assert "campo genérico Phi" in run.projected.metric_euler.reason
+    assert run.projected.scalar_euler.status.value == "completed"
+    assert run.abstract.metric_euler is run.package.euler.metric_euler
 
 
 def test_xact_status_is_bound_to_the_specific_derivative_term_check() -> None:
@@ -147,6 +180,9 @@ def test_simple_lagrangian_integration_exports_derived_section(tmp_path) -> None
     assert report.count(r"\section*{") == 2
     assert r"\section*{Expresiones tensoriales abstractas}" in report
     assert r"\section*{Expresiones proyectadas mediante el ansatz}" in report
+    assert r"ds^2 =" in report
+    assert r"\phi = \Phi" in report
+    assert "perfil especializado explícitamente" not in report
     assert r"\section*{Resultados covariantes}" not in report
     assert r"\left.E_{ab}\right|_{\nabla\nabla P}" in report
     rebuilt = RunPackage.from_data(json.loads(json.dumps(result.package.to_data())))
@@ -156,7 +192,9 @@ def test_simple_lagrangian_integration_exports_derived_section(tmp_path) -> None
     data = json.loads((bundle.output_directory / "results.json").read_text(encoding="utf-8"))
     assert set(data["derived_quantities"]["expressions"]) == {
         "ricci_scalar",
+        "ricci_squared",
         "riemann_tensor",
+        "riemann_squared",
         "nabla_P",
         "nabla_nabla_P",
         "curvature_derivative_metric_term",
@@ -170,14 +208,16 @@ def test_simple_lagrangian_integration_exports_derived_section(tmp_path) -> None
         "metric_euler",
         "scalar_euler",
         "ricci_scalar",
+        "ricci_squared",
         "riemann_tensor",
+        "riemann_squared",
         "nabla_P",
         "nabla_nabla_P",
     }
-    assert len(data["projected_results"]["quantities"]) == 11
+    assert len(data["projected_results"]["quantities"]) == 13
     manifest = json.loads(bundle.manifest_path.read_text(encoding="utf-8"))
-    assert len(manifest["result_views"]["abstract"]) == 11
-    assert len(manifest["result_views"]["projected"]) == 11
+    assert len(manifest["result_views"]["abstract"]) == 13
+    assert len(manifest["result_views"]["projected"]) == 13
 
 
 def test_run_without_ansatz_preserves_all_projected_entries_as_symbolic() -> None:

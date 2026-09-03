@@ -373,6 +373,12 @@ class TensorEngine:
                         calculation_model,
                         ansatz,
                     )
+                    limit_reason = (
+                        active_backend.projection_limit_reason(euler.metric_euler)
+                        or active_backend.projection_limit_reason(euler.scalar_euler)
+                    )
+                    if limit_reason is not None:
+                        return None, active_backend, limit_reason
                     result = evaluate_field_equations(
                         euler.metric_euler,
                         euler.scalar_euler,
@@ -540,6 +546,7 @@ class TensorEngine:
                 derived,
                 verification,
                 ansatz_name=None if ansatz is None else ansatz.name,
+                ansatz=ansatz,
                 component_backend=component_backend,
                 field_components=components,
                 projection_unavailable_reason=component_failure_reason,

@@ -11,20 +11,23 @@ from .builders import ModelBuilder
 from .components import (
     ComponentEvaluation,
     ComponentFieldEquations,
+    GeometryAnsatz,
     SympyComponentBackend,
 )
 from .contracts import VerificationStatus
 from .errors import TensorEngineError
 from .euler import EulerLagrangeResult
 from .ir import Expr, Index, Number, Tensor, Variance, expr_from_data
-from .model import ModelSpec
+from .model import GeometrySymbols, ModelSpec
 from .variational import LagrangianMomenta
 from .verification import VerificationReport
 
 
 DERIVED_QUANTITY_KEYS = (
     "ricci_scalar",
+    "ricci_squared",
     "riemann_tensor",
+    "riemann_squared",
     "nabla_P",
     "nabla_nabla_P",
     "curvature_derivative_metric_term",
@@ -39,7 +42,9 @@ REPORT_QUANTITY_KEYS = (
     "metric_euler",
     "scalar_euler",
     "ricci_scalar",
+    "ricci_squared",
     "riemann_tensor",
+    "riemann_squared",
     "nabla_P",
     "nabla_nabla_P",
 )
@@ -122,7 +127,9 @@ class AbstractTensorResults:
     metric_euler: Expr
     scalar_euler: Expr
     ricci_scalar: Expr
+    ricci_squared: Expr
     riemann_tensor: Expr
+    riemann_squared: Expr
     nabla_P: Expr
     nabla_nabla_P: Expr
     records: tuple[AbstractQuantityRecord, ...]
@@ -131,7 +138,9 @@ class AbstractTensorResults:
         object.__setattr__(self, "records", tuple(self.records))
         keys = tuple(item.key for item in self.records)
         if len(keys) != len(set(keys)) or set(keys) != set(REPORT_QUANTITY_KEYS):
-            raise ValueError("La vista abstracta debe describir las once cantidades.")
+            raise ValueError(
+                f"La vista abstracta debe describir las {len(REPORT_QUANTITY_KEYS)} cantidades."
+            )
 
     @property
     def L(self) -> Expr:
@@ -152,16 +161,57 @@ class AbstractTensorResults:
         }
 
     @classmethod
-    def from_data(cls, data: Mapping[str, Any]) -> "AbstractTensorResults":
-        expressions = data["expressions"]
+    def from_data(
+        cls,
+        data: Mapping[str, Any],
+        *,
+        symbols: GeometrySymbols | None = None,
+    ) -> "AbstractTensorResults":
+        expressions = dict(data["expressions"])
+        records = [AbstractQuantityRecord.from_data(item) for item in data["records"]]
+        missing = {"ricci_squared", "riemann_squared"} - set(expressions)
+        if missing:
+            if symbols is None:
+                raise ValueError(
+                    "La vista abstracta antigua requiere GeometrySymbols para reconstruir "
+                    "los invariantes cuadráticos."
+                )
+            builder = ModelBuilder(symbols)
+            generated = {
+                "ricci_squared": builder.ricci_squared(),
+                "riemann_squared": builder.riemann_squared(),
+            }
+            xact_requested = any(
+                item.xact_status is not XActValidationStatus.NOT_REQUESTED
+                for item in records
+            )
+            for key in REPORT_QUANTITY_KEYS:
+                if key not in missing:
+                    continue
+                expressions[key] = generated[key].to_data()
+                records.append(
+                    AbstractQuantityRecord(
+                        key=key,
+                        free_indices=(),
+                        description=_ABSTRACT_DESCRIPTIONS[key],
+                        source_keys=_ABSTRACT_SOURCES[key],
+                        xact_status=(
+                            XActValidationStatus.NOT_VALIDATED
+                            if xact_requested
+                            else XActValidationStatus.NOT_REQUESTED
+                        ),
+                        validation_note=(
+                            "Reconstruida desde un bundle anterior; no existe una "
+                            "validación xAct independiente almacenada."
+                        ),
+                    )
+                )
         return cls(
             **{
                 key: expr_from_data(expressions[key])
                 for key in REPORT_QUANTITY_KEYS
             },
-            records=tuple(
-                AbstractQuantityRecord.from_data(item) for item in data["records"]
-            ),
+            records=tuple(records),
         )
 
 
@@ -219,14 +269,24 @@ class ProjectedTensorResults:
 
     ansatz_name: str | None
     quantities: tuple[ProjectedQuantityResult, ...]
+    ansatz_geometry: GeometryAnsatz | None = None
 
     def __post_init__(self) -> None:
         object.__setattr__(self, "quantities", tuple(self.quantities))
         keys = tuple(item.key for item in self.quantities)
         if len(keys) != len(set(keys)) or set(keys) != set(REPORT_QUANTITY_KEYS):
-            raise ValueError("La vista proyectada debe contener las once cantidades.")
+            raise ValueError(
+                f"La vista proyectada debe contener las {len(REPORT_QUANTITY_KEYS)} cantidades."
+            )
         if any(item.ansatz_name != self.ansatz_name for item in self.quantities):
             raise ValueError("Todas las proyecciones deben pertenecer al mismo ansatz.")
+        if (
+            self.ansatz_geometry is not None
+            and self.ansatz_geometry.name != self.ansatz_name
+        ):
+            raise ValueError(
+                "La geometría serializada debe coincidir con el nombre del ansatz proyectado."
+            )
 
     def quantity(self, key: str) -> ProjectedQuantityResult:
         return next(item for item in self.quantities if item.key == key)
@@ -264,8 +324,16 @@ class ProjectedTensorResults:
         return self.quantity("ricci_scalar")
 
     @property
+    def ricci_squared(self) -> ProjectedQuantityResult:
+        return self.quantity("ricci_squared")
+
+    @property
     def riemann_tensor(self) -> ProjectedQuantityResult:
         return self.quantity("riemann_tensor")
+
+    @property
+    def riemann_squared(self) -> ProjectedQuantityResult:
+        return self.quantity("riemann_squared")
 
     @property
     def nabla_P(self) -> ProjectedQuantityResult:
@@ -278,15 +346,42 @@ class ProjectedTensorResults:
     def to_data(self) -> dict[str, Any]:
         return {
             "ansatz": self.ansatz_name,
+            "ansatz_geometry": (
+                None
+                if self.ansatz_geometry is None
+                else self.ansatz_geometry.to_data()
+            ),
             "quantities": [item.to_data() for item in self.quantities],
         }
 
     @classmethod
     def from_data(cls, data: Mapping[str, Any]) -> "ProjectedTensorResults":
+        ansatz_name = None if data.get("ansatz") is None else str(data["ansatz"])
+        ansatz_data = data.get("ansatz_geometry")
+        quantities = [
+            ProjectedQuantityResult.from_data(item) for item in data["quantities"]
+        ]
+        present = {item.key for item in quantities}
+        for key in ("ricci_squared", "riemann_squared"):
+            if key not in present:
+                quantities.append(
+                    ProjectedQuantityResult(
+                        key=key,
+                        status=ProjectionStatus.SYMBOLIC,
+                        ansatz_name=ansatz_name,
+                        reason=(
+                            "El bundle fue creado antes de incorporar esta proyección; "
+                            "se conserva la expresión abstracta reconstruida."
+                        ),
+                    )
+                )
         return cls(
-            ansatz_name=None if data.get("ansatz") is None else str(data["ansatz"]),
-            quantities=tuple(
-                ProjectedQuantityResult.from_data(item) for item in data["quantities"]
+            ansatz_name=ansatz_name,
+            quantities=tuple(quantities),
+            ansatz_geometry=(
+                None
+                if ansatz_data is None
+                else GeometryAnsatz.from_data(ansatz_data)
             ),
         )
 
@@ -362,7 +457,9 @@ class DerivedQuantities:
     """Expresiones de primera clase accesibles como ``run.derived.<nombre>``."""
 
     ricci_scalar: Expr
+    ricci_squared: Expr
     riemann_tensor: Expr
+    riemann_squared: Expr
     nabla_P: Expr
     nabla_nabla_P: Expr
     curvature_derivative_metric_term: Expr
@@ -392,19 +489,71 @@ class DerivedQuantities:
         }
 
     @classmethod
-    def from_data(cls, data: Mapping[str, Any]) -> "DerivedQuantities":
-        expressions = data["expressions"]
+    def from_data(
+        cls,
+        data: Mapping[str, Any],
+        *,
+        symbols: GeometrySymbols | None = None,
+    ) -> "DerivedQuantities":
+        expressions = dict(data["expressions"])
+        records = [DerivedQuantityRecord.from_data(item) for item in data["records"]]
+        missing = {"ricci_squared", "riemann_squared"} - set(expressions)
+        if missing:
+            if symbols is None:
+                raise ValueError(
+                    "Las cantidades derivadas antiguas requieren GeometrySymbols para "
+                    "reconstruir los invariantes cuadráticos."
+                )
+            builder = ModelBuilder(symbols)
+            generated = {
+                "ricci_squared": builder.ricci_squared(),
+                "riemann_squared": builder.riemann_squared(),
+            }
+            projected_before = any(
+                item.component_status is not ComponentProjectionStatus.NOT_REQUESTED
+                for item in records
+            )
+            xact_requested = any(
+                item.xact_status is not XActValidationStatus.NOT_REQUESTED
+                for item in records
+            )
+            for key in DERIVED_QUANTITY_KEYS:
+                if key not in missing:
+                    continue
+                expressions[key] = generated[key].to_data()
+                records.append(
+                    DerivedQuantityRecord(
+                        key=key,
+                        free_indices=(),
+                        symbolic_status=SymbolicEvaluationStatus.CALCULATED,
+                        component_status=(
+                            ComponentProjectionStatus.BACKEND_LIMITATION
+                            if projected_before
+                            else ComponentProjectionStatus.NOT_REQUESTED
+                        ),
+                        xact_status=(
+                            XActValidationStatus.NOT_VALIDATED
+                            if xact_requested
+                            else XActValidationStatus.NOT_REQUESTED
+                        ),
+                        source_keys=("validated_model", "riemann_tensor"),
+                        note=(
+                            "Reconstruida desde un bundle anterior. La proyección y la "
+                            "validación de esta cantidad no estaban almacenadas."
+                        ),
+                    )
+                )
         return cls(
             ricci_scalar=expr_from_data(expressions["ricci_scalar"]),
+            ricci_squared=expr_from_data(expressions["ricci_squared"]),
             riemann_tensor=expr_from_data(expressions["riemann_tensor"]),
+            riemann_squared=expr_from_data(expressions["riemann_squared"]),
             nabla_P=expr_from_data(expressions["nabla_P"]),
             nabla_nabla_P=expr_from_data(expressions["nabla_nabla_P"]),
             curvature_derivative_metric_term=expr_from_data(
                 expressions["curvature_derivative_metric_term"]
             ),
-            records=tuple(
-                DerivedQuantityRecord.from_data(item) for item in data["records"]
-            ),
+            records=tuple(records),
         )
 
 
@@ -429,6 +578,13 @@ def _project(
             "No se proporcionó un ansatz para esta corrida.",
         )
     dimension = component_backend.geometry.dimension
+    limit_reason = component_backend.projection_limit_reason(expression)
+    if limit_reason is not None:
+        return (
+            ComponentProjectionStatus.BACKEND_LIMITATION,
+            None,
+            limit_reason,
+        )
     potential_components = dimension ** len(free_indices)
     if isinstance(expression, Number) and expression.value == 0:
         return (
@@ -519,8 +675,11 @@ def derive_intermediate_quantities(
         Index("b", Variance.DOWN, space),
     )
 
-    ricci_scalar = ModelBuilder(model.symbols).ricci_scalar()
+    builder = ModelBuilder(model.symbols)
+    ricci_scalar = builder.ricci_scalar()
+    ricci_squared = builder.ricci_squared()
     riemann_tensor = Tensor(model.symbols.curvature, riemann_indices)
+    riemann_squared = builder.riemann_squared()
     nabla_p = backend.covariant_derivative(momenta.curvature, e)
     nabla_nabla_p = backend.covariant_derivative(nabla_p, f)
     derivative_metric_term = euler.curvature_derivative_metric_term
@@ -536,11 +695,29 @@ def derive_intermediate_quantities(
             None,
         ),
         (
+            "ricci_squared",
+            ricci_squared,
+            (),
+            SymbolicEvaluationStatus.CALCULATED,
+            ("validated_model", "riemann_tensor"),
+            (),
+            None,
+        ),
+        (
             "riemann_tensor",
             riemann_tensor,
             riemann_indices,
             SymbolicEvaluationStatus.GEOMETRIC_INPUT,
             ("validated_model",),
+            (),
+            None,
+        ),
+        (
+            "riemann_squared",
+            riemann_squared,
+            (),
+            SymbolicEvaluationStatus.CALCULATED,
+            ("validated_model", "riemann_tensor"),
             (),
             None,
         ),
@@ -600,7 +777,9 @@ def derive_intermediate_quantities(
 
     return DerivedQuantities(
         ricci_scalar=ricci_scalar,
+        ricci_squared=ricci_squared,
         riemann_tensor=riemann_tensor,
+        riemann_squared=riemann_squared,
         nabla_P=nabla_p,
         nabla_nabla_P=nabla_nabla_p,
         curvature_derivative_metric_term=derivative_metric_term,
@@ -617,7 +796,9 @@ _ABSTRACT_DESCRIPTIONS = {
     "metric_euler": "Ecuación de Euler-Lagrange métrica E_ab.",
     "scalar_euler": "Ecuación de Euler-Lagrange escalar E_phi.",
     "ricci_scalar": "Escalar de Ricci construido con la convención geométrica activa.",
+    "ricci_squared": "Invariante cuadrático de Ricci R_ab R^ab.",
     "riemann_tensor": "Tensor de Riemann covariante tratado como entrada geométrica.",
+    "riemann_squared": "Invariante de Kretschmann R_abcd R^abcd.",
     "nabla_P": "Primera derivada covariante del momento de curvatura.",
     "nabla_nabla_P": "Segunda derivada covariante del momento de curvatura.",
 }
@@ -631,7 +812,9 @@ _ABSTRACT_SOURCES = {
     "metric_euler": ("delta_lagrangian", "curvature_derivative_metric_term"),
     "scalar_euler": ("scalar_derivative", "scalar_gradient_momentum"),
     "ricci_scalar": ("validated_model",),
+    "ricci_squared": ("validated_model", "riemann_tensor"),
     "riemann_tensor": ("validated_model",),
+    "riemann_squared": ("validated_model", "riemann_tensor"),
     "nabla_P": ("curvature_momentum",),
     "nabla_nabla_P": ("nabla_P",),
 }
@@ -729,6 +912,7 @@ def build_result_views(
     verification: VerificationReport,
     *,
     ansatz_name: str | None = None,
+    ansatz: GeometryAnsatz | None = None,
     component_backend: SympyComponentBackend | None = None,
     field_components: ComponentFieldEquations | None = None,
     projection_unavailable_reason: str | None = None,
@@ -736,6 +920,11 @@ def build_result_views(
     component_budget: int = 2048,
 ) -> tuple[AbstractTensorResults, ProjectedTensorResults]:
     """Organiza dos vistas sin volver a derivar ninguna expresión covariante."""
+
+    if ansatz is not None:
+        if ansatz_name is not None and ansatz.name != ansatz_name:
+            raise ValueError("ansatz y ansatz_name identifican geometrías distintas.")
+        ansatz_name = ansatz.name
 
     space = model.symbols.index_space
     down = lambda name: Index(name, Variance.DOWN, space)
@@ -749,7 +938,9 @@ def build_result_views(
         "metric_euler": euler.metric_euler,
         "scalar_euler": euler.scalar_euler,
         "ricci_scalar": derived.ricci_scalar,
+        "ricci_squared": derived.ricci_squared,
         "riemann_tensor": derived.riemann_tensor,
+        "riemann_squared": derived.riemann_squared,
         "nabla_P": derived.nabla_P,
         "nabla_nabla_P": derived.nabla_nabla_P,
     }
@@ -762,7 +953,9 @@ def build_result_views(
         "metric_euler": (down("a"), down("b")),
         "scalar_euler": (),
         "ricci_scalar": (),
+        "ricci_squared": (),
         "riemann_tensor": tuple(down(name) for name in ("a", "b", "c", "d")),
+        "riemann_squared": (),
         "nabla_P": (*tuple(up(name) for name in ("a", "b", "c", "d")), down("e")),
         "nabla_nabla_P": (
             *tuple(up(name) for name in ("a", "b", "c", "d")),
@@ -795,7 +988,9 @@ def build_result_views(
 
     derived_projection_keys = {
         "ricci_scalar",
+        "ricci_squared",
         "riemann_tensor",
+        "riemann_squared",
         "nabla_P",
         "nabla_nabla_P",
     }
@@ -823,7 +1018,11 @@ def build_result_views(
                 )
             )
             continue
-        if key in {"metric_euler", "scalar_euler"} and field_equation_failure_reason:
+        if (
+            key in {"metric_euler", "scalar_euler"}
+            and field_equation_failure_reason
+            and component_backend is None
+        ):
             projected.append(
                 ProjectedQuantityResult(
                     key,
@@ -876,4 +1075,8 @@ def build_result_views(
             )
         )
 
-    return abstract, ProjectedTensorResults(ansatz_name, tuple(projected))
+    return abstract, ProjectedTensorResults(
+        ansatz_name,
+        tuple(projected),
+        ansatz_geometry=ansatz,
+    )

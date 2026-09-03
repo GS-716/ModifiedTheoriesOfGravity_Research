@@ -8,6 +8,7 @@ simplificar cada componente.
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+from enum import Enum
 from itertools import product
 import re
 from typing import Any, Mapping, Sequence
@@ -36,6 +37,7 @@ from .ir import (
     infer_free_indices,
     mul,
     power,
+    walk,
 )
 from .model import GeometrySymbols, ModelSpec
 
@@ -53,6 +55,14 @@ _ELEMENTARY_FUNCTIONS: dict[str, Any] = {
     "log": sp.log,
     "Abs": sp.Abs,
 }
+
+
+class ScalarFieldMode(str, Enum):
+    """Nivel de especificación del campo escalar dentro de un ansatz."""
+
+    ABSENT = "absent"
+    GENERIC = "generic"
+    SPECIALIZED = "specialized"
 
 
 def _validate_name(name: str, label: str) -> None:
@@ -105,6 +115,7 @@ class GeometryAnsatz:
     metric_covariant: tuple[tuple[Expr, ...], ...]
     scalar_field: Expr | None = None
     assumptions: tuple[str, ...] = ()
+    scalar_field_mode: ScalarFieldMode | None = None
     schema_version: str = COMPONENT_SCHEMA_VERSION
 
     def __post_init__(self) -> None:
@@ -128,6 +139,26 @@ class GeometryAnsatz:
                     raise ModelValidationError("La métrica covariante del ansatz debe ser simétrica.")
         if self.scalar_field is not None:
             _require_scalar(self.scalar_field, "El campo escalar del ansatz")
+        mode = self.scalar_field_mode
+        if mode is None:
+            mode = (
+                ScalarFieldMode.ABSENT
+                if self.scalar_field is None
+                else ScalarFieldMode.GENERIC
+                if isinstance(self.scalar_field, Function)
+                else ScalarFieldMode.SPECIALIZED
+            )
+        else:
+            mode = ScalarFieldMode(mode)
+        if self.scalar_field is None and mode is not ScalarFieldMode.ABSENT:
+            raise ModelValidationError(
+                "Un ansatz sin campo escalar debe usar scalar_field_mode='absent'."
+            )
+        if self.scalar_field is not None and mode is ScalarFieldMode.ABSENT:
+            raise ModelValidationError(
+                "Un ansatz con campo escalar no puede usar scalar_field_mode='absent'."
+            )
+        object.__setattr__(self, "scalar_field_mode", mode)
         if len(set(self.assumptions)) != len(self.assumptions):
             raise ModelValidationError("El ansatz contiene hipótesis repetidas.")
 
@@ -147,6 +178,62 @@ class GeometryAnsatz:
             )
         return self
 
+    def specialize_scalar(
+        self,
+        scalar_field: Expr,
+        *,
+        name: str | None = None,
+        assumptions: tuple[str, ...] = (),
+    ) -> "GeometryAnsatz":
+        """Impone explícitamente un perfil escalar sin cambiar la métrica."""
+
+        _require_scalar(scalar_field, "El perfil escalar especializado")
+        return GeometryAnsatz(
+            name=self.name if name is None else name,
+            chart=self.chart,
+            metric_covariant=self.metric_covariant,
+            scalar_field=scalar_field,
+            assumptions=tuple(dict.fromkeys((*self.assumptions, *assumptions))),
+            scalar_field_mode=ScalarFieldMode.SPECIALIZED,
+        )
+
+    def specialize(
+        self,
+        replacements: Mapping[Expr, Expr],
+        *,
+        name: str | None = None,
+        assumptions: tuple[str, ...] = (),
+    ) -> "GeometryAnsatz":
+        """Sustituye funciones del ansatz para evaluar soluciones concretas.
+
+        La transformación se aplica únicamente a la métrica y al campo escalar
+        coordenados; nunca modifica la IR covariante del modelo.
+        """
+
+        from .transform import substitute
+
+        mapping = dict(replacements)
+        metric = tuple(
+            tuple(substitute(entry, mapping) for entry in row)
+            for row in self.metric_covariant
+        )
+        scalar = (
+            None
+            if self.scalar_field is None
+            else substitute(self.scalar_field, mapping)
+        )
+        scalar_mode = self.scalar_field_mode
+        if scalar != self.scalar_field and scalar is not None:
+            scalar_mode = ScalarFieldMode.SPECIALIZED
+        return GeometryAnsatz(
+            name=self.name if name is None else name,
+            chart=self.chart,
+            metric_covariant=metric,
+            scalar_field=scalar,
+            assumptions=tuple(dict.fromkeys((*self.assumptions, *assumptions))),
+            scalar_field_mode=scalar_mode,
+        )
+
     def to_data(self) -> dict[str, Any]:
         return {
             "schema_version": self.schema_version,
@@ -156,6 +243,7 @@ class GeometryAnsatz:
                 [entry.to_data() for entry in row] for row in self.metric_covariant
             ],
             "scalar_field": None if self.scalar_field is None else self.scalar_field.to_data(),
+            "scalar_field_mode": self.scalar_field_mode.value,
             "assumptions": list(self.assumptions),
         }
 
@@ -171,6 +259,11 @@ class GeometryAnsatz:
             ),
             scalar_field=None if scalar_data is None else expr_from_data(scalar_data),
             assumptions=tuple(str(item) for item in data.get("assumptions", ())),
+            scalar_field_mode=(
+                None
+                if data.get("scalar_field_mode") is None
+                else ScalarFieldMode(str(data["scalar_field_mode"]))
+            ),
             schema_version=str(data.get("schema_version", COMPONENT_SCHEMA_VERSION)),
         )
 
@@ -631,11 +724,12 @@ def spatially_flat_flrw_ansatz() -> GeometryAnsatz:
         ),
         scalar_field=Function("phi", (t,)),
         assumptions=("a(t)>0",),
+        scalar_field_mode=ScalarFieldMode.GENERIC,
     )
 
 
 def draft4_circular_ansatz() -> GeometryAnsatz:
-    """Draft 4, ec. (8): ds²=-f(r)dτ²+dr²/f(r)+r²dvarphi², phi=p varphi."""
+    """Draft 4 con f(r) y Phi(tau,r,varphi) completamente genéricos."""
 
     tau, radial, angle = (Scalar(name) for name in ("tau", "r", "varphi"))
     metric_function = Function("f", (radial,))
@@ -648,9 +742,17 @@ def draft4_circular_ansatz() -> GeometryAnsatz:
             (zero, power(metric_function, -1), zero),
             (zero, zero, power(radial, 2)),
         ),
-        scalar_field=mul(Scalar("p"), angle),
-        assumptions=("r>0", "f(r)!=0", "phi=p*varphi"),
+        scalar_field=Function("Phi", (tau, radial, angle)),
+        assumptions=("r>0", "f(r)!=0"),
+        scalar_field_mode=ScalarFieldMode.GENERIC,
     )
+
+
+def draft4_angular_scalar_profile(parameter_name: str = "p") -> Expr:
+    """Perfil opcional Phi=p*varphi para especializar Draft 4 explícitamente."""
+
+    _validate_name(parameter_name, "nombre del parámetro del perfil escalar")
+    return mul(Scalar(parameter_name), Scalar("varphi"))
 
 
 class SympyComponentBackend:
@@ -658,6 +760,7 @@ class SympyComponentBackend:
 
     name = "sympy-components"
     version = "0.7.0"
+    generic_scalar_derivative_budget = 24
 
     def __init__(
         self,
@@ -681,6 +784,30 @@ class SympyComponentBackend:
         if self.geometry.scalar_field is not None:
             self.scalar_values[self.symbols.scalar] = self.geometry.scalar_field
         self._evaluation_cache: dict[Expr, ComponentTensor] = {}
+
+    def projection_limit_reason(self, expression: Expr) -> str | None:
+        """Evita expansiones incontroladas sin alterar la expresión abstracta."""
+
+        ansatz = self.geometry.ansatz
+        scalar = ansatz.scalar_field
+        if (
+            ansatz.scalar_field_mode is not ScalarFieldMode.GENERIC
+            or not isinstance(scalar, Function)
+            or len(scalar.arguments) <= 1
+        ):
+            return None
+        derivative_nodes = sum(
+            isinstance(node, CovariantDerivative) for node in walk(expression)
+        )
+        if derivative_nodes <= self.generic_scalar_derivative_budget:
+            return None
+        return (
+            "La expresión se conserva simbólica: su proyección con el campo "
+            f"genérico {scalar.name}({', '.join(item.name for item in ansatz.chart.coordinates)}) "
+            f"contiene {derivative_nodes} nodos de derivada covariante, por encima "
+            f"del límite seguro {self.generic_scalar_derivative_budget} del backend. "
+            "Especialice el perfil escalar o eleve el límite del backend de componentes."
+        )
 
     @classmethod
     def from_model(

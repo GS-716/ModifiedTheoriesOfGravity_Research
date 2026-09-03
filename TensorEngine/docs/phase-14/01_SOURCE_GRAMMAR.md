@@ -7,6 +7,8 @@ declaraciones separadas. Los nombres predefinidos son:
 - `X`: \(g^{ab}\nabla_a\phi\nabla_b\phi\);
 - `phi`: campo escalar.
 - `RicciUU`: \(R_{ab}u^au^b\), expandido a métricas, Riemann y gradientes.
+- `RicciSq`: \(R_{ab}R^{ab}\), expandido a dos Riemann y cuatro métricas.
+- `RiemannSq`: \(R_{abcd}R^{abcd}\), expandido a dos Riemann y cuatro métricas.
 
 Los alias provienen de `DEFAULT_INVARIANTS`, un registro extensible, no de una
 lista de teorías. También se admite `contract(Riemann(...), metric(...),
@@ -17,6 +19,12 @@ Se admiten parámetros declarados, funciones escalares declaradas y los
 operadores `+`, `-`, `*`, `/`, `**`, paréntesis y signos unarios. Las constantes
 deben ser enteras; `1/2` genera una fracción exacta. Para potencias se usa `**`,
 nunca `^`.
+
+Los alias son azúcar sintáctico: no sobreviven como cabezas tensoriales en la
+IR y no seleccionan una fórmula variacional especializada. Por ejemplo,
+`R + alpha*RicciSq` y la contracción equivalente escrita con `contract`,
+`Riemann` y `metric` producen la misma IR canónica. La dimensión no introduce
+automáticamente identidades algebraicas adicionales.
 
 Ejemplo:
 

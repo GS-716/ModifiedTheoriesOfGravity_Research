@@ -60,7 +60,7 @@ run.projected, momentos, ecuaciones, verificaciones o backends.
 
 ## Descomposición compacta de ecuaciones y momento de curvatura
 
-Después de las once cantidades que ya presenta cada una de las dos secciones,
+Después de las trece cantidades que presenta cada una de las dos secciones,
 el informe añade una vista de auditoría para `E_ab`, `E_phi` y `P^{abcd}`. No
 reemplaza ni reordena la salida anterior. Sus bloques son genéricos:
 
@@ -75,11 +75,10 @@ El término algebraico y el término de derivadas son exactamente los objetos qu
 usa `metric_euler_expression`; `-nabla_a J^a` se recupera como la diferencia
 canónica ya calculada `E_phi-F_phi`. Por tanto, esta vista no deriva nuevamente
 las ecuaciones. Cada bloque conserva una forma compacta de presentación, la IR
-expandida para auditoría, sus fuentes y el resultado de reconstrucción.
-
-Las formas expandidas breves se muestran también en LaTeX/PDF. Si una expansión
-supera el umbral seguro de página, el reporte muestra solo la forma compacta y
-una referencia a `presentation.json`, donde la expansión permanece completa.
+expandida para auditoría, sus fuentes y el resultado de reconstrucción. El
+LaTeX/PDF muestra únicamente la forma compacta dentro de esta sección; las
+expansiones permanecen completas en `presentation.json` y no se eliminan de la
+capa de auditoría.
 No se introducen símbolos auxiliares del tipo `A_1 + A_2 + ...` en la salida
 final.
 
@@ -105,7 +104,7 @@ manifiestos ni evidencia xAct.
   canónica de origen. Su propósito es presentation_only.
 - El mismo archivo contiene las descomposiciones compactas adicionales, sus
   bloques, formas expandidas, componentes y estados de reconstrucción.
-- El registro cubre las once cantidades abstractas, la contribución métrica
+- El registro cubre las trece cantidades abstractas, la contribución métrica
   de nabla_nabla_P y **todas** las componentes dispersas obtenidas, incluso las
   que no se imprimen por el límite de doce componentes por tensor. Los ceros
   implícitos siguen siendo ceros; las cantidades no proyectables mantienen su

@@ -43,12 +43,15 @@ opción se configura una vez mediante VALIDAR_XACT.
 | R | \(g^{ac}g^{bd}R_{abcd}\) | ModelBuilder.ricci_scalar() |
 | X | \(g^{ab}u_a u_b\), sin factor \(-1/2\) | ModelBuilder.kinetic_scalar() |
 | RicciUU | \(g^{ac}R_{abcd}g^{be}g^{df}u_eu_f\) | ModelBuilder.ricci_uu() |
+| RicciSq | \(R_{ab}R^{ab}\) | ModelBuilder.ricci_squared() |
+| RiemannSq | \(R_{abcd}R^{abcd}\) | ModelBuilder.riemann_squared() |
 | phi | Campo escalar | ModelBuilder.phi |
 
 Aquí \(u_a=\nabla_a\phi\), tratado como argumento independiente al variar L.
 Se usa la convención de Riemann ya fijada en fase 0. No existe una nueva cabeza
-tensorial RicciUU ni una regla de variación para ella: el alias desaparece al
-compilar. Los alias repetidos se expanden una sola vez por compilación.
+tensorial RicciUU, RicciSq o RiemannSq ni reglas de variación especiales para
+ellos: los alias desaparecen al compilar. Los alias repetidos se expanden una
+sola vez por compilación.
 
 Los alias son combinables, no una lista de lagrangianos permitidos:
 
@@ -61,6 +64,14 @@ source = LagrangianSourceSpec(
 )
 quadratic = LagrangianSourceSpec(
     "quadratic", "R + alpha*R**2", parameters=(ParameterSpec("alpha"),),
+)
+quadratic_ricci = LagrangianSourceSpec(
+    "quadratic_ricci", "R + alpha*RicciSq",
+    parameters=(ParameterSpec("alpha"),),
+)
+quadratic_riemann = LagrangianSourceSpec(
+    "quadratic_riemann", "R + alpha*RiemannSq",
+    parameters=(ParameterSpec("alpha"),),
 )
 ~~~
 
@@ -143,6 +154,25 @@ ricci_uu = b.contract(
 model = ModelSpec("advanced", b.ricci_scalar() + ricci_uu)
 ~~~
 
+Los invariantes cuadráticos pueden escribirse con la misma API, sin depender
+del registro:
+
+~~~python
+ricci_sq = b.contract(
+    b.metric("a", "c"), b.riemann("a", "b", "c", "d"),
+    b.metric("b", "e"), b.metric("d", "f"), b.metric("g", "h"),
+    b.riemann("g", "e", "h", "f"),
+)
+riemann_sq = b.contract(
+    b.metric("a", "e"), b.metric("b", "f"),
+    b.metric("c", "g"), b.metric("d", "h"),
+    b.riemann("a", "b", "c", "d"),
+    b.riemann("e", "f", "g", "h"),
+)
+assert ricci_sq == b.ricci_squared()
+assert riemann_sq == b.riemann_squared()
+~~~
+
 Para operaciones no cubiertas por los constructores, use Tensor, Index, mul y el
 álgebra de índices existente, respetando el dominio L(g,Riemann,phi,u).
 Un ansatz arbitrario continúa declarándose con GeometryAnsatz.
@@ -163,6 +193,9 @@ Un ansatz arbitrario continúa declarándose con GeometryAnsatz.
 
 - El Caso-2 original es 3D. Ejecutar su misma fórmula con FLRW 4D es una
   prueba de compatibilidad, no la misma teoría tridimensional.
+- `RicciSq` y `RiemannSq` no activan identidades dependientes de la dimensión.
+  En particular, la relación tridimensional entre Riemann, Ricci y R solo puede
+  usarse si se declara e incorpora como una identidad separada y validada.
 - La extensión de [contracciones delta](delta-contractions.md) resuelve las
   identidades en la IR y sus componentes. La antigua ausencia de componentes
   delta ya no bloquea E_ab/E_phi; otras limitaciones conservan el respaldo abstracto.
@@ -176,10 +209,11 @@ Un ansatz arbitrario continúa declarándose con GeometryAnsatz.
 - En PDF se muestran hasta doce componentes no nulas por tensor; JSON conserva
   toda la proyección obtenida. La presencia de un PDF no implica validación total.
 
-Pruebas: tests/test_invariants.py, tests/test_source.py y
-tests/test_source_integration.py. Esta última prueba Caso-2 en draft4_circular y
-FLRW, compara L proyectado con referencias coordenadas y verifica JSON,
-manifiesto y LaTeX. TENSOR_ENGINE_RUN_WOLFRAM_TESTS=1 activa su validación externa.
+Pruebas: tests/test_invariants.py, tests/test_curvature_invariants.py,
+tests/test_source.py y tests/test_source_integration.py. Cubren equivalencia de
+alias, constructores y contracciones de bajo nivel; proyecciones independientes
+en draft4_circular y FLRW; y los contratos JSON, manifiesto y LaTeX.
+TENSOR_ENGINE_RUN_WOLFRAM_TESTS=1 activa la validación externa.
 
 ## Verificación histórica de la entrega del frontend (2026-08-30)
 
@@ -230,3 +264,38 @@ Archivos creados o modificados por esta extensión:
 No se modificaron para esta extensión los backends variacional, de componentes,
 Wolfram/xAct ni la implementación del exportador; se reutilizaron sus contratos
 y capacidades actuales.
+
+## Verificación de RicciSq y RiemannSq (2026-09-02)
+
+La extensión conserva ambos invariantes como contracciones ordinarias de la IR.
+Los modelos `R + alpha*RicciSq` y `R + alpha*RiemannSq` recorren el mismo backend
+variacional que cualquier combinación anterior. Los reportes incorporan como
+resultados de primera clase `ricci_squared` y `riemann_squared`: hay trece
+cantidades en `run.abstract` y `run.projected`, y siete en `run.derived`.
+
+Referencias coordenadas comprobadas:
+
+| Ansatz | \(R_{ab}R^{ab}\) | \(R_{abcd}R^{abcd}\) |
+|---|---|---|
+| `draft4_circular` | \(\frac12 f''{}^2+\frac{f'f''}{r}+\frac{3f'{}^2}{2r^2}\) | \(f''{}^2+\frac{2f'{}^2}{r^2}\) |
+| `flat_flrw` | \(12[(\ddot a/a)^2+(\dot a/a)^2(\ddot a/a)+(\dot a/a)^4]\) | \(12[(\ddot a/a)^2+(\dot a/a)^4]\) |
+
+La suite local terminó con **343 pruebas aprobadas y 8 omitidas**; las omitidas
+son integraciones Wolfram opt-in. La prueba viva específica de los invariantes
+aprobó, y xAct redujo a cero las nueve identidades genéricas de cada modelo:
+`9 passed, 0 failed, 0 undetermined` tanto para RicciSq como para RiemannSq.
+
+El PDF de integración `quadratic_riemann_draft4_xact` contiene 18 páginas, dos
+secciones principales y 26 subsecciones. Se revisaron visualmente sus páginas
+renderizadas: las expresiones abstractas y proyectadas de ambos invariantes no
+presentan recortes ni superposiciones. Su bundle está en
+`output/pdf/quadratic-riemann-draft4-xact-4eb9dbfc8732` y conserva la evidencia
+xAct ligada al fingerprint de esa corrida.
+
+Compatibilidad: `RunPackage.from_data` sigue leyendo bundles anteriores a esta
+extensión. Reconstruye las dos expresiones abstractas a partir de los símbolos
+almacenados y marca sus proyecciones nuevas como simbólicas; no inventa
+componentes ni evidencia xAct ausentes del archivo original. La lectura produce
+una identidad de corrida nueva porque el paquete reconstruido contiene dos
+resultados adicionales, pero acepta y verifica la huella histórica del contenido
+original.

@@ -37,3 +37,16 @@ configuración uniforme, aislamiento de fallos y comandos `catalog`/`campaign`.
 La fase 14 verifica equivalencia semántica fuente–catálogo, fracciones exactas,
 fingerprints, límites de gramática, rechazo de construcciones ejecutables y los
 comandos `compile`/`run-source`.
+
+`test_curvature_invariants.py` cubre `RicciSq` y `RiemannSq`: equivalencia entre
+alias, `ModelBuilder` y contracciones de bajo nivel; ausencia de identidades 3D
+implícitas; proyección coordenada en `draft4_circular` y FLRW; reutilización del
+pipeline variacional; migración conservadora de bundles antiguos y regresión de
+los lagrangianos previamente soportados. La prueba viva correspondiente en
+`test_wolfram_bridge.py` exige que las nueve identidades genéricas de cada modelo
+se transporten y validen sin fallos ni diagnósticos de decodificación.
+
+`test_components.py` comprueba además que `draft4_circular` use por defecto
+`Phi(tau,r,varphi)`, que `p` aparezca solo tras especializar explícitamente
+`phi=p*varphi`, y que las sustituciones posteriores de `f(r)` y `Phi` sobrevivan
+la serialización del ansatz.
