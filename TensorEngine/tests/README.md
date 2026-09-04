@@ -47,6 +47,6 @@ los lagrangianos previamente soportados. La prueba viva correspondiente en
 se transporten y validen sin fallos ni diagnósticos de decodificación.
 
 `test_components.py` comprueba además que `draft4_circular` use por defecto
-`Phi(tau,r,varphi)`, que `p` aparezca solo tras especializar explícitamente
+`Phi(r,varphi)` sin dependencia temporal, que `p` aparezca solo tras especializar explícitamente
 `phi=p*varphi`, y que las sustituciones posteriores de `f(r)` y `Phi` sobrevivan
 la serialización del ansatz.

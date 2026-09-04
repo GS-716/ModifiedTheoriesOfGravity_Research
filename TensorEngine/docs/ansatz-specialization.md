@@ -4,10 +4,12 @@
 
 \[
 ds^2=-f(r)d\tau^2+\frac{dr^2}{f(r)}+r^2d\varphi^2,
-\qquad \phi=\Phi(\tau,r,\varphi),
+\qquad \phi=\Phi(r,\varphi),
 \]
 
-con `f(r)` y `Phi(tau,r,varphi)` arbitrarias. El símbolo `p` no forma parte del
+con `f(r)` y `Phi(r,varphi)` arbitrarias. La coordenada `tau` sigue perteneciendo
+a la carta y a la métrica, pero no es un argumento permitido del campo escalar.
+El símbolo `p` no forma parte del
 ansatz base. Por ello `gradient("a")`, sus versiones con el índice elevado y
 `X` se proyectan en términos de las derivadas parciales de `Phi`.
 
@@ -47,9 +49,9 @@ métrica y el campo escalar, sin tocar la IR abstracta del lagrangiano:
 ```python
 from tensor_engine import Function, Scalar
 
-tau, r, varphi = draft4.chart.coordinates
+_, r, varphi = draft4.chart.coordinates
 f = Function("f", (r,))
-Phi = Function("Phi", (tau, r, varphi))
+Phi = Function("Phi", (r, varphi))
 
 solution_ansatz = draft4.specialize(
     {
@@ -62,6 +64,10 @@ solution_ansatz = draft4.specialize(
 ```
 
 Las sustituciones son estructurales y exigen expresiones escalares compatibles.
+Una especialización no puede introducir coordenadas ausentes de la declaración
+genérica: en Draft 4 se rechaza cualquier `phi_solution` que dependa de `tau`.
+Este control se deriva del ansatz y no impone estacionariedad a FLRW ni a un
+ansatz arbitrario que sí declare dependencia temporal.
 La secuencia queda separada en: derivación abstracta, proyección con la métrica,
 especialización escalar opcional y evaluación con funciones solución.
 

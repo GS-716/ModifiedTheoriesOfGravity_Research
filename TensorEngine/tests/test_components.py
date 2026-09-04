@@ -68,7 +68,7 @@ class Draft4GeometryTests(unittest.TestCase):
         cls.r = cls.geometry.coordinates[1]
         cls.varphi = cls.geometry.coordinates[2]
         cls.f = sp.Function("f")(cls.r)
-        cls.Phi = sp.Function("Phi")(cls.tau, cls.r, cls.varphi)
+        cls.Phi = sp.Function("Phi")(cls.r, cls.varphi)
 
     def test_metric_inverse_and_determinant(self) -> None:
         self.assertEqual(
@@ -80,11 +80,16 @@ class Draft4GeometryTests(unittest.TestCase):
         self.assertEqual(sp.simplify(self.geometry.determinant + self.r**2), 0)
 
     def test_default_scalar_profile_is_generic(self) -> None:
-        self.assertEqual(
-            self.geometry.scalar_gradient_covariant(),
-            tuple(sp.diff(self.Phi, coordinate) for coordinate in self.geometry.coordinates),
-        )
+        gradient = self.geometry.scalar_gradient_covariant()
+        self.assertEqual(gradient, (sp.S.Zero, sp.diff(self.Phi, self.r), sp.diff(self.Phi, self.varphi)))
+        self.assertFalse(self.Phi.has(self.tau))
         self.assertNotIn(sp.Symbol("p"), self.geometry.scalar_field.free_symbols)
+
+    def test_time_dependent_scalar_specialization_is_rejected(self) -> None:
+        base = draft4_circular_ansatz()
+        tau, radial, angle = base.chart.coordinates
+        with self.assertRaisesRegex(ModelValidationError, "tau"):
+            base.specialize_scalar(Function("Psi", (tau, radial, angle)))
 
     def test_axial_scalar_profile_is_an_explicit_later_specialization(self) -> None:
         base = draft4_circular_ansatz()
@@ -103,9 +108,9 @@ class Draft4GeometryTests(unittest.TestCase):
 
     def test_metric_and_scalar_solutions_can_be_specialized_together(self) -> None:
         base = draft4_circular_ansatz()
-        tau, radial, angle = base.chart.coordinates
+        _, radial, angle = base.chart.coordinates
         f = Function("f", (radial,))
-        Phi = Function("Phi", (tau, radial, angle))
+        Phi = Function("Phi", (radial, angle))
         specialized = base.specialize(
             {
                 f: Number(1),
@@ -129,6 +134,15 @@ class Draft4GeometryTests(unittest.TestCase):
         specialized_x = SympyComponentBackend(specialized).evaluate_sympy(X).scalar
         p = sp.Symbol("p")
         self.assertNotIn(p, generic_x.free_symbols)
+        self.assertEqual(
+            sp.simplify(
+                generic_x
+                - self.f * sp.diff(self.Phi, self.r) ** 2
+                - sp.diff(self.Phi, self.varphi) ** 2 / self.r**2
+            ),
+            0,
+        )
+        self.assertFalse(generic_x.has(self.tau))
         self.assertEqual(sp.simplify(specialized_x - p**2 / self.r**2), 0)
 
     def test_generic_multivariate_projection_budget_is_structural(self) -> None:

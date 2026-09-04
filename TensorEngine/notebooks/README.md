@@ -7,7 +7,7 @@ Ejemplo mínimo ejecutable:
 
 - `01_quickstart_tensor_engine.ipynb`: una celda de configuración, siete celdas
   de lagrangianos y un ejemplo separado de especialización. Usa por defecto
-  `draft4_circular` con `Phi(tau,r,varphi)` genérica; solo la última celda impone
+  `draft4_circular` con `Phi(r,varphi)` genérica y estacionaria; solo la última celda impone
   explícitamente `phi=p*varphi`. Exporta cada bundle en `outputs/notebook_cases`
   y deja la validación xAct desactivada por defecto.
 

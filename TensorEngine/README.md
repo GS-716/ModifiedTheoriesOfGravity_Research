@@ -27,7 +27,9 @@ identidad fuera de capa y potencial de carga de Iyer–Wald; sus nueve referenci
 externas también están aprobadas con xAct.
 La fase 7 incorpora ansatz serializables, geometría coordenada de Levi-Civita y
 proyección de las ecuaciones abstractas a componentes mediante SymPy.
-`draft4_circular_ansatz()` conserva ahora `Phi(tau,r,varphi)` genérica. La
+`draft4_circular_ansatz()` conserva ahora el campo estacionario
+`Phi(r,varphi)` genérico. La dependencia en `tau` está excluida también de las
+especializaciones posteriores de este ansatz. La
 [guía de especialización posterior](docs/ansatz-specialization.md) muestra cómo
 imponer `phi=p*varphi` o sustituir soluciones concretas para `f(r)` y `phi` sin
 modificar la derivación covariante.

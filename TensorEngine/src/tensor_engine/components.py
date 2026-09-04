@@ -180,6 +180,40 @@ class GeometryAnsatz:
             )
         return self
 
+    def validate_scalar_specialization(self, scalar_field: Expr) -> Expr:
+        """Impide que una especialización introduzca dependencias no declaradas.
+
+        La dependencia coordenada permitida se obtiene de los argumentos del
+        campo genérico del ansatz. Esto mantiene, por ejemplo, ``Phi(r,varphi)``
+        estacionario en Draft 4 sin imponer la misma restricción a FLRW u otros
+        ansatz que declaren coordenadas diferentes.
+        """
+
+        _require_scalar(scalar_field, "El perfil escalar especializado")
+        if not isinstance(self.scalar_field, Function):
+            return scalar_field
+        chart_names = {coordinate.name for coordinate in self.chart.coordinates}
+        allowed = {
+            node.name
+            for argument in self.scalar_field.arguments
+            for node in walk(argument)
+            if isinstance(node, Scalar) and node.name in chart_names
+        }
+        used = {
+            node.name
+            for node in walk(scalar_field)
+            if isinstance(node, Scalar) and node.name in chart_names
+        }
+        forbidden = sorted(used.difference(allowed))
+        if forbidden:
+            declared = ", ".join(sorted(allowed)) or "ninguna coordenada"
+            raise ModelValidationError(
+                "El perfil escalar especializado introduce dependencias coordenadas "
+                f"no declaradas por {self.scalar_field.name}: {', '.join(forbidden)}. "
+                f"Dependencias permitidas: {declared}."
+            )
+        return scalar_field
+
     def specialize_scalar(
         self,
         scalar_field: Expr,
@@ -189,7 +223,7 @@ class GeometryAnsatz:
     ) -> "GeometryAnsatz":
         """Impone explícitamente un perfil escalar sin cambiar la métrica."""
 
-        _require_scalar(scalar_field, "El perfil escalar especializado")
+        self.validate_scalar_specialization(scalar_field)
         return GeometryAnsatz(
             name=self.name if name is None else name,
             chart=self.chart,
@@ -226,6 +260,7 @@ class GeometryAnsatz:
         )
         scalar_mode = self.scalar_field_mode
         if scalar != self.scalar_field and scalar is not None:
+            self.validate_scalar_specialization(scalar)
             scalar_mode = ScalarFieldMode.SPECIALIZED
         return GeometryAnsatz(
             name=self.name if name is None else name,
@@ -340,6 +375,7 @@ class AnsatzSpecialization:
         scalar = ansatz.scalar_field if self.scalar_field is None else self.scalar_field
         mode = ansatz.scalar_field_mode
         if self.scalar_field is not None:
+            ansatz.validate_scalar_specialization(self.scalar_field)
             mode = ScalarFieldMode.SPECIALIZED
         return GeometryAnsatz(
             name=self.name or f"{ansatz.name}_specialized",
@@ -838,7 +874,7 @@ def spatially_flat_flrw_ansatz() -> GeometryAnsatz:
 
 
 def draft4_circular_ansatz() -> GeometryAnsatz:
-    """Draft 4 con f(r) y Phi(tau,r,varphi) completamente genéricos."""
+    """Draft 4 con f(r) y el campo estacionario Phi(r,varphi) genéricos."""
 
     tau, radial, angle = (Scalar(name) for name in ("tau", "r", "varphi"))
     metric_function = Function("f", (radial,))
@@ -851,7 +887,7 @@ def draft4_circular_ansatz() -> GeometryAnsatz:
             (zero, power(metric_function, -1), zero),
             (zero, zero, power(radial, 2)),
         ),
-        scalar_field=Function("Phi", (tau, radial, angle)),
+        scalar_field=Function("Phi", (radial, angle)),
         assumptions=("r>0", "f(r)!=0"),
         scalar_field_mode=ScalarFieldMode.GENERIC,
     )
@@ -912,7 +948,7 @@ class SympyComponentBackend:
             return None
         return (
             "La expresión se conserva simbólica: su proyección con el campo "
-            f"genérico {scalar.name}({', '.join(item.name for item in ansatz.chart.coordinates)}) "
+            f"genérico {scalar.name}({', '.join(item.name for item in scalar.arguments)}) "
             f"contiene {derivative_nodes} nodos de derivada covariante, por encima "
             f"del límite seguro {self.generic_scalar_derivative_budget} del backend. "
             "Especialice el perfil escalar o eleve el límite del backend de componentes."

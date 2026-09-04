@@ -5,6 +5,7 @@ import os
 from pathlib import Path
 
 import pytest
+import sympy as sp
 
 from tensor_engine import (
     AnsatzSpecialization,
@@ -12,6 +13,7 @@ from tensor_engine import (
     EngineOptions,
     Function,
     LagrangianSourceSpec,
+    ModelValidationError,
     Number,
     ParameterSpec,
     RunExporter,
@@ -69,8 +71,35 @@ def test_specialization_replaces_user_metric_and_scalar_without_mutating_base() 
 
     assert specialized.metric_covariant[0][0] == -custom_f
     assert specialized.scalar_field == custom_phi
-    assert base.scalar_field == Function("Phi", base.chart.coordinates)
+    assert base.scalar_field == Function("Phi", base.chart.coordinates[1:])
     assert AnsatzSpecialization.from_data(spec.to_data()) == spec
+
+
+def test_specialization_cannot_reintroduce_draft4_time_dependence() -> None:
+    base = draft4_circular_ansatz()
+    tau, r, varphi = base.chart.coordinates
+    with pytest.raises(ModelValidationError, match="tau"):
+        AnsatzSpecialization(
+            scalar_field=Function("Psi", (tau, r, varphi)),
+        ).apply(base)
+
+
+def test_stationary_scalar_propagates_through_projected_equations() -> None:
+    source = LagrangianSourceSpec(
+        name="draft4_stationary_scalar_pipeline",
+        expression="R - alpha*X",
+        dimension=DimensionSpec(3),
+        parameters=(ParameterSpec("alpha"),),
+    )
+    run = TensorEngine(
+        options=EngineOptions(include_noether=False, include_export=False)
+    ).run(source.compile(), ansatz=draft4_circular_ansatz())
+    tau = sp.Symbol("tau")
+    for quantity in run.projected.quantities:
+        if quantity.components is None:
+            continue
+        for _, expression in quantity.components.values:
+            assert not ir_scalar_to_sympy(expression).has(tau), quantity.key
 
 
 def test_specialization_is_after_derivation_and_keeps_generic_projection() -> None:
