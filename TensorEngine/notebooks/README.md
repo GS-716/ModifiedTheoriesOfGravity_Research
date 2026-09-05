@@ -1,57 +1,237 @@
-# Notebooks
+# Notebooks de TensorEngine
 
-Esta carpeta contendrá interfaces de investigación y ejemplos reproducibles.
-Los notebooks llamarán al motor; no contendrán su lógica esencial.
+Esta carpeta es la interfaz de trabajo interactivo de
+[TensorEngine](../README.md). El usuario declara el lagrangiano, sus constantes
+y funciones, la dimensión y, si desea componentes, un ansatz. El motor se
+encarga de la derivación, las verificaciones y los reportes.
 
-Ejemplo mínimo ejecutable:
+## Abrir y ejecutar el notebook
 
-- `01_quickstart_tensor_engine.ipynb`: una celda de configuración, siete celdas
-  de lagrangianos y un ejemplo separado de especialización. Usa por defecto
-  `draft4_circular` con `Phi(r,varphi)` genérica y estacionaria; solo la última celda impone
-  explícitamente `phi=p*varphi`. Exporta cada bundle en `outputs/notebook_cases`
-  y deja la validación xAct desactivada por defecto.
+Abre [`01_quickstart_tensor_engine.ipynb`](01_quickstart_tensor_engine.ipynb) desde
+`TensorEngine/` o `TensorEngine/notebooks/` y selecciona un intérprete con las
+dependencias del motor instaladas. Consulta la [instalación](../README.md#instalación-y-primera-ejecución).
 
-Cambie `VALIDAR_XACT` en la primera celda si desea evidencia externa. Recargue el
-notebook y reinicie el kernel tras actualizar el paquete. La
-[guía del frontend](../docs/frontend-invariants.md) describe los alias y las
-contracciones genéricas empleadas.
+1. Ejecuta la primera celda de configuración. Carga el código local y define
+   `ansatz`, `dimension`, `display_policy`, `VALIDAR_XACT` y `ejecutar(...)`.
+2. Ejecuta la celda del caso que quieras estudiar. Los casos no dependen de
+   haber ejecutado los anteriores, pero sí de la configuración inicial.
+3. Abre la carpeta que imprime `Bundle:` para consultar el reporte y los datos.
+4. Después de actualizar el motor, reinicia el kernel y vuelve a ejecutar la
+   configuración para evitar mezclar objetos de versiones distintas.
 
-Desde la fase 10, la interfaz recomendada es:
+La configuración inicial utiliza Draft 4 en tres dimensiones, $f(r)$ arbitraria
+y $\phi=\Phi(r,\varphi)$ estacionaria. La validación xAct está desactivada por
+defecto; `VALIDAR_XACT=True` la solicita en las llamadas del notebook.
 
-```python
-from tensor_engine import RunEvent, TensorEngine
+## Casos que contiene
 
-events = []
-run = TensorEngine(event_handler=events.append).run(
-    model,
-    ansatz=ansatz,          # opcional
-    output_root="outputs", # opcional
+| Celda | Modelo |
+|---|---|
+| 1 | `R` |
+| 2 | `R + alpha*R**2` |
+| 3 | `R + alpha*RicciSq` |
+| 4 | `R + alpha*RiemannSq` |
+| 5 | `R + alpha*RicciUU` |
+| 6 | `R + alpha*R*X` |
+| 7 | `R` más una contracción de Riemann con cuatro gradientes del mismo escalar |
+| Perfil opcional | Ejemplo explícito con $\phi=p\varphi$ |
+| Draft 4: casos 0, 1 y 2 | Un caso por celda, con `f_input` y `phi_input` editables |
+
+La contracción cuártica de la celda 7 se anula por las antisimetrías de Riemann
+para el producto de cuatro copias del mismo gradiente escalar. Sirve también
+para comprobar la simplificación tensorial del modelo.
+
+## Uso rápido con `ejecutar`
+
+Tras la configuración inicial:
+
+~~~python
+run = ejecutar("modelo_cuadratico", "R + alpha*RicciSq")
+~~~
+
+Para añadir otras constantes simbólicas:
+
+~~~python
+run_acoplado = ejecutar(
+    "acoplamiento_escalar",
+    "R + 2/ell**2 + beta0*RicciUU",
+    parametros_extra=("ell", "beta0"),
 )
-```
+~~~
 
-El notebook puede presentar `run.package`, `run.stages` y los eventos, pero no
-debe reimplementar derivaciones ni reglas de simplificación.
+`ejecutar(nombre, lagrangiano, *, ansatz_usado=None, parametros_extra=())`
+es una ayuda del notebook, no otra implementación del motor. Declara `alpha`
+automáticamente cuando aparece en el texto y usa `parametros_extra` para los
+otros nombres. `ansatz_usado=None` significa utilizar el ansatz global, no
+desactivar la proyección. La dimensión se toma de la variable global
+`dimension` y debe corresponder al ansatz.
 
-Desde la fase 13 también puede construir invariantes y campañas sin escribir la
-IR tensorial a mano:
+Para declarar funciones, supuestos, normalización o un modelo sin ansatz,
+utiliza directamente `LagrangianSourceSpec` y `TensorEngine.run`.
 
-```python
-from tensor_engine import ModelBuilder, catalog_model
+## Declaración completa: parámetros, constantes y funciones
 
-b = ModelBuilder()
-R = b.ricci_scalar()
-X = b.kinetic_scalar()
-model = catalog_model("k_essence", name="mi_modelo")
-```
+Ejemplo independiente de la función auxiliar, una vez instalado el paquete:
 
-La fase 14 permite que un notebook reciba una fórmula textual validada:
+~~~python
+from tensor_engine import (
+    DimensionSpec, FunctionSpec, LagrangianSourceSpec, ParameterSpec,
+    TensorEngine, draft4_circular_ansatz,
+)
 
-```python
-from tensor_engine import LagrangianSourceSpec
-
-source = LagrangianSourceSpec("mi_teoria", "F(phi)*R - Z(phi)*X/2 - V(phi)", ...)
+source = LagrangianSourceSpec(
+    name="escalar_no_minimo",
+    expression="F(phi)*R - alpha*X - V(phi)",
+    dimension=DimensionSpec(3),
+    parameters=(ParameterSpec("alpha", assumptions=("positive",)),),
+    functions=(FunctionSpec("F", 1), FunctionSpec("V", 1)),
+)
 model = source.compile()
-```
+run = TensorEngine().run(
+    model,
+    ansatz=draft4_circular_ansatz(),
+    output_root="outputs/usuario",
+)
+~~~
 
-El texto nunca se evalúa como código Python; solo se acepta la gramática
-algebraica documentada.
+`ParameterSpec("alpha")` declara una constante simbólica, no le asigna un valor.
+Para fijar un coeficiente desde la entrada, escribe una fracción exacta, por
+ejemplo `"R + (1/10)*R**2"`. Usa `**` para potencias; el frontend rechaza
+decimales aproximados y nombres no declarados.
+
+`FunctionSpec("F", 1)` declara una función de un argumento.
+`FunctionSpec("K", 2)` permite compilar expresiones como `K(phi,X)`; su proyección
+puede quedar simbólica cuando el backend no admite la contracción contenida
+en el argumento. Los supuestos documentan el modelo y se aplican cuando la
+operación correspondiente los soporta.
+
+Los alias disponibles son `R`, `X`, `RicciUU`, `RicciSq`, `RiemannSq` y `phi`.
+`X` significa $g^{ab}\nabla_a\phi\nabla_b\phi$, sin factor $-1/2$.
+La [guía de autoría](../docs/frontend-invariants.md) explica además las
+contracciones genéricas y `ModelBuilder`.
+
+## Elegir una geometría
+
+El ansatz Draft 4 es
+
+$$
+ds^2=-f(r)d\tau^2+\frac{dr^2}{f(r)}+r^2d\varphi^2,
+\qquad \phi=\Phi(r,\varphi).
+$$
+
+La coordenada temporal sigue en la métrica, pero no en el campo escalar. El
+parámetro `p` solo aparece al imponer un perfil que lo contenga.
+
+Para FLRW, crea un modelo con dimensión cuatro y pasa la geometría apropiada:
+
+~~~python
+from tensor_engine import spatially_flat_flrw_ansatz
+
+flrw_model = LagrangianSourceSpec(
+    name="flrw_einstein",
+    expression="R",
+    dimension=DimensionSpec(4),
+).compile()
+run_flrw = TensorEngine().run(
+    flrw_model,
+    ansatz=spatially_flat_flrw_ansatz(),
+    output_root="outputs/flrw",
+)
+~~~
+
+Aquí el campo genérico es $\phi(t)$ y la métrica contiene $a(t)$.
+Para otra geometría, usa `CoordinateChart` y `GeometryAnsatz`. Si solo buscas
+las expresiones abstractas, llama a `TensorEngine().run(model)` sin ansatz.
+
+## Editar `f(r)` y el perfil escalar después de derivar
+
+Las celdas de los casos 0, 1 y 2 contienen `f_input` y `phi_input`. Son entradas
+editables: puedes reemplazarlas por expresiones escalares de la IR utilizando
+`Scalar`, `Number`, `Function` y operaciones aritméticas.
+
+El siguiente patrón conserva la geometría genérica y añade la especialización
+en una misma corrida; supone que `model` tiene dimensión tres:
+
+~~~python
+from tensor_engine import AnsatzSpecialization, Function, Scalar
+
+geometry = draft4_circular_ansatz()
+_, r, varphi = geometry.chart.coordinates
+ell, p = Scalar("ell"), Scalar("p")
+
+f_input = 1 + r**2 / ell**2
+phi_input = p * varphi
+# Alternativas editables para phi_input:
+# Function("Phi", (r,))
+# Function("Phi", (varphi,))
+
+specialization = AnsatzSpecialization(
+    metric_functions={"f": f_input},
+    scalar_field=phi_input,
+)
+run_especializado = TensorEngine().run(
+    model,
+    ansatz=geometry,
+    specialization=specialization,
+    output_root="outputs/especializados",
+)
+~~~
+
+Los valores anteriores ilustran la entrada; no son una solución demostrada del
+lagrangiano elegido. El flujo es derivar, proyectar con el ansatz genérico y
+evaluar la especialización solicitada. Un perfil temporal se rechaza para
+Draft 4. `GeometryAnsatz.specialize_scalar(...)` también permite crear un
+ansatz ya especializado, como hace la celda de ejemplo angular.
+
+Los valores iniciales de las tres celdas Draft 4 son:
+
+| Caso | `f_input` | `phi_input` |
+|---|---|---|
+| 0 | $r^2/\ell^2-\lambda$ | $0$ |
+| 1 | $r^2/\ell^2-\lambda-\alpha_1p^2\log(r/r_0)$ | $p\varphi$ |
+| 2 | $(r^2/\ell^2-\lambda)/(1+\beta_0p^2\ell^2/r^2)$ | $p\varphi$ |
+
+En Python, `mass` representa el símbolo `Scalar("lambda")`. Cambiar estos valores
+solo afecta la geometría especializada de esa corrida. Véase la
+[guía de especialización](../docs/ansatz-specialization.md).
+
+## Consultar resultados y reportes
+
+~~~python
+print(run.abstract.lagrangian)
+print(run.abstract.curvature_momentum)
+
+quantity = run.projected.metric_euler
+print(quantity.status.value, quantity.reason)
+if quantity.components is not None:
+    print(quantity.components.values)
+
+print(run.package.verification.summary)
+~~~
+
+`run.abstract` conserva las expresiones covariantes y `run.projected` las
+componentes genéricas. `run.specialized` contiene las componentes posteriores
+si se utilizó `specialization=...`. Para consultar estas últimas usa, por
+ejemplo, `run_especializado.specialized.metric_euler`.
+
+- Las siete celdas de prueba y el perfil opcional guardan sus bundles en
+  `TensorEngine/outputs/notebook_cases/`.
+- Las tres celdas Draft 4 los guardan en `TensorEngine/outputs/draft4_cases/`.
+- En llamadas propias a la API, `output_root` es relativo al directorio de
+  trabajo salvo que se pase una ruta absoluta.
+- `results.json` conserva los datos completos; `verification.json` contiene los
+  controles y `manifest.json` permite verificar la integridad de los archivos.
+- `report.tex` y, si se dispone de LaTeX, `report.pdf` presentan las expresiones
+  abstractas, proyectadas y las especializadas cuando corresponda.
+
+Los reportes con $\Phi(r,\varphi)$ incluyen además dos extras compactos:
+$\Phi(r)$ y $\Phi(\varphi)$, únicamente para $L$ y $P^{abcd}$. Reutilizan las
+componentes existentes y conservan sus datos adicionales en
+`presentation.json`, sin sustituir los resultados de la corrida.
+
+La variable `display_policy` ya configura una presentación conservadora:
+factorización, recolección, fracciones e índices canónicos, con
+`aggressive=False`. Para activar xAct se necesitan Wolfram Engine activado,
+`wolframscript` y xAct instalados. Una cantidad simbólica o una comprobación
+indeterminada debe leerse junto con su motivo; no significa que se haya
+demostrado una identidad o que el perfil sea una solución.

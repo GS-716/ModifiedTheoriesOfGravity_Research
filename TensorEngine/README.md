@@ -1,177 +1,318 @@
 # TensorEngine
 
-Motor tensorial y variacional para teorías covariantes cuyo lagrangiano local
-tiene la forma
+TensorEngine es el núcleo de cálculo simbólico de
+[ModifiedTheoriesOfGravity_Research](../README.md). Recibe un lagrangiano,
+construye su representación tensorial, deriva los resultados variacionales y
+los proyecta sobre un ansatz opcional. La interfaz principal es Python; los
+notebooks y la consola utilizan el mismo motor.
 
-\[
-L=L(g^{ab},R_{abcd},\phi,\nabla_a\phi).
-\]
+## Alcance matemático
 
-Python será el orquestador del pipeline. El álgebra tensorial abstracta podrá
-delegarse a xAct mediante Wolfram Engine, mientras que SymPy se usará para
-álgebra escalar, componentes, validaciones y como backend alternativo en las
-operaciones que soporte.
+El motor trabaja con
 
-## Estado
+$$
+S=\kappa\int d^D x\,\sqrt{-g}\,
+L(g^{ab},R_{abcd},\phi,u_a),
+\qquad u_a=\nabla_a\phi.
+$$
 
-Las **fases 0 a 14** están definidas. La fase 0 congela el contrato matemático;
-la fase 1 incorpora `ModelSpec` y la representación intermedia; la fase 2 añade
-el núcleo tensorial estructural; la fase 3 incorpora cálculo diferencial
-covariante formal y operadores geométricos; la fase 4 incorpora variaciones
-elementales y los cuatro momentos del lagrangiano; la fase 5 aplica Palatini,
-separa bulk y frontera y construye las ecuaciones de Euler-Lagrange.
-La fase 5 está además validada localmente mediante 19 comprobaciones cruzadas
-con Wolfram Engine, xTensor, xPert y xTras.
-La fase 6 incorpora variaciones por difeomorfismos, corriente de Noether,
-identidad fuera de capa y potencial de carga de Iyer–Wald; sus nueve referencias
-externas también están aprobadas con xAct.
-La fase 7 incorpora ansatz serializables, geometría coordenada de Levi-Civita y
-proyección de las ecuaciones abstractas a componentes mediante SymPy.
-`draft4_circular_ansatz()` conserva ahora el campo estacionario
-`Phi(r,varphi)` genérico. La dependencia en `tau` está excluida también de las
-especializaciones posteriores de este ansatz. La
-[guía de especialización posterior](docs/ansatz-specialization.md) muestra cómo
-imponer `phi=p*varphi` o sustituir soluciones concretas para `f(r)` y `phi` sin
-modificar la derivación covariante.
-La fase 8 agrega todas las verificaciones en un informe versionado con estados
-`success`, `partial` y `failed`, y admite evidencia externa xAct/xCoba.
-La fase 9 cierra el pipeline con paquetes de corrida reconstruibles, identidad
-por contenido, manifiestos SHA-256 y exportación determinista a JSON y LaTeX.
-La fase 10 incorpora la ejecución integral mediante una API única, configuración
-de ramas, eventos de progreso, archivos JSON y una interfaz de línea de comandos.
-La fase 11 liga la evidencia Wolfram/xAct al fingerprint del modelo y del cálculo,
-y valida ocho residuales algebraicos genéricos transportados desde la IR.
-La fase 12 amplía esa validación a once identidades —incluidas Bianchi,
-descomposición de la corriente e identidad diferencial de Noether— y permite
-adjudicar resultados internos indeterminados con evidencia xAct explícita,
-unánime y ligada al mismo cálculo.
-La fase 13 incorpora autoría mediante invariantes de alto nivel, un catálogo de
-cinco familias de lagrangianos y campañas que ejecutan y comparan varios modelos
-bajo una configuración común sin perder los casos válidos cuando otro falla.
-La fase 14 añade un frontend declarativo seguro: expresiones textuales en
-`R`, `X`, `phi`, parámetros y funciones declaradas se compilan a la misma IR sin
-usar `eval`, conservando un fingerprint de la fuente dentro del modelo.
+La geometría utiliza conexión de Levi-Civita, firma mayormente positiva y un
+único escalar real. Admite dependencia algebraica en Riemann, métricas, el campo
+y su primer gradiente. Esto incluye Einstein-Hilbert, extensiones de tipo
+$f(R)$, invariantes cuadráticos, acoplamientos escalares no mínimos y
+truncamientos EQT compatibles con este dominio.
 
-El frontend también reconoce `RicciUU`, `RicciSq`, `RiemannSq` y contracciones
-tensoriales genéricas. Los dos invariantes cuadráticos se expanden a Riemann,
-métricas e índices dentro de la IR existente; no activan identidades especiales
-dependientes de la dimensión.
-El [registro extensible y la guía de autoría](docs/frontend-invariants.md) explican
-cómo introducir un lagrangiano, añadir invariantes y usar la API avanzada sin
-cambiar el backend variacional.
+La dimensión puede ser simbólica en la IR abstracta; para proyectar se necesita
+un entero $D\geq2$ que coincida con la carta. No están incluidos como argumentos
+del lagrangiano $\nabla R$, $\nabla\nabla\phi$, una conexión independiente ni
+campos dinámicos adicionales. Las derivadas de orden superior que surjan al
+variar un lagrangiano permitido sí forman parte del resultado formal.
 
-Documentos normativos:
+## Arquitectura y responsabilidades
 
-- [`docs/phase-0/01_SCOPE.md`](docs/phase-0/01_SCOPE.md): dominio matemático y exclusiones.
-- [`docs/phase-0/02_CONVENTIONS.md`](docs/phase-0/02_CONVENTIONS.md): signos, índices y variaciones.
-- [`docs/phase-0/03_OUTPUT_CONTRACT.md`](docs/phase-0/03_OUTPUT_CONTRACT.md): resultados de una corrida.
-- [`docs/phase-0/04_ACCEPTANCE_CRITERIA.md`](docs/phase-0/04_ACCEPTANCE_CRITERIA.md): condiciones para cerrar la fase.
-- [`docs/phase-1/01_MODEL_SPEC.md`](docs/phase-1/01_MODEL_SPEC.md): entrada canónica de modelos.
-- [`docs/phase-1/02_INTERMEDIATE_REPRESENTATION.md`](docs/phase-1/02_INTERMEDIATE_REPRESENTATION.md): lenguaje tensorial común.
-- [`docs/phase-1/03_STAGE_CONTRACTS.md`](docs/phase-1/03_STAGE_CONTRACTS.md): topología y resultados de etapas.
-- [`docs/phase-1/04_ACCEPTANCE_CRITERIA.md`](docs/phase-1/04_ACCEPTANCE_CRITERIA.md): cierre verificable de fase 1.
-- [`docs/phase-2/01_CORE_OPERATIONS.md`](docs/phase-2/01_CORE_OPERATIONS.md): operaciones tensoriales estructurales.
-- [`docs/phase-2/02_CANONICALIZATION.md`](docs/phase-2/02_CANONICALIZATION.md): normalización y simetrías.
-- [`docs/phase-2/03_BACKEND_CONTRACT.md`](docs/phase-2/03_BACKEND_CONTRACT.md): interfaz y capacidades de backends.
-- [`docs/phase-2/04_ACCEPTANCE_CRITERIA.md`](docs/phase-2/04_ACCEPTANCE_CRITERIA.md): cierre verificable de fase 2.
-- [`docs/phase-3/01_COVARIANT_CALCULUS.md`](docs/phase-3/01_COVARIANT_CALCULUS.md): reglas de derivación covariante.
-- [`docs/phase-3/02_DIFFERENTIAL_OPERATORS.md`](docs/phase-3/02_DIFFERENTIAL_OPERATORS.md): operadores e identidades.
-- [`docs/phase-3/03_DIFFERENTIAL_BACKEND.md`](docs/phase-3/03_DIFFERENTIAL_BACKEND.md): integración con backends.
-- [`docs/phase-3/04_ACCEPTANCE_CRITERIA.md`](docs/phase-3/04_ACCEPTANCE_CRITERIA.md): cierre verificable de fase 3.
-- [`docs/phase-4/01_ELEMENTARY_VARIATIONS.md`](docs/phase-4/01_ELEMENTARY_VARIATIONS.md): reglas de variación elemental.
-- [`docs/phase-4/02_LAGRANGIAN_MOMENTA.md`](docs/phase-4/02_LAGRANGIAN_MOMENTA.md): derivadas parciales y proyecciones.
-- [`docs/phase-4/03_VARIATIONAL_BACKEND.md`](docs/phase-4/03_VARIATIONAL_BACKEND.md): regla de cadena e integración de backend.
-- [`docs/phase-4/04_ACCEPTANCE_CRITERIA.md`](docs/phase-4/04_ACCEPTANCE_CRITERIA.md): cierre verificable de fase 4.
-- [`docs/phase-5/01_PALATINI.md`](docs/phase-5/01_PALATINI.md): variación geométrica de conexión y curvatura.
-- [`docs/phase-5/02_EULER_LAGRANGE.md`](docs/phase-5/02_EULER_LAGRANGE.md): ecuaciones de campo universales.
-- [`docs/phase-5/03_BOUNDARY_AND_WOLFRAM.md`](docs/phase-5/03_BOUNDARY_AND_WOLFRAM.md): potencial de frontera y puente xAct.
-- [`docs/phase-5/04_ACCEPTANCE_CRITERIA.md`](docs/phase-5/04_ACCEPTANCE_CRITERIA.md): cierre verificable de fase 5.
-- [`docs/phase-6/01_DIFFEO_VARIATIONS.md`](docs/phase-6/01_DIFFEO_VARIATIONS.md): variaciones generadas por difeomorfismos.
-- [`docs/phase-6/02_NOETHER_CURRENT.md`](docs/phase-6/02_NOETHER_CURRENT.md): corriente, restricción e identidad fuera de capa.
-- [`docs/phase-6/03_WALD_CHARGE_AND_WOLFRAM.md`](docs/phase-6/03_WALD_CHARGE_AND_WOLFRAM.md): carga de Wald y validación xAct.
-- [`docs/phase-6/04_ACCEPTANCE_CRITERIA.md`](docs/phase-6/04_ACCEPTANCE_CRITERIA.md): cierre verificable de fase 6.
-- [`docs/phase-7/01_GEOMETRY_ANSATZ.md`](docs/phase-7/01_GEOMETRY_ANSATZ.md): contrato reutilizable de carta y ansatz.
-- [`docs/phase-7/02_COORDINATE_GEOMETRY.md`](docs/phase-7/02_COORDINATE_GEOMETRY.md): geometría de Levi-Civita en componentes.
-- [`docs/phase-7/03_COMPONENT_PROJECTION_AND_WOLFRAM.md`](docs/phase-7/03_COMPONENT_PROJECTION_AND_WOLFRAM.md): proyección IR y validación xCoba.
-- [`docs/phase-7/04_ACCEPTANCE_CRITERIA.md`](docs/phase-7/04_ACCEPTANCE_CRITERIA.md): cierre verificable de fase 7.
-- [`docs/phase-8/01_VERIFICATION_MATRIX.md`](docs/phase-8/01_VERIFICATION_MATRIX.md): matriz integral de controles.
-- [`docs/phase-8/02_REPORT_AND_STATUS_POLICY.md`](docs/phase-8/02_REPORT_AND_STATUS_POLICY.md): contrato y estados del informe.
-- [`docs/phase-8/03_EXTERNAL_EVIDENCE.md`](docs/phase-8/03_EXTERNAL_EVIDENCE.md): integración segura de xAct/xCoba.
-- [`docs/phase-8/04_ACCEPTANCE_CRITERIA.md`](docs/phase-8/04_ACCEPTANCE_CRITERIA.md): cierre verificable de fase 8.
-- [`docs/phase-9/01_RUN_PACKAGE_AND_ID.md`](docs/phase-9/01_RUN_PACKAGE_AND_ID.md): paquete reconstruible e identidad por contenido.
-- [`docs/phase-9/02_MANIFEST_AND_INTEGRITY.md`](docs/phase-9/02_MANIFEST_AND_INTEGRITY.md): manifiesto, hashes y escritura atómica.
-- [`docs/phase-9/03_JSON_AND_LATEX.md`](docs/phase-9/03_JSON_AND_LATEX.md): fuente JSON y vista de presentación.
-- [`docs/phase-9/04_ACCEPTANCE_CRITERIA.md`](docs/phase-9/04_ACCEPTANCE_CRITERIA.md): cierre verificable de fase 9.
-- [`docs/phase-10/01_END_TO_END_ENGINE.md`](docs/phase-10/01_END_TO_END_ENGINE.md): ejecución integral y normalización.
-- [`docs/phase-10/02_CONFIGURATION_AND_EVENTS.md`](docs/phase-10/02_CONFIGURATION_AND_EVENTS.md): opciones, estado y observabilidad.
-- [`docs/phase-10/03_CLI_AND_FILES.md`](docs/phase-10/03_CLI_AND_FILES.md): entrada JSON e interfaz de comandos.
-- [`docs/phase-10/04_ACCEPTANCE_CRITERIA.md`](docs/phase-10/04_ACCEPTANCE_CRITERIA.md): cierre verificable de fase 10.
-- [`docs/phase-11/01_BOUND_EVIDENCE.md`](docs/phase-11/01_BOUND_EVIDENCE.md): fingerprints y evidencia ligada.
-- [`docs/phase-11/02_IR_TO_XACT.md`](docs/phase-11/02_IR_TO_XACT.md): transporte seguro de la IR.
-- [`docs/phase-11/03_GENERIC_CHECKS_AND_LIMITS.md`](docs/phase-11/03_GENERIC_CHECKS_AND_LIMITS.md): controles genéricos y límites diferenciales.
-- [`docs/phase-11/04_ORCHESTRATION_AND_ACCEPTANCE.md`](docs/phase-11/04_ORCHESTRATION_AND_ACCEPTANCE.md): integración y cierre de fase 11.
-- [`docs/phase-12/01_DIFFERENTIAL_STRATEGIES.md`](docs/phase-12/01_DIFFERENTIAL_STRATEGIES.md): estrategias algebraica, Bianchi y diferencial.
-- [`docs/phase-12/02_ADJUDICATION_POLICY.md`](docs/phase-12/02_ADJUDICATION_POLICY.md): política conservadora de adjudicación.
-- [`docs/phase-12/03_PROVENANCE_AND_REPORTING.md`](docs/phase-12/03_PROVENANCE_AND_REPORTING.md): trazabilidad en reportes y manifiestos.
-- [`docs/phase-12/04_ACCEPTANCE_CRITERIA.md`](docs/phase-12/04_ACCEPTANCE_CRITERIA.md): cierre verificable de fase 12.
-- [`docs/phase-13/01_AUTHORING_AND_CATALOG.md`](docs/phase-13/01_AUTHORING_AND_CATALOG.md): invariantes y modelos incorporados.
-- [`docs/phase-13/02_CAMPAIGN_CONTRACT.md`](docs/phase-13/02_CAMPAIGN_CONTRACT.md): ejecución uniforme y aislamiento.
-- [`docs/phase-13/03_CLI_AND_REPRODUCIBILITY.md`](docs/phase-13/03_CLI_AND_REPRODUCIBILITY.md): flujo de consola y artefactos.
-- [`docs/phase-13/04_ACCEPTANCE_CRITERIA.md`](docs/phase-13/04_ACCEPTANCE_CRITERIA.md): cierre verificable de fase 13.
-- [`docs/phase-14/01_SOURCE_GRAMMAR.md`](docs/phase-14/01_SOURCE_GRAMMAR.md): gramática declarativa.
-- [`docs/phase-14/02_SECURITY_AND_DIAGNOSTICS.md`](docs/phase-14/02_SECURITY_AND_DIAGNOSTICS.md): política de seguridad y errores.
-- [`docs/phase-14/03_COMPILATION_AND_PROVENANCE.md`](docs/phase-14/03_COMPILATION_AND_PROVENANCE.md): compilación, CLI y trazabilidad.
-- [`docs/phase-14/04_ACCEPTANCE_CRITERIA.md`](docs/phase-14/04_ACCEPTANCE_CRITERIA.md): cierre verificable de fase 14.
+| Capa | Archivos principales en `src/tensor_engine/` | Responsabilidad |
+|---|---|---|
+| Interfaz de usuario | `source.py`, `cli.py`; carpeta `notebooks/` | Declarar modelos y ejecutar corridas |
+| Autoría e invariantes | `builders.py`, `invariants.py`, `model.py` | Resolver alias, construir contracciones y validar parámetros, funciones y dimensión |
+| Representación intermedia (IR) | `ir.py`, `serialization.py` | Conservar expresiones tensoriales inmutables y serializables |
+| Álgebra tensorial | `indices.py`, `canonical.py`, `transform.py`, `delta.py`, `differential.py` | Gestionar índices, simetrías, derivadas y contracciones seguras |
+| Backend variacional | `backends/`, `variational.py`, `palatini.py`, `euler.py` | Obtener momentos, variación, ecuaciones y potencial de frontera |
+| Noether y Wald | `noether.py` | Construir corrientes, identidades y potencial de carga cuando está habilitado |
+| Geometría y componentes | `components.py` | Construir la geometría coordenada y evaluar la IR con SymPy |
+| Cantidades y vistas | `derived.py` | Organizar resultados abstractos, proyectados y especializados |
+| Verificación y puente externo | `verification.py`, `wolfram_bridge.py`; carpeta `wolfram/` | Evaluar controles y asociar evidencia xAct al modelo y cálculo exactos |
+| Presentación y exportación | `presentation.py`, `exporting.py` | Crear vistas legibles, JSON, manifiestos y LaTeX/PDF |
+| Orquestación y campañas | `engine.py`, `stages.py`, `contracts.py`, `catalog.py`, `campaign.py` | Coordinar operaciones, estados, tiempos y conjuntos de modelos |
 
-## Ejecución integral
+El backend estructural de Python realiza la derivación abstracta por defecto.
+SymPy resuelve el álgebra escalar y las componentes. Wolfram Engine/xAct
+interviene como validación externa solicitada explícitamente; no se necesita
+Mathematica para cada operación del pipeline Python.
 
-```python
-from tensor_engine import TensorEngine
+~~~mermaid
+flowchart TD
+    U["Notebook, API Python o CLI"] --> S["LagrangianSourceSpec: texto y declaraciones"]
+    S --> F["Frontend seguro + InvariantRegistry"]
+    B["ModelBuilder: API tensorial avanzada"] --> M["ModelSpec + IR canónica"]
+    F --> M
+    M --> O["TensorEngine: validar, normalizar y orquestar"]
+    O --> A["Álgebra de índices y contracción de deltas"]
+    A --> V["Backend variacional: M, P, J y F_phi"]
+    V --> E["Palatini e integración por partes: E_ab, E_phi y frontera"]
+    E --> N["Noether y Wald opcionales"]
+    V --> D["Cantidades derivadas y run.abstract"]
+    E --> D
+    G["GeometryAnsatz: carta, métrica y escalar"] --> C["Backend de componentes SymPy"]
+    D --> C
+    C --> P["run.projected"]
+    P --> SP["Especialización opcional del ansatz"]
+    I["AnsatzSpecialization: funciones y perfil del usuario"] --> SP
+    D --> SP
+    SP --> Z["run.specialized"]
+    D --> Q["Verificación interna y residuales"]
+    N --> Q
+    P --> Q
+    Q --> W["Puente JSON + wolframscript local"]
+    W --> X["Wolfram Engine / xAct, si se solicita"]
+    X --> EV["Evidencia ligada por fingerprints"]
+    D --> OUT["RunPackage y exportación"]
+    P --> OUT
+    Z --> OUT
+    Q --> OUT
+    EV --> OUT
+    OUT --> JSON["results.json + verification.json + manifiesto"]
+    OUT --> DISP["DisplayPolicy + presentation.json"]
+    DISP --> TEX["report.tex y PDF si hay compilador"]
+~~~
 
-run = TensorEngine().run(model, output_root="outputs/runs")
-print(run.status, run.package.run_id)
-```
+El diagrama muestra responsabilidades y dependencias de datos. La representación
+de presentación no se utiliza como entrada de las ecuaciones ni de la validación.
 
-Desde una consola, después de instalar el proyecto:
+## Instalación y primera ejecución
 
-```powershell
-tensor-engine validate model.json
-tensor-engine run model.json --output-root outputs/runs
-tensor-engine catalog list
-tensor-engine campaign campaign.json --output-root outputs/campaigns --wolfram
+Requisitos: Python 3.11 o posterior. SymPy es una dependencia del paquete;
+Jupyter es necesario si se trabaja con notebooks. Desde esta carpeta:
+
+~~~powershell
+python -m venv .venv
+.\.venv\Scripts\python.exe -m pip install -e ".[dev]" jupyterlab ipykernel
+.\.venv\Scripts\python.exe -m jupyter lab
+~~~
+
+Para trabajar sin notebooks basta instalar `python -m pip install -e .` en el
+entorno elegido. Selecciona ese mismo intérprete en tu editor.
+
+Este ejemplo declara el Caso-2 con la geometría genérica del Draft 4:
+
+~~~python
+from tensor_engine import (
+    DimensionSpec, LagrangianSourceSpec, ParameterSpec,
+    TensorEngine, draft4_circular_ansatz,
+)
+
+source = LagrangianSourceSpec(
+    name="eqt_case2",
+    expression="R + 2/ell**2 + ell**2*beta0*(3*RicciUU - X*R)",
+    dimension=DimensionSpec(3),
+    parameters=(
+        ParameterSpec("ell", assumptions=("positive",)),
+        ParameterSpec("beta0"),
+    ),
+)
+model = source.compile()
+run = TensorEngine().run(
+    model,
+    ansatz=draft4_circular_ansatz(),
+    output_root="outputs/runs",
+)
+print(run.status.value)
+print(run.export_bundle.output_directory)
+~~~
+
+Introduce el escalar `L` sin el elemento de volumen. `normalization` permite
+declarar un prefactor global por separado; el motor lo incorpora a la
+normalización del cálculo. Para un cálculo exclusivamente abstracto, omite
+`ansatz`. La carpeta de salida se resuelve respecto del directorio de ejecución.
+
+## Escribir lagrangianos
+
+| Alias textual | Significado | Constructor equivalente |
+|---|---|---|
+| `R` | Escalar de Ricci | `ModelBuilder.ricci_scalar()` |
+| `X` | $g^{ab}u_a u_b$, sin factor $-1/2$ | `ModelBuilder.kinetic_scalar()` |
+| `RicciUU` | $R_{ab}u^a u^b$ | `ModelBuilder.ricci_uu()` |
+| `RicciSq` | $R_{ab}R^{ab}$ | `ModelBuilder.ricci_squared()` |
+| `RiemannSq` | $R_{abcd}R^{abcd}$ | `ModelBuilder.riemann_squared()` |
+| `phi` | Campo escalar | `ModelBuilder.phi` |
+
+Los alias se expanden a operaciones sobre la misma IR; no constituyen una lista
+cerrada de teorías. Declara cada constante con `ParameterSpec` y cada función
+simbólica con `FunctionSpec`. Por ejemplo:
+
+~~~python
+from tensor_engine import FunctionSpec
+
+scalar_source = LagrangianSourceSpec(
+    name="scalar_tensor",
+    expression="F(phi)*R + K(phi, X) - V(phi)",
+    dimension=DimensionSpec(3),
+    functions=(FunctionSpec("F", 1), FunctionSpec("K", 2), FunctionSpec("V", 1)),
+)
+scalar_model = scalar_source.compile()
+~~~
+
+Esta declaración es válida en el frontend y en la IR. Su evaluación completa
+en componentes depende del soporte del backend; véanse las limitaciones abajo.
+Usa `**` para potencias y fracciones exactas como `1/2`. El frontend no ejecuta
+código Python contenido en el texto.
+
+Para contracciones no cubiertas por alias existen `contract`, `Riemann`,
+`metric` y `gradient`, además de la API `ModelBuilder`. El registro admite
+nuevos invariantes construidos con esas operaciones. La
+[guía de autoría](docs/frontend-invariants.md) describe ambas vías.
+
+## Ansatz y especialización
+
+`draft4_circular_ansatz()` proporciona, en tres dimensiones,
+
+$$
+ds^2=-f(r)d\tau^2+\frac{dr^2}{f(r)}+r^2d\varphi^2,
+\qquad \phi=\Phi(r,\varphi).
+$$
+
+$f(r)$ es arbitraria y el campo es estacionario. Los perfiles que se impongan
+sobre este ansatz no deben reintroducir dependencia en $\tau$.
+`spatially_flat_flrw_ansatz()` proporciona FLRW plano en cuatro dimensiones,
+con $a(t)$ y $\phi(t)$. Una geometría propia se declara mediante
+`CoordinateChart` y `GeometryAnsatz`.
+
+Para conservar en una misma corrida la vista genérica y una especialización
+posterior, utiliza `AnsatzSpecialization`:
+
+~~~python
+from tensor_engine import AnsatzSpecialization, Scalar
+
+geometry = draft4_circular_ansatz()
+_, r, varphi = geometry.chart.coordinates
+ell, p = Scalar("ell"), Scalar("p")
+
+specialization = AnsatzSpecialization(
+    metric_functions={"f": 1 + r**2 / ell**2},
+    scalar_field=p * varphi,
+)
+specialized_run = TensorEngine().run(
+    model,
+    ansatz=geometry,
+    specialization=specialization,
+    output_root="outputs/specialized",
+)
+~~~
+
+Aquí `p` pertenece al perfil coordenado; no aparece en el lagrangiano abstracto
+del ejemplo. Los valores propuestos son entradas editables, no una afirmación
+de que resuelvan las ecuaciones de ese modelo. Para contrastar una solución,
+inspecciona los residuales de `run.specialized`. La
+[guía de especialización](docs/ansatz-specialization.md) desarrolla este flujo.
+
+## Resultados y archivos
+
+Los cuatro momentos se definen tratando los argumentos del lagrangiano como
+independientes durante la diferenciación parcial:
+
+$$
+M_{ab}=\frac{\partial L}{\partial g^{ab}},\qquad
+P^{abcd}=\frac{\partial L}{\partial R_{abcd}},\qquad
+J^a=\frac{\partial L}{\partial u_a},\qquad
+F_\phi=\frac{\partial L}{\partial\phi}.
+$$
+
+La variación geométrica restablece $R_{abcd}=R_{abcd}[g]$ y
+$u_a=\nabla_a\phi$ para construir $E_{ab}$ y $E_\phi$, incluyendo sus términos
+de derivadas y frontera. Si se declara una normalización global, los resultados
+de la corrida corresponden al lagrangiano normalizado por el motor.
+
+La corrida organiza $L$, $M_{ab}$, $P^{abcd}$, $J^a$, $F_\phi$, $E_{ab}$,
+$E_\phi$, el escalar de Ricci, Ricci al cuadrado, Riemann, Riemann al cuadrado,
+$\nabla P$ y $\nabla\nabla P$. También conserva la contribución
+de $\nabla\nabla P$ a la ecuación métrica, la variación y los términos de frontera.
+
+| Acceso Python | Uso |
+|---|---|
+| `run.abstract` | Expresiones tensoriales anteriores a sustituir el ansatz |
+| `run.projected` | Componentes en la geometría genérica, con estado y motivo por cantidad |
+| `run.specialized` | Vista posterior, presente si se solicita una especialización |
+| `run.derived` | Cantidades intermedias y término métrico de derivadas de $P$ |
+| `run.package` | Modelo, resultados, verificaciones y procedencia de la corrida |
+| `run.stages` | Estado y duración de las operaciones |
+| `run.export_bundle` | Ubicación y diagnóstico de los archivos exportados |
+
+El bundle incluye `results.json`, `verification.json`, `manifest.json`,
+`presentation.json`, `delta_contractions.json` y `report.tex`. Produce
+`report.pdf` cuando encuentra un compilador LaTeX funcional, como `pdflatex` o
+`xelatex`. La falta de compilador no impide conservar el JSON y el archivo TeX.
+
+La presentación se organiza en resultados abstractos y proyectados, y añade
+una sección especializada cuando corresponde. Los extras para $\Phi(r)$ y
+$\Phi(\varphi)$ muestran solo $L$ y $P^{abcd}$ a partir de la proyección
+estacionaria; se guardan en `presentation.json` sin reemplazar los resultados
+generales. `DisplayPolicy` controla la legibilidad del reporte y mantiene
+separada la expresión canónica de su presentación.
+
+## Verificación y límites de interpretación
+
+Para activar la validación externa, instala y activa Wolfram Engine, deja
+`wolframscript` accesible y coloca xAct en una ruta de paquetes del kernel.
+Python inicia el kernel local e intercambia JSON; no requiere una API web ni
+ejecutar manualmente un notebook de Mathematica.
+
+~~~python
+from tensor_engine import WolframXActBridge
+
+bridge = WolframXActBridge(timeout_seconds=300)
+print(bridge.ping())
+validated_run = TensorEngine().run(model, wolfram_bridge=bridge)
+~~~
+
+La evidencia xAct se acepta para el modelo y cálculo cuyos fingerprints
+coincidan. Los controles distinguen `passed`, `failed` y `undetermined`.
+Una proyección completada no implica una validación xAct independiente de cada
+componente, y el estado global no sustituye la inspección de cada cantidad.
+
+Limitaciones que deben tenerse presentes:
+
+- El backend puede conservar cantidades simbólicas por complejidad o por nodos
+  no evaluables. Por ejemplo, algunas funciones como `K(phi,X)` con contracciones
+  tensoriales dentro de sus argumentos no tienen proyección directa disponible.
+- Los supuestos se registran, pero cada backend aplica únicamente los que sabe
+  interpretar; no debe inferirse una cancelación o identidad no demostrada.
+- No se aplican automáticamente identidades especiales de tres dimensiones.
+- Se calcula el potencial de frontera variacional, no todos los términos
+  adicionales que requiere un problema de contorno particular.
+- El motor deriva y evalúa expresiones; no es un solucionador general de las
+  ecuaciones de campo.
+
+## Carpetas, consola y documentación
+
+- [`notebooks/`](notebooks/README.md): uso interactivo y ejemplos.
+- [`src/tensor_engine/`](src/tensor_engine/): implementación del motor.
+- [`wolfram/`](wolfram/README.md): puente y paquetes de validación.
+- [`tests/`](tests/README.md): pruebas matemáticas, serialización e integración.
+- [`docs/`](docs/): contratos matemáticos, arquitectura y guías.
+- [`scripts/`](scripts/): utilidades reproducibles y referencias.
+- `outputs/` y `output/`: bundles y reportes generados.
+
+Después de instalar el paquete, también puedes usar:
+
+~~~powershell
 tensor-engine compile lagrangian-source.json model.json
-tensor-engine run-source lagrangian-source.json --wolfram
-```
+tensor-engine run-source lagrangian-source.json --output-root outputs/runs
+tensor-engine run model.json --ansatz ansatz.json --output-root outputs/runs --wolfram
+tensor-engine catalog list
+tensor-engine campaign campaign.json --output-root outputs/campaigns
+~~~
 
-## Estructura prevista
-
-```text
-TensorEngine/
-├── docs/                  Especificación matemática y arquitectura
-├── notebooks/             Interfaz de investigación y ejemplos
-├── src/tensor_engine/     Orquestador y backend Python/SymPy
-├── wolfram/               Paquetes Wolfram Language/xAct
-├── tests/                 Pruebas matemáticas y de regresión
-└── outputs/               Resultados generados; no son fuente del motor
-```
-
-## Principios del proyecto
-
-Los reportes usan una [política de presentación configurable](docs/display-policy.md)
-que simplifica y mejora la tipografía sin cambiar la IR canónica, el JSON o la
-evidencia xAct. La auditoría de esa vista se guarda en presentation.json. Tras
-los resultados existentes, las mismas dos secciones incluyen una descomposición
-compacta y expandida de `E_ab`, `E_phi` y `P^{abcd}`, construida exclusivamente
-a partir de cantidades ya calculadas.
-
-Las [contracciones seguras de Kronecker](docs/delta-contractions.md) se aplican
-en la IR canónica, también sobre bloques con derivadas, antes de xAct y de la
-presentación. Su historial está disponible en run.delta_contractions y en el
-archivo auditado delta_contractions.json; el notebook no necesita reglas propias.
-
-1. Una convención matemática tiene una única definición normativa.
-2. Cada resultado conserva trazabilidad hasta el lagrangiano de entrada.
-3. Los backends deben implementar el mismo contrato, no fórmulas incompatibles.
-4. Las identidades especiales de un modelo se declaran; no se presuponen.
-5. Ninguna simplificación no demostrada puede convertirse silenciosamente en cero.
-6. Los notebooks consumen el motor, pero no contienen su lógica esencial.
+Consulta el [alcance matemático](docs/phase-0/01_SCOPE.md), las
+[convenciones](docs/phase-0/02_CONVENTIONS.md), la
+[guía del frontend](docs/frontend-invariants.md), la
+[política de presentación](docs/display-policy.md) y las
+[contracciones de Kronecker](docs/delta-contractions.md).
