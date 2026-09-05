@@ -121,3 +121,223 @@ git remote -v
 
 El nombre del repositorio no obliga a renombrar el paquete Python `tensor_engine`
 ni la carpeta local de trabajo.
+
+## Guía de instalación y ejecución en una PC nueva
+
+Esta guía describe una instalación reproducible de **ModifiedTheoriesOfGravity_Research**
+y de **TensorEngine** en Windows. Las versiones indicadas son las comprobadas en
+la instalación de desarrollo actual; conviene mantenerlas fijas mientras se
+reproduce un cálculo publicado.
+
+### Versiones de referencia
+
+| Componente | Versión comprobada | Obligatorio | Uso |
+|---|---:|:---:|---|
+| Windows x64 | Entorno actual de Windows x64 | Sí | Sistema operativo de referencia |
+| Git | 2.51.2.windows.1 | Sí | Clonar y actualizar el repositorio |
+| Python | 3.12.6 | Sí | Frontend, IR, backends y reportes |
+| pip | 25.0 | Sí | Instalar el paquete y sus dependencias |
+| SymPy | 1.14.0 | Sí | Álgebra simbólica y operaciones tensoriales |
+| pytest | 9.1.1 | Para pruebas | Suite automatizada |
+| Wolfram Engine | 15.0.0 | Opcional, recomendado | Validación externa |
+| wolframscript | 1.14.0 | Si se usa Wolfram | Ejecutar Wolfram Engine desde PowerShell/Python |
+| xAct/xTensor | 1.3.0 | Si se usa Wolfram | Validación tensorial en Wolfram |
+| xAct/xPert | 1.0.6 | Opcional | Perturbaciones, si el cálculo las requiere |
+| xAct/xTras | 1.4.2 | Opcional | Herramientas adicionales de simplificación |
+| xAct/xCoba | No instalado en la referencia | Opcional | Componentes en Wolfram; no es requisito del backend Python |
+| Strawberry Perl | 5.42.2 | Para xAct en Windows | Intérprete usado por algunas herramientas de xAct |
+| MiKTeX | 26.5 | Para PDF | Compilar los reportes LaTeX |
+
+Las versiones futuras pueden funcionar, pero deben tratarse como una nueva
+configuración y verificarse con las pruebas antes de usarla para comparar
+resultados. Las huellas matemáticas y los reportes deben conservarse junto con
+la versión del entorno.
+
+### 1. Instalar las herramientas del sistema
+
+Instala Git, Python 3.12.6 x64, Strawberry Perl 5.42.2 x64 y MiKTeX 26.5.
+Durante la instalación de Python habilita el lanzador `py` y, si es posible,
+la opción de añadir Python al `PATH`. En MiKTeX habilita la instalación
+automática de paquetes bajo demanda.
+
+Comprueba las versiones desde PowerShell:
+
+~~~powershell
+git --version
+py -3.12 --version
+perl --version
+pdflatex --version
+~~~
+
+Si `perl` o `pdflatex` no se reconocen, añade sus directorios `bin` al `PATH`.
+En la instalación de referencia son, respectivamente, `C:\Strawberry\perl\bin`
+y `D:\MiKTeX\miktex\bin\x64`.
+
+### 2. Clonar el repositorio
+
+~~~powershell
+git clone https://github.com/GS-716/ModifiedTheoriesOfGravity_Research.git
+cd ModifiedTheoriesOfGravity_Research
+~~~
+
+Si ya existe una copia local del repositorio renombrado:
+
+~~~powershell
+git remote set-url origin https://github.com/GS-716/ModifiedTheoriesOfGravity_Research.git
+git fetch origin
+git switch main
+git pull --ff-only origin main
+~~~
+
+### 3. Crear el entorno Python de TensorEngine
+
+TensorEngine se instala como paquete editable para que el notebook, las pruebas
+y los scripts usen el código local del repositorio.
+
+~~~powershell
+cd TensorEngine
+py -3.12 -m venv .venv
+.\.venv\Scripts\Activate.ps1
+python -m pip install --upgrade pip==25.0
+python -m pip install -e ".[dev]"
+~~~
+
+Si PowerShell bloquea la activación del entorno para el usuario actual:
+
+~~~powershell
+Set-ExecutionPolicy -Scope CurrentUser RemoteSigned
+~~~
+
+Verifica el entorno instalado:
+
+~~~powershell
+python --version
+python -m pip --version
+python -c "import sympy; print(sympy.__version__)"
+python -c "import tensor_engine; print(tensor_engine.__file__)"
+~~~
+
+Jupyter es opcional para ejecutar los notebooks. Si se desea utilizarlo:
+
+~~~powershell
+python -m pip install jupyterlab ipykernel
+python -m ipykernel install --user --name tensor-engine --display-name "Python 3.12 (TensorEngine)"
+jupyter lab
+~~~
+
+El motor también puede ejecutarse desde scripts Python, por lo que Jupyter no
+es necesario para los cálculos ni para las pruebas.
+
+### 4. Instalar y configurar Wolfram Engine
+
+Descarga e instala **Wolfram Engine 15.0.0 para Windows x64** desde Wolfram
+Research y activa la licencia correspondiente. Comprueba que el ejecutable
+esté disponible:
+
+~~~powershell
+wolframscript -version
+~~~
+
+Si `wolframscript` no está en el `PATH`, usa la ruta completa del ejecutable o
+añade al `PATH` el directorio de Wolfram Engine que contiene `wolframscript.exe`.
+La instalación de referencia responde como `WolframScript 1.14.0` y utiliza
+Wolfram Engine `15.0.0`.
+
+### 5. Instalar xAct y comprobarlo
+
+Descarga xAct desde [xact.es](https://xact.es/download/install) y copia la
+carpeta `xAct` dentro de la carpeta `AddOns\\Applications` de Wolfram Engine.
+En la instalación de referencia la ruta es:
+
+~~~text
+C:\Program Files\Wolfram Research\Wolfram Engine\15.0\AddOns\Applications\xAct
+~~~
+
+Comprueba que xTensor pueda cargarse. En PowerShell, conserva las comillas
+simples exteriores para que los backticks de Wolfram lleguen intactos:
+
+~~~powershell
+wolframscript -code 'Needs["xAct`xTensor`"]; Print["xAct cargado correctamente"]' -local
+~~~
+
+TensorEngine utiliza el puente Python para ejecutar una comprobación más
+completa y registrar las versiones detectadas:
+
+~~~powershell
+$env:PYTHONPATH = "src"
+python -c "from tensor_engine import WolframXActBridge; print(WolframXActBridge().ping())"
+~~~
+
+La respuesta de referencia indica `status: success`, Wolfram `15.0.0`,
+`xAct_available: True`, xTensor `1.3.0`, xPert `1.0.6` y xTras `1.4.2`.
+Si xAct no está disponible, TensorEngine conserva los resultados simbólicos y
+marca la validación como no disponible; no convierte esa ausencia en una
+identidad aprobada.
+
+### 6. Ejecutar un cálculo de prueba
+
+Con el entorno virtual activo y dentro de `TensorEngine`, ejecuta primero las
+pruebas:
+
+~~~powershell
+python -m pytest -q
+~~~
+
+Después abre el notebook:
+
+~~~powershell
+jupyter lab notebooks/01_quickstart_tensor_engine.ipynb
+~~~
+
+La interfaz permite declarar el lagrangiano, sus parámetros y la dimensión,
+seleccionar un ansatz como `draft4_circular_ansatz()` o FLRW y solicitar una
+especialización posterior de `f(r)` y `phi`. El flujo conserva separadas la
+derivación abstracta, la proyección, la especialización, la validación xAct y
+la exportación.
+
+Un uso mínimo desde Python tiene esta forma:
+
+~~~python
+from tensor_engine import (
+    DimensionSpec,
+    LagrangianSourceSpec,
+    TensorEngine,
+    draft4_circular_ansatz,
+)
+
+source = LagrangianSourceSpec(
+    name="einstein_hilbert",
+    expression="R",
+    dimension=DimensionSpec(3),
+)
+run = TensorEngine().run(
+    source.compile(),
+    ansatz=draft4_circular_ansatz(),
+    output_root="outputs",
+)
+print(run.summary_data())
+~~~
+
+Los resultados se guardan bajo el directorio de salida de la corrida. Allí se
+encuentran `results.json`, el manifiesto, `presentation.json`, el `.tex` y,
+cuando MiKTeX está disponible, el PDF. `run.abstract` conserva las expresiones
+covariantes y `run.projected` las expresiones proyectadas; una limitación de
+componentes no impide conservar la forma abstracta.
+
+### 7. Lista de comprobación para otra PC
+
+Antes de confiar en una corrida, confirma lo siguiente:
+
+- `python --version` devuelve 3.12.6 y el entorno virtual está activo.
+- SymPy devuelve 1.14.0 y `python -m pytest -q` termina correctamente.
+- `wolframscript -version` devuelve 1.14.0 y Engine responde como 15.0.0.
+- `Needs["xAct`xTensor`"]` se ejecuta sin error.
+- El puente Python reporta `xAct_available: True` si se espera validación xAct.
+- `pdflatex --version` está disponible si se necesita el PDF.
+- El notebook usa el kernel del entorno `tensor-engine`.
+- La corrida registra versiones, estados de validación y limitaciones en sus
+  artefactos; no se deben comparar únicamente las expresiones del PDF.
+
+Si una actualización cambia el resultado, conserva el reporte anterior,
+registra las nuevas versiones y ejecuta la suite completa antes de aceptar la
+nueva configuración como equivalente.
