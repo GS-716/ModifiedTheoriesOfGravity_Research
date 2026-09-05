@@ -19,6 +19,10 @@ los mismos estados `passed`, `failed` y `undetermined`.
 `verify_phase7` construye el ansatz FLRW como `CTensor` y usa xCoba para
 comprobar conexión, curvatura, Einstein y el laplaciano de un escalar homogéneo.
 
+La resolución formal mediante `Solve`, `Reduce`, `Eliminate` y `DSolve` reside
+en el backend independiente de
+[`FieldEquationsSolver`](../../FieldEquationsSolver/README.md).
+
 `verify_model` recibe residuales IR de una corrida concreta, los traduce mediante
 un decodificador enumerado y ejecuta once controles con tres estrategias:
 canonización algebraica, proyección de Bianchi de Riemann y reducción

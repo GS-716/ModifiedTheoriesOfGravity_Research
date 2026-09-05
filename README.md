@@ -77,7 +77,10 @@ flowchart TD
     E --> H
     F --> H
     G --> H
-    H --> I["Analizar, comparar y documentar los modelos"]
+    H --> J{"¿Resolver las ecuaciones de campo?"}
+    J -- "No" --> I["Analizar, comparar y documentar los modelos"]
+    J -- "Sí" --> K["FieldEquationsSolver: reducir, clasificar y resolver formalmente"]
+    K --> I
 ~~~
 
 El ansatz entra después de la derivación covariante. En el Draft 4 genérico se
@@ -91,12 +94,13 @@ $\phi(t)$.
 | Carpeta | Contenido |
 |---|---|
 | [TensorEngine](TensorEngine/README.md) | Motor tensorial, backends, documentación y pruebas |
-| [TensorEngine/notebooks](TensorEngine/notebooks/README.md) | Interfaz de trabajo y ejemplos editables para ejecutar modelos |
+| [FieldEquationsSolver](FieldEquationsSolver/README.md) | Reducción, clasificación y resolución formal opcional de las ecuaciones de campo |
+| [ResearchWorkflow](ResearchWorkflow/README.md) | Notebook integrado y salidas producidas durante el trabajo interactivo |
 | [Papers](Papers/) | Bibliografía y documentos de referencia, incluido el Draft 4 |
 | [Beamer](Beamer/) | Fuentes LaTeX y material de presentación de la investigación |
 
 Para empezar, consulta la [guía del motor](TensorEngine/README.md) y abre el
-[notebook de pruebas](TensorEngine/notebooks/01_quickstart_tensor_engine.ipynb).
+[flujo de investigación](ResearchWorkflow/01_modified_gravity_workflow.ipynb).
 La salida distingue resultados calculados, simbólicos, no disponibles y
 verificaciones indeterminadas; generar un PDF no equivale a validar toda la
 teoría ni a demostrar que un perfil sea una solución.
@@ -189,17 +193,17 @@ git switch main
 git pull --ff-only origin main
 ~~~
 
-### 3. Crear el entorno Python de TensorEngine
+### 3. Crear el entorno Python del proyecto
 
-TensorEngine se instala como paquete editable para que el notebook, las pruebas
-y los scripts usen el código local del repositorio.
+TensorEngine y FieldEquationsSolver se instalan como paquetes editables para que
+el notebook, las pruebas y los scripts usen el código local del repositorio.
 
 ~~~powershell
-cd TensorEngine
 py -3.12 -m venv .venv
 .\.venv\Scripts\Activate.ps1
 python -m pip install --upgrade pip==25.0
-python -m pip install -e ".[dev]"
+python -m pip install -e ".\TensorEngine[dev]"
+python -m pip install -e ".\FieldEquationsSolver[dev]"
 ~~~
 
 Si PowerShell bloquea la activación del entorno para el usuario actual:
@@ -215,6 +219,7 @@ python --version
 python -m pip --version
 python -c "import sympy; print(sympy.__version__)"
 python -c "import tensor_engine; print(tensor_engine.__file__)"
+python -c "import field_equations_solver; print(field_equations_solver.__file__)"
 ~~~
 
 Jupyter es opcional para ejecutar los notebooks. Si se desea utilizarlo:
@@ -264,7 +269,6 @@ TensorEngine utiliza el puente Python para ejecutar una comprobación más
 completa y registrar las versiones detectadas:
 
 ~~~powershell
-$env:PYTHONPATH = "src"
 python -c "from tensor_engine import WolframXActBridge; print(WolframXActBridge().ping())"
 ~~~
 
@@ -276,17 +280,22 @@ identidad aprobada.
 
 ### 6. Ejecutar un cálculo de prueba
 
-Con el entorno virtual activo y dentro de `TensorEngine`, ejecuta primero las
-pruebas:
+Con el entorno virtual activo y desde la raíz del repositorio, ejecuta primero
+las pruebas de ambos paquetes:
 
 ~~~powershell
+Push-Location TensorEngine
 python -m pytest -q
+Pop-Location
+Push-Location FieldEquationsSolver
+python -m pytest -q
+Pop-Location
 ~~~
 
 Después abre el notebook:
 
 ~~~powershell
-jupyter lab notebooks/01_quickstart_tensor_engine.ipynb
+jupyter lab ResearchWorkflow/01_modified_gravity_workflow.ipynb
 ~~~
 
 La interfaz permite declarar el lagrangiano, sus parámetros y la dimensión,
@@ -318,7 +327,7 @@ run = TensorEngine().run(
 print(run.summary_data())
 ~~~
 
-Los resultados se guardan bajo el directorio de salida de la corrida. Allí se
+Las corridas del notebook se guardan bajo `ResearchWorkflow/outputs/`. Allí se
 encuentran `results.json`, el manifiesto, `presentation.json`, el `.tex` y,
 cuando MiKTeX está disponible, el PDF. `run.abstract` conserva las expresiones
 covariantes y `run.projected` las expresiones proyectadas; una limitación de

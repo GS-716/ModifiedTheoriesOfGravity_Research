@@ -70,6 +70,7 @@ from .presentation import (
     DisplayPolicy,
     ReportPresentation,
     build_presentation,
+    independent_curvature_components,
 )
 from .noether import NoetherWaldResult
 from .variational import LagrangianMomenta
@@ -1256,6 +1257,50 @@ def _append_projected_results(lines: list[str], package: RunPackage, view: Repor
         )
 
 
+def _append_scalar_profiles(lines: list[str], view: ReportPresentation) -> None:
+    if not view.scalar_profiles:
+        return
+    lines.extend((
+        r"\par\medskip Extras: perfiles escalares de una variable, con la misma métrica del ansatz genérico. "
+        r"Se sustituyen únicamente las componentes de $L$ y $P^{abcd}$ ya calculadas; "
+        r"sin validación xAct independiente de estos perfiles. "
+        r"Las componentes completas de estos extras constan en \texttt{presentation.json}.",
+    ))
+    for profile in view.scalar_profiles:
+        lines.extend((
+            r"\Needspace{8\baselineskip}",
+            rf"\subsection*{{Extra: $\phi={display_expr_to_latex(profile.scalar_field)}$}}",
+        ))
+        for key, projection in profile.quantities:
+            label = _REPORT_LABELS[key]
+            if projection.status != "completed":
+                lines.append(rf"${label}$: {_COMPACT_PROJECTION_STATUS[projection.status]}. "
+                             rf"{_latex_text(projection.reason)}\par")
+                continue
+            displayed, independent = (
+                independent_curvature_components(projection)
+                if key == "curvature_momentum" else (projection.components, False)
+            )
+            if not displayed:
+                lines.append(rf"\[{label}=0\]")
+                continue
+            if independent:
+                lines.append(r"Componentes independientes no nulas; "
+                             r"$P^{abcd}=-P^{bacd}=-P^{abdc}=P^{cdab}$.")
+            for position, record in displayed[:6]:
+                component_label = _component_label(label, projection.free_indices, position)
+                if not projection.free_indices:
+                    component_label = label
+                lines.extend((
+                    r"\begin{dmath*}[breakdepth={5}]",
+                    rf"{component_label}={_display_record_latex(view, record)}",
+                    r"\end{dmath*}",
+                ))
+            if len(displayed) > 6:
+                lines.append(rf"Se muestran 6 de {len(displayed)} componentes; "
+                             r"resto en \texttt{presentation.json}.")
+
+
 def _append_specialized_results(
     lines: list[str],
     package: RunPackage,
@@ -1447,6 +1492,7 @@ def latex_report(package: RunPackage, display_policy: DisplayPolicy | None = Non
         lines.extend((r"\end{itemize}", r"\par\smallskip"))
     _append_abstract_results(lines, package, view)
     _append_projected_results(lines, package, view)
+    _append_scalar_profiles(lines, view)
     _append_specialized_results(lines, package, view)
     lines.extend(
         (

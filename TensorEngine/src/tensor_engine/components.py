@@ -649,6 +649,29 @@ class ComponentEvaluation:
         )
 
 
+def specialize_scalar_components(
+    components: ComponentEvaluation,
+    original_field: Function,
+    scalar_field: Expr,
+) -> ComponentEvaluation:
+    """Especializa componentes existentes, incluidas derivadas del campo.
+
+    No vuelve a proyectar ni deriva el lagrangiano. Evalúa la sustitución
+    escalar con los mismos traductores IR/SymPy del backend de componentes.
+    """
+
+    _require_scalar(scalar_field, "El perfil escalar especializado")
+    original = ir_scalar_to_sympy(original_field)
+    replacement = ir_scalar_to_sympy(scalar_field)
+    values = {
+        position: ir_scalar_to_sympy(expression).subs(original, replacement).doit()
+        for position, expression in components.values
+    }
+    return ComponentTensor.from_mapping(
+        components.free_indices, components.dimension, values,
+    ).to_ir()
+
+
 @dataclass(frozen=True, slots=True)
 class CoordinateGeometry:
     """Geometría de Levi-Civita calculada desde un ``GeometryAnsatz``."""

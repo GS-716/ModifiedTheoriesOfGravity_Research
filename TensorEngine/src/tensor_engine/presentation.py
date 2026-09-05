@@ -784,11 +784,89 @@ def _build_compact_decompositions(
 
 
 @dataclass(frozen=True, slots=True)
+class ScalarProfilePresentation:
+    """Extra del reporte; nunca reemplaza las vistas de la corrida."""
+
+    scalar_field: Function
+    quantities: tuple[tuple[str, CompactProjection], ...]
+
+    def to_data(self) -> dict:
+        return {
+            "scalar_field": self.scalar_field.to_data(),
+            "source": "projected_results",
+            "xact_status": "not_independently_validated",
+            "quantities": {key: value.to_data() for key, value in self.quantities},
+        }
+
+
+def _build_scalar_profiles(package: RunPackage, builder: PresentationBuilder) -> tuple[ScalarProfilePresentation, ...]:
+    from .components import ScalarFieldMode, specialize_scalar_components
+
+    projected = package.projected
+    if projected is None or projected.ansatz_geometry is None or package.abstract is None:
+        return ()
+    geometry = projected.ansatz_geometry
+    field = geometry.scalar_field
+    # Only the declared stationary two-variable field admits these two extras.
+    # Do not infer or replace the geometry from an ansatz name.
+    if (geometry.scalar_field_mode is not ScalarFieldMode.GENERIC
+            or not isinstance(field, Function)
+            or field.arguments != (Scalar("r"), Scalar("varphi"))):
+        return ()
+    profiles = []
+    for coordinate in field.arguments:
+        profile = Function(field.name, (coordinate,))
+        quantities = []
+        for key in ("lagrangian", "curvature_momentum"):
+            source = projected.quantity(key)
+            if source.components is None or source.status.value != "completed":
+                result = CompactProjection("symbolic", source.reason or "Proyección base incompleta.")
+            else:
+                try:
+                    specialized = specialize_scalar_components(source.components, field, profile)
+                    indices = package.abstract.record(key).free_indices
+                    axes = tuple(specialized.free_indices.index(index) for index in indices)
+                    result = CompactProjection(
+                        "completed", "Sustitución del perfil en las componentes ya calculadas.",
+                        indices, specialized.dimension,
+                        tuple(sorted(
+                            (tuple(position[axis] for axis in axes),
+                             builder.expression(expression, assumptions=geometry.assumptions))
+                            for position, expression in specialized.values
+                        )),
+                    )
+                except Exception as error:
+                    result = CompactProjection("unavailable", f"{type(error).__name__}: {error}")
+            quantities.append((key, result))
+        profiles.append(ScalarProfilePresentation(profile, tuple(quantities)))
+    return tuple(profiles)
+
+
+def independent_curvature_components(projection: CompactProjection) -> tuple[tuple, bool]:
+    """Reduce P por simetrías solo si se comprueban en todas sus componentes."""
+
+    from .components import ir_scalar_to_sympy
+
+    if len(projection.free_indices) != 4 or projection.status != "completed":
+        return projection.components, False
+    values = {position: ir_scalar_to_sympy(record.canonical)
+              for position, record in projection.components}
+    for (a, b, c, d), value in values.items():
+        for other, sign in (((b, a, c, d), -1), ((a, b, d, c), -1), ((c, d, a, b), 1)):
+            if sp.simplify(value - sign * values.get(other, sp.S.Zero)) != 0:
+                return projection.components, False
+    return tuple((position, record) for position, record in projection.components
+                 if position[0] < position[1] and position[2] < position[3]
+                 and position[:2] <= position[2:]), True
+
+
+@dataclass(frozen=True, slots=True)
 class ReportPresentation:
     run_id: str
     policy: DisplayPolicy
     expressions: tuple[tuple[str, DisplayExpression], ...]
     compact_decompositions: tuple[CompactDecomposition, ...] = ()
+    scalar_profiles: tuple[ScalarProfilePresentation, ...] = ()
 
     def __post_init__(self) -> None:
         object.__setattr__(self, "expressions", tuple(self.expressions))
@@ -809,6 +887,7 @@ class ReportPresentation:
             "compact_decompositions": [
                 item.to_data() for item in self.compact_decompositions
             ],
+            "scalar_profiles": [item.to_data() for item in self.scalar_profiles],
         }
 
 
@@ -884,4 +963,5 @@ def build_presentation(
         builder.policy,
         tuple(entries),
         decompositions,
+        _build_scalar_profiles(package, builder),
     )

@@ -1,0 +1,10 @@
+__pycache__/
+*.py[cod]
+.ipynb_checkpoints/
+.pytest_cache/
+
+FieldEquationsSolver/output/*
+!FieldEquationsSolver/output/README.md
+ResearchWorkflow/outputs/*
+!ResearchWorkflow/outputs/README.md
+

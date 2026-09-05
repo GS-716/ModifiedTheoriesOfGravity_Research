@@ -172,7 +172,7 @@ def test_backend_limitation_in_specialization_is_nonfatal() -> None:
 
 
 def test_notebook_contains_exactly_one_independent_cell_per_draft4_case() -> None:
-    notebook_path = Path(__file__).parents[1] / "notebooks" / "01_quickstart_tensor_engine.ipynb"
+    notebook_path = Path(__file__).parents[2] / "ResearchWorkflow" / "01_modified_gravity_workflow.ipynb"
     notebook = json.loads(notebook_path.read_text(encoding="utf-8"))
     by_id = {cell.get("id"): cell for cell in notebook["cells"]}
     assert {"draft4-case-0", "draft4-case-1", "draft4-case-2"}.issubset(by_id)

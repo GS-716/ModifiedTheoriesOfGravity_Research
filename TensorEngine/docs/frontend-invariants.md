@@ -255,7 +255,7 @@ Archivos creados o modificados por esta extensión:
 - src/tensor_engine/source.py (compilador textual y procedencia).
 - src/tensor_engine/__init__.py (exportación de la API).
 - tests/test_invariants.py y tests/test_source_integration.py (nuevos).
-- notebooks/01_quickstart_tensor_engine.ipynb y notebooks/README.md.
+- ../ResearchWorkflow/01_modified_gravity_workflow.ipynb y ../ResearchWorkflow/README.md.
 - README.md y docs/frontend-invariants.md.
 - docs/phase-14/01_SOURCE_GRAMMAR.md.
 - docs/phase-14/02_SECURITY_AND_DIAGNOSTICS.md.

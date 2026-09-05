@@ -117,3 +117,19 @@ métrica, el campo escalar, su modo (`generic`, `specialized` o `absent`) y las
 hipótesis. Los bundles antiguos, que solo guardaban el nombre del ansatz, siguen
 siendo legibles. El reporte LaTeX/PDF escribe al inicio de la sección proyectada
 el elemento de línea y el perfil escalar efectivamente usados.
+
+## Extras compactos: campo radial y campo angular
+
+Cuando la proyección genérica declara `Phi(r,varphi)`, el reporte añade al final
+de la sección proyectada dos subsecciones pequeñas: `Phi(r)` y `Phi(varphi)`.
+Cada una muestra únicamente `L` y las componentes independientes no nulas de
+`P^{abcd}` (hasta seis, comprobando sus simetrías). Conservan la misma métrica
+genérica y se obtienen sustituyendo el campo y sus derivadas en las componentes
+ya calculadas. No se repite la derivación ni se imponen ecuaciones de campo.
+
+Los extras completos se almacenan en `presentation.json`, bajo `scalar_profiles`.
+`run.abstract`, `run.projected`, `run.specialized` y `results.json` conservan sus
+resultados originales. Si falta una proyección base, el extra indica el motivo.
+La evidencia xAct existente corresponde a la teoría original, no a una validación
+independiente de estos dos perfiles. Basta volver a ejecutar una celda del notebook
+para incluir los extras en su reporte.

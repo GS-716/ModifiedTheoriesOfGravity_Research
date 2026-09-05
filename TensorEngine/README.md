@@ -32,7 +32,7 @@ variar un lagrangiano permitido sí forman parte del resultado formal.
 
 | Capa | Archivos principales en `src/tensor_engine/` | Responsabilidad |
 |---|---|---|
-| Interfaz de usuario | `source.py`, `cli.py`; carpeta `notebooks/` | Declarar modelos y ejecutar corridas |
+| Interfaz de usuario | `source.py`, `cli.py` | Declarar modelos y ejecutar corridas |
 | Autoría e invariantes | `builders.py`, `invariants.py`, `model.py` | Resolver alias, construir contracciones y validar parámetros, funciones y dimensión |
 | Representación intermedia (IR) | `ir.py`, `serialization.py` | Conservar expresiones tensoriales inmutables y serializables |
 | Álgebra tensorial | `indices.py`, `canonical.py`, `transform.py`, `delta.py`, `differential.py` | Gestionar índices, simetrías, derivadas y contracciones seguras |
@@ -90,17 +90,17 @@ de presentación no se utiliza como entrada de las ecuaciones ni de la validaci�
 
 ## Instalación y primera ejecución
 
-Requisitos: Python 3.11 o posterior. SymPy es una dependencia del paquete;
-Jupyter es necesario si se trabaja con notebooks. Desde esta carpeta:
+Requisitos: Python 3.11 o posterior. SymPy es una dependencia del paquete.
+Desde esta carpeta:
 
 ~~~powershell
 python -m venv .venv
-.\.venv\Scripts\python.exe -m pip install -e ".[dev]" jupyterlab ipykernel
-.\.venv\Scripts\python.exe -m jupyter lab
+.\.venv\Scripts\python.exe -m pip install -e ".[dev]"
 ~~~
 
-Para trabajar sin notebooks basta instalar `python -m pip install -e .` en el
-entorno elegido. Selecciona ese mismo intérprete en tu editor.
+El notebook integrado se mantiene fuera del paquete, en
+[`ResearchWorkflow`](../ResearchWorkflow/README.md). Instala Jupyter en el mismo
+entorno si deseas usarlo.
 
 Este ejemplo declara el Caso-2 con la geometría genérica del Draft 4:
 
@@ -293,13 +293,16 @@ Limitaciones que deben tenerse presentes:
 
 ## Carpetas, consola y documentación
 
-- [`notebooks/`](notebooks/README.md): uso interactivo y ejemplos.
 - [`src/tensor_engine/`](src/tensor_engine/): implementación del motor.
 - [`wolfram/`](wolfram/README.md): puente y paquetes de validación.
 - [`tests/`](tests/README.md): pruebas matemáticas, serialización e integración.
 - [`docs/`](docs/): contratos matemáticos, arquitectura y guías.
 - [`scripts/`](scripts/): utilidades reproducibles y referencias.
 - `outputs/` y `output/`: bundles y reportes generados.
+
+La reducción y resolución formal posterior se encuentra en el paquete separado
+[`FieldEquationsSolver`](../FieldEquationsSolver/README.md), que consume una
+corrida terminada de TensorEngine sin modificarla.
 
 Después de instalar el paquete, también puedes usar:
 

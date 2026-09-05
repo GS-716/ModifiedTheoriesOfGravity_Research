@@ -1,15 +1,18 @@
-# Notebooks de TensorEngine
+# Flujo de investigación
 
 Esta carpeta es la interfaz de trabajo interactivo de
-[TensorEngine](../README.md). El usuario declara el lagrangiano, sus constantes
-y funciones, la dimensión y, si desea componentes, un ansatz. El motor se
-encarga de la derivación, las verificaciones y los reportes.
+[TensorEngine](../TensorEngine/README.md) y
+[FieldEquationsSolver](../FieldEquationsSolver/README.md). El usuario declara el
+lagrangiano, sus constantes y funciones, la dimensión y, si desea componentes,
+un ansatz. El motor se encarga de la derivación, las verificaciones y los
+reportes; el solucionador se invoca después y solo cuando se solicita.
 
 ## Abrir y ejecutar el notebook
 
-Abre [`01_quickstart_tensor_engine.ipynb`](01_quickstart_tensor_engine.ipynb) desde
-`TensorEngine/` o `TensorEngine/notebooks/` y selecciona un intérprete con las
-dependencias del motor instaladas. Consulta la [instalación](../README.md#instalación-y-primera-ejecución).
+Abre [`01_modified_gravity_workflow.ipynb`](01_modified_gravity_workflow.ipynb)
+desde la raíz del repositorio o desde esta carpeta y selecciona un intérprete con
+ambos paquetes instalados. Consulta la
+[instalación](../README.md#instalación-y-primera-ejecución).
 
 1. Ejecuta la primera celda de configuración. Carga el código local y define
    `ansatz`, `dimension`, `display_policy`, `VALIDAR_XACT` y `ejecutar(...)`.
@@ -215,8 +218,9 @@ si se utilizó `specialization=...`. Para consultar estas últimas usa, por
 ejemplo, `run_especializado.specialized.metric_euler`.
 
 - Las siete celdas de prueba y el perfil opcional guardan sus bundles en
-  `TensorEngine/outputs/notebook_cases/`.
-- Las tres celdas Draft 4 los guardan en `TensorEngine/outputs/draft4_cases/`.
+  `ResearchWorkflow/outputs/notebook_cases/`.
+- Las tres celdas Draft 4 los guardan en
+  `ResearchWorkflow/outputs/draft4_cases/`.
 - En llamadas propias a la API, `output_root` es relativo al directorio de
   trabajo salvo que se pase una ruta absoluta.
 - `results.json` conserva los datos completos; `verification.json` contiene los
@@ -235,3 +239,20 @@ factorización, recolección, fracciones e índices canónicos, con
 `wolframscript` y xAct instalados. Una cantidad simbólica o una comprobación
 indeterminada debe leerse junto con su motivo; no significa que se haya
 demostrado una identidad o que el perfil sea una solución.
+
+## Resolver las ecuaciones cuando se solicite
+
+La última celda añade `solveFieldEquations(run)` como operación posterior e
+independiente. Usa `RESOLVER=False` para ejecutar únicamente el proceso
+tensorial y `True` cuando quieras reducir e intentar resolver las ecuaciones.
+Selecciona la corrida en `run_a_resolver`.
+
+El ejemplo usa exactamente `phi=q*varphi` y mantiene `f(r)` por resolver.
+Por defecto toma la proyección genérica, aunque la corrida contenga ya un perfil
+especializado. `solve=False` solo reduce; `use_specialized=True` selecciona
+explícitamente las componentes especializadas existentes.
+
+El [manual de resolución](../FieldEquationsSolver/README.md) describe los estados,
+las restricciones de dominio y la verificación. El PDF compacto y los JSON de
+resolución se guardan en un bundle separado bajo
+`ResearchWorkflow/outputs/field_equations`.

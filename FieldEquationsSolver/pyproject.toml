@@ -1,0 +1,28 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "field-equations-solver"
+version = "0.1.0"
+description = "Formal reduction and solving of TensorEngine field equations"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "tensor-engine>=0.14,<0.15",
+    "sympy>=1.13,<2",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8,<10"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src", "../TensorEngine/src"]
+markers = [
+    "slow: symbolic integration that can take several minutes",
+]
+

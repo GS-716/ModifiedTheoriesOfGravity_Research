@@ -1,0 +1,325 @@
+{
+  "adjudications": [],
+  "backend": {
+    "name": "structural-python",
+    "version": "0.9.0"
+  },
+  "checks": [
+    {
+      "key": "model.valid",
+      "message": "ModelSpec satisface el esquema y las convenciones activas.",
+      "residual": null,
+      "status": "passed"
+    },
+    {
+      "key": "symbols.declared",
+      "message": "Todos los símbolos calculados pertenecen al modelo o al vocabulario interno.",
+      "residual": null,
+      "status": "passed"
+    },
+    {
+      "key": "signature.metric_momentum",
+      "message": "La firma de índices coincide con el contrato.",
+      "residual": null,
+      "status": "passed"
+    },
+    {
+      "key": "signature.curvature_momentum",
+      "message": "La firma de índices coincide con el contrato.",
+      "residual": null,
+      "status": "passed"
+    },
+    {
+      "key": "signature.scalar_gradient_momentum",
+      "message": "La firma de índices coincide con el contrato.",
+      "residual": null,
+      "status": "passed"
+    },
+    {
+      "key": "signature.scalar_derivative",
+      "message": "La firma de índices coincide con el contrato.",
+      "residual": null,
+      "status": "passed"
+    },
+    {
+      "key": "symmetry.metric_momentum",
+      "message": "M_ab es simétrico.",
+      "residual": null,
+      "status": "passed"
+    },
+    {
+      "key": "symmetry.curvature_momentum.first_pair",
+      "message": "P^{abcd} es antisimétrico en el primer par.",
+      "residual": null,
+      "status": "passed"
+    },
+    {
+      "key": "symmetry.curvature_momentum.second_pair",
+      "message": "P^{abcd} es antisimétrico en el segundo par.",
+      "residual": null,
+      "status": "passed"
+    },
+    {
+      "key": "symmetry.curvature_momentum.pair_exchange",
+      "message": "P^{abcd}=P^{cdab}.",
+      "residual": null,
+      "status": "passed"
+    },
+    {
+      "key": "symmetry.curvature_momentum.first_bianchi",
+      "message": "P^{a[bcd]}=0.",
+      "residual": null,
+      "status": "passed"
+    },
+    {
+      "key": "recompute_momenta.metric",
+      "message": "metric coincide con su reconstrucción independiente dentro del pipeline.",
+      "residual": null,
+      "status": "passed"
+    },
+    {
+      "key": "recompute_momenta.curvature",
+      "message": "curvature coincide con su reconstrucción independiente dentro del pipeline.",
+      "residual": null,
+      "status": "passed"
+    },
+    {
+      "key": "recompute_momenta.scalar_gradient",
+      "message": "scalar_gradient coincide con su reconstrucción independiente dentro del pipeline.",
+      "residual": null,
+      "status": "passed"
+    },
+    {
+      "key": "recompute_momenta.scalar",
+      "message": "scalar coincide con su reconstrucción independiente dentro del pipeline.",
+      "residual": null,
+      "status": "passed"
+    },
+    {
+      "key": "signature.metric_euler",
+      "message": "La firma de índices coincide con el contrato.",
+      "residual": null,
+      "status": "passed"
+    },
+    {
+      "key": "signature.scalar_euler",
+      "message": "La firma de índices coincide con el contrato.",
+      "residual": null,
+      "status": "passed"
+    },
+    {
+      "key": "signature.boundary_metric",
+      "message": "La firma de índices coincide con el contrato.",
+      "residual": null,
+      "status": "passed"
+    },
+    {
+      "key": "signature.boundary_scalar",
+      "message": "La firma de índices coincide con el contrato.",
+      "residual": null,
+      "status": "passed"
+    },
+    {
+      "key": "signature.boundary_total",
+      "message": "La firma de índices coincide con el contrato.",
+      "residual": null,
+      "status": "passed"
+    },
+    {
+      "key": "signature.full_variation",
+      "message": "La firma de índices coincide con el contrato.",
+      "residual": null,
+      "status": "passed"
+    },
+    {
+      "key": "signature.density_variation",
+      "message": "La firma de índices coincide con el contrato.",
+      "residual": null,
+      "status": "passed"
+    },
+    {
+      "key": "signature.curvature_derivative_metric_term",
+      "message": "La firma de índices coincide con el contrato.",
+      "residual": null,
+      "status": "passed"
+    },
+    {
+      "key": "symmetry.metric_euler",
+      "message": "E_ab es simétrico.",
+      "residual": null,
+      "status": "passed"
+    },
+    {
+      "key": "boundary.total",
+      "message": "Theta^a coincide con la suma de sus sectores métrico y escalar.",
+      "residual": null,
+      "status": "passed"
+    },
+    {
+      "key": "density.factorization",
+      "message": "La variación de densidad es sqrt(-g) por la variación completa.",
+      "residual": null,
+      "status": "passed"
+    },
+    {
+      "key": "scalar_integration_by_parts",
+      "message": "La regla de cadena escalar coincide con bulk más frontera.",
+      "residual": null,
+      "status": "passed"
+    },
+    {
+      "key": "recompute_euler.metric",
+      "message": "metric coincide con su reconstrucción independiente dentro del pipeline.",
+      "residual": null,
+      "status": "passed"
+    },
+    {
+      "key": "recompute_euler.scalar",
+      "message": "scalar coincide con su reconstrucción independiente dentro del pipeline.",
+      "residual": null,
+      "status": "passed"
+    },
+    {
+      "key": "recompute_euler.boundary_metric",
+      "message": "boundary_metric coincide con su reconstrucción independiente dentro del pipeline.",
+      "residual": null,
+      "status": "passed"
+    },
+    {
+      "key": "recompute_euler.boundary_scalar",
+      "message": "boundary_scalar coincide con su reconstrucción independiente dentro del pipeline.",
+      "residual": null,
+      "status": "passed"
+    },
+    {
+      "key": "recompute_euler.boundary_total",
+      "message": "boundary_total coincide con su reconstrucción independiente dentro del pipeline.",
+      "residual": null,
+      "status": "passed"
+    },
+    {
+      "key": "recompute_euler.full_variation",
+      "message": "full_variation coincide con su reconstrucción independiente dentro del pipeline.",
+      "residual": null,
+      "status": "passed"
+    },
+    {
+      "key": "recompute_euler.density_variation",
+      "message": "density_variation coincide con su reconstrucción independiente dentro del pipeline.",
+      "residual": null,
+      "status": "passed"
+    },
+    {
+      "key": "recompute_euler.curvature_derivative_metric_term",
+      "message": "curvature_derivative_metric_term coincide con su reconstrucción independiente dentro del pipeline.",
+      "residual": null,
+      "status": "passed"
+    },
+    {
+      "key": "canonicalization.idempotent",
+      "message": "La segunda canonización no modifica ningún resultado.",
+      "residual": null,
+      "status": "passed"
+    },
+    {
+      "key": "variation.raw_reconstruction",
+      "message": "La variación cruda coincide con la reconstrucción desde los cuatro momentos.",
+      "residual": null,
+      "status": "passed"
+    },
+    {
+      "key": "components.metric_projection",
+      "message": "Las componentes métricas coinciden con la proyección directa de E_ab.",
+      "residual": null,
+      "status": "passed"
+    },
+    {
+      "key": "components.scalar_projection",
+      "message": "La componente escalar coincide con la proyección directa de E_phi.",
+      "residual": null,
+      "status": "passed"
+    },
+    {
+      "key": "components.metric_symmetry",
+      "message": "La matriz coordenada de E_ab es simétrica.",
+      "residual": null,
+      "status": "passed"
+    },
+    {
+      "key": "external.model.metric_momentum_symmetry",
+      "message": "M_ab es simétrico para este modelo.",
+      "residual": null,
+      "status": "passed"
+    },
+    {
+      "key": "external.model.curvature_momentum_first_pair",
+      "message": "P^{abcd} es antisimétrico en el primer par.",
+      "residual": null,
+      "status": "passed"
+    },
+    {
+      "key": "external.model.curvature_momentum_second_pair",
+      "message": "P^{abcd} es antisimétrico en el segundo par.",
+      "residual": null,
+      "status": "passed"
+    },
+    {
+      "key": "external.model.curvature_momentum_pair_exchange",
+      "message": "P^{abcd}=P^{cdab}.",
+      "residual": null,
+      "status": "passed"
+    },
+    {
+      "key": "external.model.curvature_momentum_first_bianchi",
+      "message": "P^{a[bcd]}=0.",
+      "residual": null,
+      "status": "passed"
+    },
+    {
+      "key": "external.model.metric_euler_symmetry",
+      "message": "E_ab es simétrico para este modelo.",
+      "residual": null,
+      "status": "passed"
+    },
+    {
+      "key": "external.model.boundary_sum",
+      "message": "La frontera total coincide con sus sectores.",
+      "residual": null,
+      "status": "passed"
+    },
+    {
+      "key": "external.model.density_factorization",
+      "message": "La variación de densidad factoriza sqrt(-g).",
+      "residual": null,
+      "status": "passed"
+    },
+    {
+      "key": "external.model.metric_euler_curvature_derivative_term",
+      "message": "El término de E_ab procedente de nabla nabla P coincide con -2 nabla^c nabla^d P_acdb.",
+      "residual": null,
+      "status": "passed"
+    }
+  ],
+  "external_bindings": [
+    {
+      "calculation_fingerprint": "5fa5041a600babf93d02aeb3d0634d68ce00822fa2de54a563758cc9c9557f43",
+      "model_fingerprint": "b7452260bbdf4c1fd98f4942b6b3f80be6971ec9776426179c765394e3de96de",
+      "operation": "verify_model"
+    }
+  ],
+  "external_sources": [
+    {
+      "name": "verify_model",
+      "status": "success",
+      "version": "15.0.0 for Microsoft Windows (64-bit) (May 26, 2026)"
+    }
+  ],
+  "model_name": "draft4_stationary_scalar_validation",
+  "schema_version": "1.0",
+  "status": "success",
+  "summary": {
+    "failed": 0,
+    "passed": 49,
+    "undetermined": 0
+  }
+}
