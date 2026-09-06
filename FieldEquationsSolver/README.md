@@ -24,13 +24,18 @@ consume las componentes calculadas y la métrica almacenada:
 
 ```python
 from tensor_engine import AnsatzSpecialization, Scalar
-from field_equations_solver import FieldEquationWolframBridge, solveFieldEquations
+from field_equations_solver import (
+    FieldEquationWolframBridge,
+    SolverSearchPolicy,
+    solveFieldEquations,
+)
 
 solucion = solveFieldEquations(
     run,
     specialization=AnsatzSpecialization(
         scalar_field=Scalar("q") * Scalar("varphi"),
     ),
+    search_policy=SolverSearchPolicy(),
     output_root="outputs/field_equations",
 )
 ```
@@ -56,9 +61,15 @@ automáticamente su campo genérico.
 
 ## Opciones y resultados
 
-- `solve=False`: construye y clasifica el sistema, sin ejecutar Wolfram.
+- `solve=False`: construye y clasifica el sistema, sin buscar candidatos ni
+  ejecutar Wolfram.
+- `search_policy=SolverSearchPolicy(...)`: controla la búsqueda acotada de
+  constantes, factores, ramas singulares, polinomios, potencias y escenarios de
+  parámetros. El valor predeterminado es exhaustivo respecto de esas clases,
+  pero nunca afirma exhaustividad matemática.
 - `wolfram_bridge=FieldEquationWolframBridge(timeout_seconds=180)`: transporte y límite
-  de tiempo configurables. Sin instalación disponible, el resultado es simbólico.
+  de tiempo configurables. Sin instalación disponible, las ramas locales se
+  conservan y Wolfram queda marcado como no disponible.
 - `eliminate=(Scalar("alpha"),)`: solicita eliminar explícitamente incógnitas;
   la relación eliminada es una consecuencia, no reemplaza la verificación original.
 - `compile_pdf=False`: exporta JSON y LaTeX sin compilar PDF.
@@ -90,6 +101,13 @@ determinadas. Una PDE acoplada a una EDO se etiqueta `mixed` y `contains_pde=Tru
 Los factores nulos son candidatos a ramas que requieren verificar el sistema
 completo; no son automáticamente soluciones independientes.
 
+La política predeterminada separa los casos `alpha=0`/`alpha!=0`,
+`q=0`/`q!=0`, `beta0=0`/`beta0!=0` y exige `ell!=0` cuando esos símbolos están
+presentes. También prueba `f(r)=C_f` con `C_f!=0`, registra `f(r)=0` como rama
+degenerada y examina ansätze polinomiales de grados 1 y 2 y potencias enteras
+acotadas. Cada intento y su motivo quedan en `search_summary`; una clase que no
+puede reducirse con seguridad permanece `pending`.
+
 El adaptador de coordenadas utiliza el transporte JSON existente hacia Wolfram:
 `Solve` y `Reduce` trabajan las relaciones algebraicas (tratando los valores de
 funciones y derivadas como variables auxiliares cuando corresponde); `Eliminate`
@@ -107,8 +125,10 @@ diagnósticos. La referencia para las operaciones formales es la documentación 
 
 ## Verificación y persistencia
 
-Cada candidato se sustituye en **todas las ecuaciones originales**, incluidas
-las fuera de la diagonal y la escalar. Se conservan los residuales por componente.
+Cada candidato se sustituye en **todas las ecuaciones covariantes originales**,
+incluidas las fuera de la diagonal y la escalar, y también en todas las
+componentes mixtas almacenadas $E^a{}_b$. Ambos conjuntos de residuales se
+conservan por componente.
 Una solución solo recibe `verified_on_domain` si todas las sustituciones son
 nulas y no se detecta un dominio singular. Los factores que no pueden anularse
 siguen siendo restricciones explícitas del dominio; no se extiende una solución
@@ -127,10 +147,12 @@ chequeo = solucion.verify({Function("f", (r,)): r**2/ell**2 + c})
 print(chequeo.status, chequeo.residuals)
 ```
 
-`formal_family` indica que existe una familia verificada; no certifica que se
-hayan encontrado todas las ramas singulares. `partial`, `symbolic`,
-`underdetermined` y `unavailable` conservan el trabajo disponible sin afirmar una
-solución completa. No se imponen condiciones iniciales ni de frontera.
+`verified_family_found` se reserva para una cobertura realmente certificada.
+En búsquedas simbólicas ordinarias se usa `verified_with_pending_branches` si hay
+al menos una familia verificada, `partially_solved` si solo existen candidatos
+parciales o indeterminados y `no_verified_candidate` si ninguno fue aprobado.
+`search_summary.completeness_proven` permanece falso mientras no exista una
+demostración de completitud. No se imponen condiciones iniciales ni de frontera.
 
 La validación xAct de la teoría se conserva en `source_results`. Verificar una
 familia de funciones coordenadas no transforma una identidad xAct indeterminada

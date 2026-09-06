@@ -49,7 +49,8 @@ fieldEquationSolve[options_Association] := Catch[Module[
   {eq, original, unknowns, funcs, parameters, active, vars, guards, equations,
    jets, jetSymbols, jetRules, lifted, reduced, eliminated, solved, formal = {},
    operations = {}, candidates = {}, diagnostics = {}, elimination, output, record,
-   rules, substitution, residuals, encoded, localVars, attempts, assumptions, constants, fits, fitted = {}},
+   rules, substitution, residuals, encoded, localVars, attempts, assumptions, constants, fits, fitted = {},
+   reducedBranches, branchRules, entry},
   $fsNames = <||>;
   $fsLimit = Min[30, Max[1, Lookup[options, "time_limit", 15]]];
   eq = fsDecode /@ Lookup[options, "equations", {}];
@@ -78,9 +79,18 @@ fieldEquationSolve[options_Association] := Catch[Module[
   If[Length[Join[jetSymbols, parameters]] > 0 && Length[eq] > 0,
     reduced = fsTimed[Reduce[And @@ Join[lifted, assumptions /. jetRules, Thread[(guards /. jetRules) != 0]], Join[jetSymbols, parameters], Reals]];
     AppendTo[operations, record["Reduce", reduced, "Relación algebraica de jets; no certifica integrabilidad ni enumera todas las soluciones diferenciales."]];
+    If[jets === {} && reduced =!= $Aborted && reduced =!= False,
+      reducedBranches = With[{expanded = LogicalExpand[reduced]}, If[Head[expanded] === Or, List @@ expanded, {expanded}]];
+      Do[
+        branchRules = Quiet@Check[ToRules[branch], {}];
+        If[MatchQ[branchRules, {(_Rule)..}],
+          AppendTo[formal, <|"rules" -> branchRules, "origin" -> "Wolfram Reduce"|>]],
+        {branch, reducedBranches}]
+    ];
     solved = fsTimed[Solve[lifted, Join[jetSymbols, parameters]]];
     AppendTo[operations, record["Solve", solved, "Las ramas con jets requieren integración posterior."]];
-    If[jets === {} && MatchQ[solved, {___List}], formal = Join[formal, solved]];
+    If[jets === {} && MatchQ[solved, {___List}],
+      formal = Join[formal, (<|"rules" -> #, "origin" -> "Wolfram Solve"|> & /@ solved)]];
   ];
   If[elimination =!= {},
     eliminated = fsTimed[Eliminate[lifted, elimination /. jetRules]];
@@ -90,7 +100,8 @@ fieldEquationSolve[options_Association] := Catch[Module[
   If[active =!= {} && Length[eq] > 0,
     solved = fsTimed[DSolve[equations, active, vars]];
     AppendTo[operations, record["DSolve", solved, "Sin condiciones iniciales ni de frontera."]];
-    If[MatchQ[solved, {___List}], formal = Join[formal, solved]];
+    If[MatchQ[solved, {___List}],
+      formal = Join[formal, (<|"rules" -> #, "origin" -> "Wolfram DSolve"|> & /@ solved)]];
     (* A single equation may yield candidate families for an overdetermined
        system. Every candidate is checked against ALL original equations. *)
     If[formal === {} && Length[active] === 1 && Length[vars] === 1,
@@ -99,7 +110,8 @@ fieldEquationSolve[options_Association] := Catch[Module[
       Do[
         solved = fsTimed[DSolve[one, active, vars]];
         AppendTo[operations, record["DSolve", solved, "Candidato de una ecuación; requiere sustitución en todo el sistema."]];
-        If[MatchQ[solved, {___List}], formal = Join[formal, solved]],
+        If[MatchQ[solved, {___List}],
+          formal = Join[formal, (<|"rules" -> #, "origin" -> "Wolfram DSolve (ecuación individual)"|> & /@ solved)]],
         {one, attempts}]
     ],
     AppendTo[operations, <|"operation" -> "DSolve", "status" -> "not_applicable", "note" -> "No hay funciones activas para integrar."|>]
@@ -107,6 +119,7 @@ fieldEquationSolve[options_Association] := Catch[Module[
   (* Enforce the remaining equations on integration constants without any
      initial/boundary data. Reject coordinate-dependent "constant" rules. *)
   Do[
+    rules = entry["rules"];
     If[!MatchQ[rules, {(_Rule)..}], Continue[]];
     constants = DeleteDuplicates[Cases[rules, System`C[_Integer], Infinity]];
     If[constants === {}, Continue[]];
@@ -116,10 +129,12 @@ fieldEquationSolve[options_Association] := Catch[Module[
     AppendTo[operations, record["Solve", fits, "Restricciones sobre constantes de integración desde todas las ecuaciones originales."]];
     If[MatchQ[fits, {___List}],
       Do[If[AllTrue[fit, Function[rule, AllTrue[vars, FreeQ[Last[rule], #] &]]],
-        AppendTo[fitted, rules /. fit]], {fit, fits}]],
-    {rules, DeleteDuplicates[formal]}];
+        AppendTo[fitted, <|"rules" -> (rules /. fit),
+          "origin" -> (entry["origin"] <> " + Solve de constantes")|>]], {fit, fits}]],
+    {entry, DeleteDuplicates[formal]}];
   formal = Join[formal, fitted];
   Do[
+    rules = entry["rules"];
     If[!MatchQ[rules, {(_Rule)..}], Continue[]];
     rules = With[{simplified = fsTimed[FullSimplify[rules, And @@ Join[assumptions, Thread[guards != 0]]]]},
       If[MatchQ[simplified, {(_Rule)..}], simplified, rules]];
@@ -127,11 +142,11 @@ fieldEquationSolve[options_Association] := Catch[Module[
     If[!ListQ[encoded], AppendTo[diagnostics, ToString[encoded]]; Continue[]];
     substitution = fsSubstitution[rules];
     residuals = fsTimed[FullSimplify[original /. substitution, And @@ Thread[(guards /. substitution) != 0]]];
-    AppendTo[candidates, <|"rules" -> encoded, "origin" -> "Wolfram Solve/DSolve",
+    AppendTo[candidates, <|"rules" -> encoded, "origin" -> entry["origin"],
       "integration_constants" -> (fsEncode /@ DeleteDuplicates[Cases[rules, System`C[_Integer], Infinity]]),
       "verification" -> If[original =!= {} && ListQ[residuals] && Length[residuals] === Length[original] && AllTrue[residuals, # === 0 &], "verified", "undetermined"],
       "residuals" -> If[ListQ[residuals], fsText /@ residuals, fsText[residuals]]|>],
-    {rules, DeleteDuplicates[formal]}];
+    {entry, DeleteDuplicates[formal]}];
   <|"status" -> "evaluated", "wolfram_version" -> System`$Version,
     "xact_validation" -> "inherited_from_source_run_only",
     "operations" -> operations, "candidates" -> candidates, "diagnostics" -> diagnostics,

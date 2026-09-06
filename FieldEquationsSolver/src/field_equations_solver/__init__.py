@@ -5,6 +5,7 @@ from .solving import (
     FieldEquationSolution,
     FormalSolution,
     ReducedEquation,
+    SolverSearchPolicy,
     analyze_redundancy,
     classify_system,
     raise_metric_equation,
@@ -17,10 +18,10 @@ __all__ = [
     "FieldEquationWolframBridge",
     "FormalSolution",
     "ReducedEquation",
+    "SolverSearchPolicy",
     "analyze_redundancy",
     "classify_system",
     "raise_metric_equation",
     "solve_field_equations",
     "solveFieldEquations",
 ]
-

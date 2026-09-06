@@ -15,7 +15,7 @@ from tensor_engine import (
 from field_equations_solver import FieldEquationWolframBridge
 from field_equations_solver.solving import (
     FieldEquationSolution, ReducedEquation, analyze_redundancy, classify_system,
-    raise_metric_equation, solveFieldEquations,
+    raise_metric_equation, solveFieldEquations, SolverSearchPolicy,
 )
 from field_equations_solver.reporting import solution_latex
 
@@ -212,7 +212,9 @@ def test_unavailable_wolfram_and_unverified_candidates_never_pass(eh):
     class Unavailable:
         available = False
     result = solveFieldEquations(eh, wolfram_bridge=Unavailable())
-    assert result.status == "symbolic" and result.equations
+    assert result.backend["status"] == "unavailable" and result.equations
+    assert all(solution.origin != "Wolfram" for solution in result.solutions
+               if solution.status == "verified_on_domain")
     class Unverified:
         available = True
         timeout_seconds = 2
@@ -225,17 +227,18 @@ def test_unavailable_wolfram_and_unverified_candidates_never_pass(eh):
             return {"candidates": [{"rules": [[Function("f", (r,)).to_data(), (r**2/ell**2+1).to_data()]],
                                     "verification": "undetermined"}]}
     result = solveFieldEquations(eh, wolfram_bridge=Unverified())
-    assert result.solutions[0].status == "undetermined"
+    wolfram = [solution for solution in result.solutions if solution.origin == "Wolfram"]
+    assert wolfram and all(solution.status == "undetermined" for solution in wolfram)
 
 
 def test_notebook_solver_cell_is_optional():
     from pathlib import Path
     notebook = json.loads((Path(__file__).parents[2]/"ResearchWorkflow/01_modified_gravity_workflow.ipynb").read_text(encoding="utf-8"))
     cell = next(c for c in notebook["cells"] if c.get("id") == "optional-field-equation-solver")
-    source = "".join(cell["source"]).replace("RESOLVER = True", "RESOLVER = False", 1)
     namespace = {}
-    exec(source, namespace)
-    assert namespace["RESOLVER"] is False and "solucion" not in namespace
+    exec("".join(cell["source"]), namespace)
+    assert callable(namespace["solveFieldEq"])
+    assert namespace["solveFieldEq"](False, object()) is None
 
 
 @pytest.mark.skipif(os.environ.get("TENSOR_ENGINE_RUN_WOLFRAM_TESTS") != "1", reason="Wolfram opt-in")
@@ -249,7 +252,11 @@ def test_live_solve_reduce_eliminate_and_unsupported_node_diagnostic():
         "nonzero": [], "time_limit": 5,
     }))
     assert response["status"] == "evaluated"
+    operations = {item["operation"]: item for item in response["operations"]}
+    assert {"Solve", "Reduce", "Eliminate", "DSolve"}.issubset(operations)
     assert all(o["status"] == "evaluated" for o in response["operations"] if o["operation"] in ("Solve", "Reduce", "Eliminate"))
+    assert all(candidate["origin"] in {"Wolfram Solve", "Wolfram Reduce"}
+               for candidate in response["candidates"])
     assert response["candidates"][0]["verification"] == "verified"
     from tensor_engine import expr_from_data
     rules = {expr_from_data(k): expr_from_data(v) for k, v in response["candidates"][0]["rules"]}
