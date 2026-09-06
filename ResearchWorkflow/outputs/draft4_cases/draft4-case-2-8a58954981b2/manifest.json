@@ -1,0 +1,289 @@
+{
+  "adjudications": [],
+  "backend": {
+    "name": "structural-python",
+    "version": "0.9.0"
+  },
+  "created_at_utc": "2026-09-06T19:45:32.377011Z",
+  "expressions": [
+    {
+      "form": "raw",
+      "key": "original_lagrangian",
+      "sha256": "9a8b75c81632691d2d810b0f2d66630ba215b585731a2dcac0a8abfc6c8ac88a"
+    },
+    {
+      "form": "canonical",
+      "key": "lagrangian",
+      "sha256": "d7883b3d1c852e90ac650365f8b1227753191ee1121488d872accca6658e443a"
+    },
+    {
+      "form": "canonical",
+      "key": "metric_momentum",
+      "sha256": "091ba37ff7ead7ecadbf61da8987cbf303202148a1609b55459af5997b277513"
+    },
+    {
+      "form": "canonical",
+      "key": "curvature_momentum",
+      "sha256": "d8581447d978e8069646bc383afa5f1e24597ae4778f1305ed266dedc9faa7f2"
+    },
+    {
+      "form": "canonical",
+      "key": "scalar_gradient_momentum",
+      "sha256": "84be39b5953ff2ed7c1d382fc61cefeb5ca1fb77f602e9f2b719c38279efa9b0"
+    },
+    {
+      "form": "canonical",
+      "key": "scalar_derivative",
+      "sha256": "b2bc590c86d08e4b1da59ee0b9c7c91910b05be4719c3f5bbd69e59c22758242"
+    },
+    {
+      "form": "raw",
+      "key": "delta_lagrangian",
+      "sha256": "6b097d06692606188e04c3667b65dec6a3c9182e5fca280ff75a16bc95b8409e"
+    },
+    {
+      "form": "canonical",
+      "key": "metric_euler",
+      "sha256": "b7be3250e1fa0ff91a0b012ce6fb36b797a9ac87551803dca12d55758cea3f3f"
+    },
+    {
+      "form": "canonical",
+      "key": "scalar_euler",
+      "sha256": "968983e65d7cfda24b1f377964b70e6ca949ed861a5afda31ef84e645f9f6b03"
+    },
+    {
+      "form": "canonical",
+      "key": "boundary_potential_metric",
+      "sha256": "11ed61599511e7b518a6032e758b293cc3881322063d36ce2c6a09c2aa8f89cb"
+    },
+    {
+      "form": "canonical",
+      "key": "boundary_potential_scalar",
+      "sha256": "5c14127a2bd368bf8e218ebc92cc1b02d2b2d27b8f7ded7940d599ec61945b5c"
+    },
+    {
+      "form": "canonical",
+      "key": "boundary_potential_total",
+      "sha256": "ac1431eb0e58cb55397114f555a87ff598a00d4975451972a536467aeb18aefc"
+    },
+    {
+      "form": "canonical",
+      "key": "full_variation",
+      "sha256": "5db9917ae1342b713ee87ced6b82567a23f22019373c6cc38e2af85043480274"
+    },
+    {
+      "form": "canonical",
+      "key": "density_variation",
+      "sha256": "970811b18f44593ffb74043397025bc9e90fdebb45511341617922edd06a0746"
+    },
+    {
+      "form": "canonical",
+      "key": "noether_current",
+      "sha256": "f646aa2774349215e6f00ab7d1d82477f823beee6b1af9cfc4d7ff0f72520349"
+    },
+    {
+      "form": "canonical",
+      "key": "constraint_current",
+      "sha256": "7ed2f23eed88d59337529c940d82d1b8bc42df915b5d89a484ede5405c449b0c"
+    },
+    {
+      "form": "canonical",
+      "key": "charge_potential",
+      "sha256": "5e7c6ef56a10ae28f9ab55848595e9878ebf22df8c0f6cecbfd530ae04c9435e"
+    },
+    {
+      "form": "canonical",
+      "key": "noether_identity",
+      "sha256": "f14d1cfd2a457135890e20928808423456ce8c51c0ad96159c121a5693bc5105"
+    },
+    {
+      "form": "canonical",
+      "key": "ricci_scalar",
+      "sha256": "3a7bd7f7c1c962261cc3683b79a5af02810284cfd7e9de6e199fd19fd102188f"
+    },
+    {
+      "form": "canonical",
+      "key": "ricci_squared",
+      "sha256": "b8f52e7dc9b5405a39212d9ea060affdaf238c9c53a2ebac75093db731be3168"
+    },
+    {
+      "form": "canonical",
+      "key": "riemann_tensor",
+      "sha256": "ae96d11e8f16584c5b14d209ed05690bd9103c75f69aa4c441861ed822da7468"
+    },
+    {
+      "form": "canonical",
+      "key": "riemann_squared",
+      "sha256": "1d34c9e02ebe54748d5eef34ab2925b826606cb11cdfceb544ec3e65a5870fa2"
+    },
+    {
+      "form": "canonical",
+      "key": "nabla_P",
+      "sha256": "5218229d9975e86699e65c5e2ca158f0dff88872d4951ef318e05afbaaa5e6ec"
+    },
+    {
+      "form": "canonical",
+      "key": "nabla_nabla_P",
+      "sha256": "4400c7697c4c5601f73cc9bc183f4343a4f13fb63e741268575363b6af26392a"
+    },
+    {
+      "form": "canonical",
+      "key": "curvature_derivative_metric_term",
+      "sha256": "3451e77473e707a3b079bc68fd5469ed432adfab94babb1667f4cfcd74999faa"
+    }
+  ],
+  "external_bindings": [],
+  "external_sources": [],
+  "files": [
+    {
+      "key": "results",
+      "media_type": "application/json",
+      "relative_path": "results.json",
+      "sha256": "56db83810d066124bf73661ebb4a5cfbdd1e987fa77cd49e9a1e77e58ebce6df",
+      "size_bytes": 6966615
+    },
+    {
+      "key": "verification",
+      "media_type": "application/json",
+      "relative_path": "verification.json",
+      "sha256": "e1e4cb1ca56cecedafa4a9c832b67ee5537a6de9ccd4c8c5c56b82f3db83a527",
+      "size_bytes": 409277
+    },
+    {
+      "key": "latex_report",
+      "media_type": "application/x-tex",
+      "relative_path": "report.tex",
+      "sha256": "675147112a03acbddfcf1990e5cc2848acb964844e0be051b96e45729dbaae21",
+      "size_bytes": 73985
+    },
+    {
+      "key": "presentation",
+      "media_type": "application/json",
+      "relative_path": "presentation.json",
+      "sha256": "d1f57780ed773a19a7f7ecb0edba016d1816a667e84fe183a21e9f94681ce3b6",
+      "size_bytes": 3095502
+    },
+    {
+      "key": "delta_contractions",
+      "media_type": "application/json",
+      "relative_path": "delta_contractions.json",
+      "sha256": "ed3349f1abf6f7ed14e43716f0d2fd18281452d02cfb7cbbb9fb254683eb786c",
+      "size_bytes": 2420838
+    },
+    {
+      "key": "pdf_report",
+      "media_type": "application/pdf",
+      "relative_path": "report.pdf",
+      "sha256": "e8f0a2d81737db13cb25500848cdc7ea737a61825b426e006c39cd66f8933f09",
+      "size_bytes": 223165
+    }
+  ],
+  "model": {
+    "convention_id": "tensor-engine.phase0.v1",
+    "dimension": "3",
+    "name": "draft4_case_2",
+    "schema_version": "1.0"
+  },
+  "result_views": {
+    "abstract": [
+      "lagrangian",
+      "metric_momentum",
+      "curvature_momentum",
+      "scalar_gradient_momentum",
+      "scalar_derivative",
+      "metric_euler",
+      "scalar_euler",
+      "ricci_scalar",
+      "ricci_squared",
+      "riemann_tensor",
+      "riemann_squared",
+      "nabla_P",
+      "nabla_nabla_P"
+    ],
+    "projected": [
+      {
+        "key": "lagrangian",
+        "sha256": "b55f262b2f78bf46d3b7754a06940ecc1928576d5845af6179f1f7c765d7af5c",
+        "status": "completed"
+      },
+      {
+        "key": "metric_momentum",
+        "sha256": "93b383afe11d80785ef87a3d388ba31138e1e2ea997482043783a52ac8f276ae",
+        "status": "completed"
+      },
+      {
+        "key": "curvature_momentum",
+        "sha256": "1e36371c489a95d0e224d4c402345acc3d333b52b317a354586ced0b145c034c",
+        "status": "completed"
+      },
+      {
+        "key": "scalar_gradient_momentum",
+        "sha256": "828f231252ae9624152f135a0590deab747138cdb2e1e686e61c7256f523ce7b",
+        "status": "completed"
+      },
+      {
+        "key": "scalar_derivative",
+        "sha256": "62b0f5232e9a88bf78f8560286a8fc12cab24d25bff850e3934f1c7e67493edd",
+        "status": "completed"
+      },
+      {
+        "key": "metric_euler",
+        "sha256": "6c07710915a2d9c8c442ea98725afea2cb10eb6b82e85330e02b8ce43f70ae34",
+        "status": "unavailable"
+      },
+      {
+        "key": "scalar_euler",
+        "sha256": "202b6628010c764857accb20e5a8ed91d685f4391cdc77aa93009a983f50bfe1",
+        "status": "completed"
+      },
+      {
+        "key": "ricci_scalar",
+        "sha256": "a076ca7c3c1f866b6b238677a892b62c36b0b42523de8cd908a20bb7bfc54222",
+        "status": "completed"
+      },
+      {
+        "key": "ricci_squared",
+        "sha256": "ffba2e5da965688d15d412efb3d5d92dfb5b777f9b11178f7eb74c48dd59bd4e",
+        "status": "completed"
+      },
+      {
+        "key": "riemann_tensor",
+        "sha256": "37d0f87a03378186f43a2d36be1919b969ebe72e333aa1bb9c3e9f4cb52d644c",
+        "status": "completed"
+      },
+      {
+        "key": "riemann_squared",
+        "sha256": "fe1829b9293872ee0c1b9c76f721a767ebd1314e300353a21319108040f76490",
+        "status": "completed"
+      },
+      {
+        "key": "nabla_P",
+        "sha256": "5f81c1d265d63a292b649bafe11dd22d9f54ce66622f69f39aa00c645dc59fa8",
+        "status": "completed"
+      },
+      {
+        "key": "nabla_nabla_P",
+        "sha256": "f286eb4060eb513f2c515f86ee08d19ea215b113ab97d1fb87d5e6bc9fa6e7b9",
+        "status": "unavailable"
+      }
+    ]
+  },
+  "run_id": "run_8a58954981b2776b7ff8",
+  "schema_version": "1.0",
+  "status": "partial",
+  "timing": {
+    "duration_seconds": 89.92527059998247,
+    "stages": {
+      "components": 0.2825318000104744,
+      "derive_intermediate_quantities": 40.670099499984644,
+      "derive_momenta": 9.119195799983572,
+      "integrate_by_parts": 3.575253999995766,
+      "noether": 5.651125400007004,
+      "normalize_lagrangian": 0.01587850000942126,
+      "organize_result_views": 11.161263100017095,
+      "raw_variation": 0.07080230000428855,
+      "validate_model": 0.0002463999844621867,
+      "verify": 19.37887379998574
+    }
+  }
+}

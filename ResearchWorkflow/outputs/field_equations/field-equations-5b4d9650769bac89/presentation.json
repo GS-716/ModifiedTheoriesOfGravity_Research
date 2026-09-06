@@ -1,0 +1,4028 @@
+{
+  "policy": {
+    "factor": true,
+    "collect": true,
+    "together": true,
+    "canonicalize_indices": true,
+    "aggressive": false,
+    "enabled": true,
+    "max_nodes": 4000
+  },
+  "expressions": {
+    "lagrangian": {
+      "canonical_sha256": "9a8b75c81632691d2d810b0f2d66630ba215b585731a2dcac0a8abfc6c8ac88a",
+      "expression": {
+        "type": "add",
+        "terms": [
+          {
+            "type": "mul",
+            "factors": [
+              {
+                "type": "tensor",
+                "name": "g",
+                "indices": [
+                  {
+                    "name": "a",
+                    "variance": "up",
+                    "space": "M"
+                  },
+                  {
+                    "name": "c",
+                    "variance": "up",
+                    "space": "M"
+                  }
+                ]
+              },
+              {
+                "type": "tensor",
+                "name": "g",
+                "indices": [
+                  {
+                    "name": "b",
+                    "variance": "up",
+                    "space": "M"
+                  },
+                  {
+                    "name": "d",
+                    "variance": "up",
+                    "space": "M"
+                  }
+                ]
+              },
+              {
+                "type": "tensor",
+                "name": "Riemann",
+                "indices": [
+                  {
+                    "name": "a",
+                    "variance": "down",
+                    "space": "M"
+                  },
+                  {
+                    "name": "b",
+                    "variance": "down",
+                    "space": "M"
+                  },
+                  {
+                    "name": "c",
+                    "variance": "down",
+                    "space": "M"
+                  },
+                  {
+                    "name": "d",
+                    "variance": "down",
+                    "space": "M"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "mul",
+            "factors": [
+              {
+                "type": "number",
+                "numerator": 2,
+                "denominator": 1
+              },
+              {
+                "type": "power",
+                "base": {
+                  "type": "power",
+                  "base": {
+                    "type": "scalar",
+                    "name": "ell"
+                  },
+                  "exponent": {
+                    "type": "number",
+                    "numerator": 2,
+                    "denominator": 1
+                  }
+                },
+                "exponent": {
+                  "type": "number",
+                  "numerator": -1,
+                  "denominator": 1
+                }
+              }
+            ]
+          },
+          {
+            "type": "mul",
+            "factors": [
+              {
+                "type": "scalar",
+                "name": "beta0"
+              },
+              {
+                "type": "add",
+                "terms": [
+                  {
+                    "type": "mul",
+                    "factors": [
+                      {
+                        "type": "number",
+                        "numerator": 3,
+                        "denominator": 1
+                      },
+                      {
+                        "type": "mul",
+                        "factors": [
+                          {
+                            "type": "tensor",
+                            "name": "g",
+                            "indices": [
+                              {
+                                "name": "a",
+                                "variance": "up",
+                                "space": "M"
+                              },
+                              {
+                                "name": "c",
+                                "variance": "up",
+                                "space": "M"
+                              }
+                            ]
+                          },
+                          {
+                            "type": "tensor",
+                            "name": "Riemann",
+                            "indices": [
+                              {
+                                "name": "a",
+                                "variance": "down",
+                                "space": "M"
+                              },
+                              {
+                                "name": "b",
+                                "variance": "down",
+                                "space": "M"
+                              },
+                              {
+                                "name": "c",
+                                "variance": "down",
+                                "space": "M"
+                              },
+                              {
+                                "name": "d",
+                                "variance": "down",
+                                "space": "M"
+                              }
+                            ]
+                          },
+                          {
+                            "type": "tensor",
+                            "name": "g",
+                            "indices": [
+                              {
+                                "name": "b",
+                                "variance": "up",
+                                "space": "M"
+                              },
+                              {
+                                "name": "e",
+                                "variance": "up",
+                                "space": "M"
+                              }
+                            ]
+                          },
+                          {
+                            "type": "tensor",
+                            "name": "g",
+                            "indices": [
+                              {
+                                "name": "d",
+                                "variance": "up",
+                                "space": "M"
+                              },
+                              {
+                                "name": "f",
+                                "variance": "up",
+                                "space": "M"
+                              }
+                            ]
+                          },
+                          {
+                            "type": "tensor",
+                            "name": "u",
+                            "indices": [
+                              {
+                                "name": "e",
+                                "variance": "down",
+                                "space": "M"
+                              }
+                            ]
+                          },
+                          {
+                            "type": "tensor",
+                            "name": "u",
+                            "indices": [
+                              {
+                                "name": "f",
+                                "variance": "down",
+                                "space": "M"
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "type": "mul",
+                    "factors": [
+                      {
+                        "type": "number",
+                        "numerator": -1,
+                        "denominator": 1
+                      },
+                      {
+                        "type": "mul",
+                        "factors": [
+                          {
+                            "type": "mul",
+                            "factors": [
+                              {
+                                "type": "tensor",
+                                "name": "g",
+                                "indices": [
+                                  {
+                                    "name": "a",
+                                    "variance": "up",
+                                    "space": "M"
+                                  },
+                                  {
+                                    "name": "b",
+                                    "variance": "up",
+                                    "space": "M"
+                                  }
+                                ]
+                              },
+                              {
+                                "type": "tensor",
+                                "name": "u",
+                                "indices": [
+                                  {
+                                    "name": "a",
+                                    "variance": "down",
+                                    "space": "M"
+                                  }
+                                ]
+                              },
+                              {
+                                "type": "tensor",
+                                "name": "u",
+                                "indices": [
+                                  {
+                                    "name": "b",
+                                    "variance": "down",
+                                    "space": "M"
+                                  }
+                                ]
+                              }
+                            ]
+                          },
+                          {
+                            "type": "mul",
+                            "factors": [
+                              {
+                                "type": "tensor",
+                                "name": "g",
+                                "indices": [
+                                  {
+                                    "name": "a",
+                                    "variance": "up",
+                                    "space": "M"
+                                  },
+                                  {
+                                    "name": "c",
+                                    "variance": "up",
+                                    "space": "M"
+                                  }
+                                ]
+                              },
+                              {
+                                "type": "tensor",
+                                "name": "g",
+                                "indices": [
+                                  {
+                                    "name": "b",
+                                    "variance": "up",
+                                    "space": "M"
+                                  },
+                                  {
+                                    "name": "d",
+                                    "variance": "up",
+                                    "space": "M"
+                                  }
+                                ]
+                              },
+                              {
+                                "type": "tensor",
+                                "name": "Riemann",
+                                "indices": [
+                                  {
+                                    "name": "a",
+                                    "variance": "down",
+                                    "space": "M"
+                                  },
+                                  {
+                                    "name": "b",
+                                    "variance": "down",
+                                    "space": "M"
+                                  },
+                                  {
+                                    "name": "c",
+                                    "variance": "down",
+                                    "space": "M"
+                                  },
+                                  {
+                                    "name": "d",
+                                    "variance": "down",
+                                    "space": "M"
+                                  }
+                                ]
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "type": "power",
+                "base": {
+                  "type": "scalar",
+                  "name": "ell"
+                },
+                "exponent": {
+                  "type": "number",
+                  "numerator": 2,
+                  "denominator": 1
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "status": "simplified",
+      "operations": [
+        "combine_like_terms",
+        "deterministic_order",
+        "normalize_signs_and_numbers"
+      ],
+      "assumptions_used": [],
+      "notes": [
+        "Potencias no justificadas conservadas como bloques; sin cancelación de sus factores."
+      ]
+    },
+    "profile": {
+      "canonical_sha256": "9d351188c7099f6f1e5e7dcef78f6640582ab87955b34425a0262acfca3a24b4",
+      "expression": {
+        "type": "mul",
+        "factors": [
+          {
+            "type": "scalar",
+            "name": "q"
+          },
+          {
+            "type": "scalar",
+            "name": "varphi"
+          }
+        ]
+      },
+      "status": "unchanged",
+      "operations": [],
+      "assumptions_used": [],
+      "notes": []
+    },
+    "domain_0": {
+      "canonical_sha256": "794f8cd81d7e3fc66597c5d8a697285182383f9485189042646e633842b9a24e",
+      "expression": {
+        "type": "function",
+        "name": "f",
+        "arguments": [
+          {
+            "type": "scalar",
+            "name": "r"
+          }
+        ]
+      },
+      "status": "unchanged",
+      "operations": [],
+      "assumptions_used": [],
+      "notes": []
+    },
+    "domain_1": {
+      "canonical_sha256": "5c15fec8040b7e4bcb72c9289ba8ec3ecda985d9708a3a9cf3d77c9754c3b5d3",
+      "expression": {
+        "type": "scalar",
+        "name": "ell"
+      },
+      "status": "unchanged",
+      "operations": [],
+      "assumptions_used": [],
+      "notes": []
+    },
+    "domain_2": {
+      "canonical_sha256": "7521ff1994faa93e6319a3fe077ea749972f6a52b364436164e8d0252530a4d2",
+      "expression": {
+        "type": "scalar",
+        "name": "r"
+      },
+      "status": "unchanged",
+      "operations": [],
+      "assumptions_used": [],
+      "notes": []
+    },
+    "difference_0_1": {
+      "canonical_sha256": "b2bc590c86d08e4b1da59ee0b9c7c91910b05be4719c3f5bbd69e59c22758242",
+      "expression": {
+        "type": "number",
+        "numerator": 0,
+        "denominator": 1
+      },
+      "status": "unchanged",
+      "operations": [],
+      "assumptions_used": [],
+      "notes": []
+    },
+    "difference_0_2": {
+      "canonical_sha256": "6158239675d2b9c7d2112f6e7774a88f3e2d6b2ef23e5af65f50d7d8f6e9fde4",
+      "expression": {
+        "type": "mul",
+        "factors": [
+          {
+            "type": "number",
+            "numerator": -1,
+            "denominator": 2
+          },
+          {
+            "type": "power",
+            "base": {
+              "type": "scalar",
+              "name": "r"
+            },
+            "exponent": {
+              "type": "number",
+              "numerator": -4,
+              "denominator": 1
+            }
+          },
+          {
+            "type": "add",
+            "terms": [
+              {
+                "type": "mul",
+                "factors": [
+                  {
+                    "type": "function_derivative",
+                    "name": "f",
+                    "derivative_orders": [
+                      2
+                    ],
+                    "arguments": [
+                      {
+                        "type": "scalar",
+                        "name": "r"
+                      }
+                    ]
+                  },
+                  {
+                    "type": "power",
+                    "base": {
+                      "type": "scalar",
+                      "name": "r"
+                    },
+                    "exponent": {
+                      "type": "number",
+                      "numerator": 4,
+                      "denominator": 1
+                    }
+                  }
+                ]
+              },
+              {
+                "type": "mul",
+                "factors": [
+                  {
+                    "type": "number",
+                    "numerator": -1,
+                    "denominator": 1
+                  },
+                  {
+                    "type": "function_derivative",
+                    "name": "f",
+                    "derivative_orders": [
+                      1
+                    ],
+                    "arguments": [
+                      {
+                        "type": "scalar",
+                        "name": "r"
+                      }
+                    ]
+                  },
+                  {
+                    "type": "power",
+                    "base": {
+                      "type": "scalar",
+                      "name": "r"
+                    },
+                    "exponent": {
+                      "type": "number",
+                      "numerator": 3,
+                      "denominator": 1
+                    }
+                  }
+                ]
+              },
+              {
+                "type": "mul",
+                "factors": [
+                  {
+                    "type": "scalar",
+                    "name": "beta0"
+                  },
+                  {
+                    "type": "power",
+                    "base": {
+                      "type": "scalar",
+                      "name": "ell"
+                    },
+                    "exponent": {
+                      "type": "number",
+                      "numerator": 2,
+                      "denominator": 1
+                    }
+                  },
+                  {
+                    "type": "power",
+                    "base": {
+                      "type": "scalar",
+                      "name": "q"
+                    },
+                    "exponent": {
+                      "type": "number",
+                      "numerator": 2,
+                      "denominator": 1
+                    }
+                  },
+                  {
+                    "type": "add",
+                    "terms": [
+                      {
+                        "type": "mul",
+                        "factors": [
+                          {
+                            "type": "number",
+                            "numerator": 8,
+                            "denominator": 1
+                          },
+                          {
+                            "type": "function",
+                            "name": "f",
+                            "arguments": [
+                              {
+                                "type": "scalar",
+                                "name": "r"
+                              }
+                            ]
+                          }
+                        ]
+                      },
+                      {
+                        "type": "mul",
+                        "factors": [
+                          {
+                            "type": "function_derivative",
+                            "name": "f",
+                            "derivative_orders": [
+                              2
+                            ],
+                            "arguments": [
+                              {
+                                "type": "scalar",
+                                "name": "r"
+                              }
+                            ]
+                          },
+                          {
+                            "type": "power",
+                            "base": {
+                              "type": "scalar",
+                              "name": "r"
+                            },
+                            "exponent": {
+                              "type": "number",
+                              "numerator": 2,
+                              "denominator": 1
+                            }
+                          }
+                        ]
+                      },
+                      {
+                        "type": "mul",
+                        "factors": [
+                          {
+                            "type": "number",
+                            "numerator": -5,
+                            "denominator": 1
+                          },
+                          {
+                            "type": "scalar",
+                            "name": "r"
+                          },
+                          {
+                            "type": "function_derivative",
+                            "name": "f",
+                            "derivative_orders": [
+                              1
+                            ],
+                            "arguments": [
+                              {
+                                "type": "scalar",
+                                "name": "r"
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "status": "simplified",
+      "operations": [
+        "combine_like_terms",
+        "deterministic_order",
+        "normalize_signs_and_numbers",
+        "together_safe_fractions",
+        "collect_parameters",
+        "factor_common_scalar_terms"
+      ],
+      "assumptions_used": [],
+      "notes": [
+        "Potencias no justificadas conservadas como bloques; sin cancelación de sus factores."
+      ]
+    },
+    "difference_1_2": {
+      "canonical_sha256": "6158239675d2b9c7d2112f6e7774a88f3e2d6b2ef23e5af65f50d7d8f6e9fde4",
+      "expression": {
+        "type": "mul",
+        "factors": [
+          {
+            "type": "number",
+            "numerator": -1,
+            "denominator": 2
+          },
+          {
+            "type": "power",
+            "base": {
+              "type": "scalar",
+              "name": "r"
+            },
+            "exponent": {
+              "type": "number",
+              "numerator": -4,
+              "denominator": 1
+            }
+          },
+          {
+            "type": "add",
+            "terms": [
+              {
+                "type": "mul",
+                "factors": [
+                  {
+                    "type": "function_derivative",
+                    "name": "f",
+                    "derivative_orders": [
+                      2
+                    ],
+                    "arguments": [
+                      {
+                        "type": "scalar",
+                        "name": "r"
+                      }
+                    ]
+                  },
+                  {
+                    "type": "power",
+                    "base": {
+                      "type": "scalar",
+                      "name": "r"
+                    },
+                    "exponent": {
+                      "type": "number",
+                      "numerator": 4,
+                      "denominator": 1
+                    }
+                  }
+                ]
+              },
+              {
+                "type": "mul",
+                "factors": [
+                  {
+                    "type": "number",
+                    "numerator": -1,
+                    "denominator": 1
+                  },
+                  {
+                    "type": "function_derivative",
+                    "name": "f",
+                    "derivative_orders": [
+                      1
+                    ],
+                    "arguments": [
+                      {
+                        "type": "scalar",
+                        "name": "r"
+                      }
+                    ]
+                  },
+                  {
+                    "type": "power",
+                    "base": {
+                      "type": "scalar",
+                      "name": "r"
+                    },
+                    "exponent": {
+                      "type": "number",
+                      "numerator": 3,
+                      "denominator": 1
+                    }
+                  }
+                ]
+              },
+              {
+                "type": "mul",
+                "factors": [
+                  {
+                    "type": "scalar",
+                    "name": "beta0"
+                  },
+                  {
+                    "type": "power",
+                    "base": {
+                      "type": "scalar",
+                      "name": "ell"
+                    },
+                    "exponent": {
+                      "type": "number",
+                      "numerator": 2,
+                      "denominator": 1
+                    }
+                  },
+                  {
+                    "type": "power",
+                    "base": {
+                      "type": "scalar",
+                      "name": "q"
+                    },
+                    "exponent": {
+                      "type": "number",
+                      "numerator": 2,
+                      "denominator": 1
+                    }
+                  },
+                  {
+                    "type": "add",
+                    "terms": [
+                      {
+                        "type": "mul",
+                        "factors": [
+                          {
+                            "type": "number",
+                            "numerator": 8,
+                            "denominator": 1
+                          },
+                          {
+                            "type": "function",
+                            "name": "f",
+                            "arguments": [
+                              {
+                                "type": "scalar",
+                                "name": "r"
+                              }
+                            ]
+                          }
+                        ]
+                      },
+                      {
+                        "type": "mul",
+                        "factors": [
+                          {
+                            "type": "function_derivative",
+                            "name": "f",
+                            "derivative_orders": [
+                              2
+                            ],
+                            "arguments": [
+                              {
+                                "type": "scalar",
+                                "name": "r"
+                              }
+                            ]
+                          },
+                          {
+                            "type": "power",
+                            "base": {
+                              "type": "scalar",
+                              "name": "r"
+                            },
+                            "exponent": {
+                              "type": "number",
+                              "numerator": 2,
+                              "denominator": 1
+                            }
+                          }
+                        ]
+                      },
+                      {
+                        "type": "mul",
+                        "factors": [
+                          {
+                            "type": "number",
+                            "numerator": -5,
+                            "denominator": 1
+                          },
+                          {
+                            "type": "scalar",
+                            "name": "r"
+                          },
+                          {
+                            "type": "function_derivative",
+                            "name": "f",
+                            "derivative_orders": [
+                              1
+                            ],
+                            "arguments": [
+                              {
+                                "type": "scalar",
+                                "name": "r"
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "status": "simplified",
+      "operations": [
+        "combine_like_terms",
+        "deterministic_order",
+        "normalize_signs_and_numbers",
+        "together_safe_fractions",
+        "collect_parameters",
+        "factor_common_scalar_terms"
+      ],
+      "assumptions_used": [],
+      "notes": [
+        "Potencias no justificadas conservadas como bloques; sin cancelación de sus factores."
+      ]
+    },
+    "absolute_0": {
+      "canonical_sha256": "d9023b2ed36989d01cba3a89b66f52f5053f631ba67099c0b2998cde93b6626d",
+      "expression": {
+        "type": "mul",
+        "factors": [
+          {
+            "type": "number",
+            "numerator": 1,
+            "denominator": 2
+          },
+          {
+            "type": "power",
+            "base": {
+              "type": "scalar",
+              "name": "ell"
+            },
+            "exponent": {
+              "type": "number",
+              "numerator": -2,
+              "denominator": 1
+            }
+          },
+          {
+            "type": "power",
+            "base": {
+              "type": "scalar",
+              "name": "r"
+            },
+            "exponent": {
+              "type": "number",
+              "numerator": -4,
+              "denominator": 1
+            }
+          },
+          {
+            "type": "add",
+            "terms": [
+              {
+                "type": "mul",
+                "factors": [
+                  {
+                    "type": "number",
+                    "numerator": -2,
+                    "denominator": 1
+                  },
+                  {
+                    "type": "power",
+                    "base": {
+                      "type": "scalar",
+                      "name": "r"
+                    },
+                    "exponent": {
+                      "type": "number",
+                      "numerator": 4,
+                      "denominator": 1
+                    }
+                  }
+                ]
+              },
+              {
+                "type": "mul",
+                "factors": [
+                  {
+                    "type": "function_derivative",
+                    "name": "f",
+                    "derivative_orders": [
+                      1
+                    ],
+                    "arguments": [
+                      {
+                        "type": "scalar",
+                        "name": "r"
+                      }
+                    ]
+                  },
+                  {
+                    "type": "power",
+                    "base": {
+                      "type": "scalar",
+                      "name": "r"
+                    },
+                    "exponent": {
+                      "type": "number",
+                      "numerator": 3,
+                      "denominator": 1
+                    }
+                  },
+                  {
+                    "type": "power",
+                    "base": {
+                      "type": "scalar",
+                      "name": "ell"
+                    },
+                    "exponent": {
+                      "type": "number",
+                      "numerator": 2,
+                      "denominator": 1
+                    }
+                  }
+                ]
+              },
+              {
+                "type": "mul",
+                "factors": [
+                  {
+                    "type": "scalar",
+                    "name": "beta0"
+                  },
+                  {
+                    "type": "power",
+                    "base": {
+                      "type": "scalar",
+                      "name": "ell"
+                    },
+                    "exponent": {
+                      "type": "number",
+                      "numerator": 4,
+                      "denominator": 1
+                    }
+                  },
+                  {
+                    "type": "power",
+                    "base": {
+                      "type": "scalar",
+                      "name": "q"
+                    },
+                    "exponent": {
+                      "type": "number",
+                      "numerator": 2,
+                      "denominator": 1
+                    }
+                  },
+                  {
+                    "type": "add",
+                    "terms": [
+                      {
+                        "type": "mul",
+                        "factors": [
+                          {
+                            "type": "number",
+                            "numerator": -2,
+                            "denominator": 1
+                          },
+                          {
+                            "type": "function",
+                            "name": "f",
+                            "arguments": [
+                              {
+                                "type": "scalar",
+                                "name": "r"
+                              }
+                            ]
+                          }
+                        ]
+                      },
+                      {
+                        "type": "mul",
+                        "factors": [
+                          {
+                            "type": "scalar",
+                            "name": "r"
+                          },
+                          {
+                            "type": "function_derivative",
+                            "name": "f",
+                            "derivative_orders": [
+                              1
+                            ],
+                            "arguments": [
+                              {
+                                "type": "scalar",
+                                "name": "r"
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "status": "simplified",
+      "operations": [
+        "combine_like_terms",
+        "deterministic_order",
+        "normalize_signs_and_numbers",
+        "together_safe_fractions",
+        "collect_parameters",
+        "factor_common_scalar_terms"
+      ],
+      "assumptions_used": [],
+      "notes": [
+        "Potencias no justificadas conservadas como bloques; sin cancelación de sus factores."
+      ]
+    },
+    "scalar": {
+      "canonical_sha256": "b2bc590c86d08e4b1da59ee0b9c7c91910b05be4719c3f5bbd69e59c22758242",
+      "expression": {
+        "type": "number",
+        "numerator": 0,
+        "denominator": 1
+      },
+      "status": "unchanged",
+      "operations": [],
+      "assumptions_used": [],
+      "notes": []
+    },
+    "solution_0_0_lhs": {
+      "canonical_sha256": "565dbbb71cc669d0062a92c954808277a865b6fd63e83ba97ead04a7d14eb091",
+      "expression": {
+        "type": "scalar",
+        "name": "q"
+      },
+      "status": "unchanged",
+      "operations": [],
+      "assumptions_used": [],
+      "notes": []
+    },
+    "solution_0_0": {
+      "canonical_sha256": "b2bc590c86d08e4b1da59ee0b9c7c91910b05be4719c3f5bbd69e59c22758242",
+      "expression": {
+        "type": "number",
+        "numerator": 0,
+        "denominator": 1
+      },
+      "status": "unchanged",
+      "operations": [],
+      "assumptions_used": [],
+      "notes": []
+    },
+    "solution_0_1_lhs": {
+      "canonical_sha256": "d287aef027c6d2d9fe1975dc381f4d4ddfb7d430fd5b056424e05fda8f04402a",
+      "expression": {
+        "type": "scalar",
+        "name": "beta0"
+      },
+      "status": "unchanged",
+      "operations": [],
+      "assumptions_used": [],
+      "notes": []
+    },
+    "solution_0_1": {
+      "canonical_sha256": "b2bc590c86d08e4b1da59ee0b9c7c91910b05be4719c3f5bbd69e59c22758242",
+      "expression": {
+        "type": "number",
+        "numerator": 0,
+        "denominator": 1
+      },
+      "status": "unchanged",
+      "operations": [],
+      "assumptions_used": [],
+      "notes": []
+    },
+    "solution_0_2_lhs": {
+      "canonical_sha256": "794f8cd81d7e3fc66597c5d8a697285182383f9485189042646e633842b9a24e",
+      "expression": {
+        "type": "function",
+        "name": "f",
+        "arguments": [
+          {
+            "type": "scalar",
+            "name": "r"
+          }
+        ]
+      },
+      "status": "unchanged",
+      "operations": [],
+      "assumptions_used": [],
+      "notes": []
+    },
+    "solution_0_2": {
+      "canonical_sha256": "96cd5602dd2f89c9fa7f4ecf5eaa46c561da19cf4a6d7fb8b67dd2fcad143523",
+      "expression": {
+        "type": "mul",
+        "factors": [
+          {
+            "type": "power",
+            "base": {
+              "type": "scalar",
+              "name": "ell"
+            },
+            "exponent": {
+              "type": "number",
+              "numerator": -2,
+              "denominator": 1
+            }
+          },
+          {
+            "type": "add",
+            "terms": [
+              {
+                "type": "power",
+                "base": {
+                  "type": "scalar",
+                  "name": "r"
+                },
+                "exponent": {
+                  "type": "number",
+                  "numerator": 2,
+                  "denominator": 1
+                }
+              },
+              {
+                "type": "mul",
+                "factors": [
+                  {
+                    "type": "scalar",
+                    "name": "polyfD2C0"
+                  },
+                  {
+                    "type": "power",
+                    "base": {
+                      "type": "scalar",
+                      "name": "ell"
+                    },
+                    "exponent": {
+                      "type": "number",
+                      "numerator": 2,
+                      "denominator": 1
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "status": "unchanged",
+      "operations": [],
+      "assumptions_used": [],
+      "notes": [
+        "Potencias no justificadas conservadas como bloques; sin cancelación de sus factores."
+      ]
+    },
+    "solution_0_parameter_0": {
+      "canonical_sha256": "5c15fec8040b7e4bcb72c9289ba8ec3ecda985d9708a3a9cf3d77c9754c3b5d3",
+      "expression": {
+        "type": "scalar",
+        "name": "ell"
+      },
+      "status": "unchanged",
+      "operations": [],
+      "assumptions_used": [],
+      "notes": []
+    },
+    "solution_0_parameter_1": {
+      "canonical_sha256": "9ccf9bf362a62c4d81be55b95e1253b629513f43e278e0583330b43489baffa0",
+      "expression": {
+        "type": "scalar",
+        "name": "polyfD2C0"
+      },
+      "status": "unchanged",
+      "operations": [],
+      "assumptions_used": [],
+      "notes": []
+    },
+    "solution_0_domain_0": {
+      "canonical_sha256": "65e02322020939140c3998241abafa4a0e22d552b4123cd188b7d5428fc614e7",
+      "expression": {
+        "type": "add",
+        "terms": [
+          {
+            "type": "scalar",
+            "name": "polyfD2C0"
+          },
+          {
+            "type": "mul",
+            "factors": [
+              {
+                "type": "power",
+                "base": {
+                  "type": "scalar",
+                  "name": "ell"
+                },
+                "exponent": {
+                  "type": "number",
+                  "numerator": -2,
+                  "denominator": 1
+                }
+              },
+              {
+                "type": "power",
+                "base": {
+                  "type": "scalar",
+                  "name": "r"
+                },
+                "exponent": {
+                  "type": "number",
+                  "numerator": 2,
+                  "denominator": 1
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "status": "unchanged",
+      "operations": [],
+      "assumptions_used": [],
+      "notes": [
+        "Potencias no justificadas conservadas como bloques; sin cancelación de sus factores."
+      ]
+    },
+    "solution_0_domain_1": {
+      "canonical_sha256": "5c15fec8040b7e4bcb72c9289ba8ec3ecda985d9708a3a9cf3d77c9754c3b5d3",
+      "expression": {
+        "type": "scalar",
+        "name": "ell"
+      },
+      "status": "unchanged",
+      "operations": [],
+      "assumptions_used": [],
+      "notes": []
+    },
+    "solution_0_domain_2": {
+      "canonical_sha256": "7521ff1994faa93e6319a3fe077ea749972f6a52b364436164e8d0252530a4d2",
+      "expression": {
+        "type": "scalar",
+        "name": "r"
+      },
+      "status": "unchanged",
+      "operations": [],
+      "assumptions_used": [],
+      "notes": []
+    },
+    "solution_0_domain_3": {
+      "canonical_sha256": "14b5bf06487c0087a6211ebfb69e9c6e25e1425e294e3ab07af2955cfddc977d",
+      "expression": {
+        "type": "power",
+        "base": {
+          "type": "scalar",
+          "name": "ell"
+        },
+        "exponent": {
+          "type": "number",
+          "numerator": -2,
+          "denominator": 1
+        }
+      },
+      "status": "unchanged",
+      "operations": [],
+      "assumptions_used": [],
+      "notes": [
+        "Potencias no justificadas conservadas como bloques; sin cancelación de sus factores."
+      ]
+    },
+    "solution_1_0_lhs": {
+      "canonical_sha256": "565dbbb71cc669d0062a92c954808277a865b6fd63e83ba97ead04a7d14eb091",
+      "expression": {
+        "type": "scalar",
+        "name": "q"
+      },
+      "status": "unchanged",
+      "operations": [],
+      "assumptions_used": [],
+      "notes": []
+    },
+    "solution_1_0": {
+      "canonical_sha256": "b2bc590c86d08e4b1da59ee0b9c7c91910b05be4719c3f5bbd69e59c22758242",
+      "expression": {
+        "type": "number",
+        "numerator": 0,
+        "denominator": 1
+      },
+      "status": "unchanged",
+      "operations": [],
+      "assumptions_used": [],
+      "notes": []
+    },
+    "solution_1_1_lhs": {
+      "canonical_sha256": "d287aef027c6d2d9fe1975dc381f4d4ddfb7d430fd5b056424e05fda8f04402a",
+      "expression": {
+        "type": "scalar",
+        "name": "beta0"
+      },
+      "status": "unchanged",
+      "operations": [],
+      "assumptions_used": [],
+      "notes": []
+    },
+    "solution_1_1": {
+      "canonical_sha256": "b2bc590c86d08e4b1da59ee0b9c7c91910b05be4719c3f5bbd69e59c22758242",
+      "expression": {
+        "type": "number",
+        "numerator": 0,
+        "denominator": 1
+      },
+      "status": "unchanged",
+      "operations": [],
+      "assumptions_used": [],
+      "notes": []
+    },
+    "solution_1_2_lhs": {
+      "canonical_sha256": "794f8cd81d7e3fc66597c5d8a697285182383f9485189042646e633842b9a24e",
+      "expression": {
+        "type": "function",
+        "name": "f",
+        "arguments": [
+          {
+            "type": "scalar",
+            "name": "r"
+          }
+        ]
+      },
+      "status": "unchanged",
+      "operations": [],
+      "assumptions_used": [],
+      "notes": []
+    },
+    "solution_1_2": {
+      "canonical_sha256": "4d696bfabb05f71d897b94c6a75211312548fa8580c9fae17a52a6b0936ebbdb",
+      "expression": {
+        "type": "mul",
+        "factors": [
+          {
+            "type": "power",
+            "base": {
+              "type": "scalar",
+              "name": "ell"
+            },
+            "exponent": {
+              "type": "number",
+              "numerator": -2,
+              "denominator": 1
+            }
+          },
+          {
+            "type": "add",
+            "terms": [
+              {
+                "type": "power",
+                "base": {
+                  "type": "scalar",
+                  "name": "r"
+                },
+                "exponent": {
+                  "type": "number",
+                  "numerator": 2,
+                  "denominator": 1
+                }
+              },
+              {
+                "type": "mul",
+                "factors": [
+                  {
+                    "type": "scalar",
+                    "name": "powerfE2B"
+                  },
+                  {
+                    "type": "power",
+                    "base": {
+                      "type": "scalar",
+                      "name": "ell"
+                    },
+                    "exponent": {
+                      "type": "number",
+                      "numerator": 2,
+                      "denominator": 1
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "status": "unchanged",
+      "operations": [],
+      "assumptions_used": [],
+      "notes": [
+        "Potencias no justificadas conservadas como bloques; sin cancelación de sus factores."
+      ]
+    },
+    "solution_1_parameter_0": {
+      "canonical_sha256": "5c15fec8040b7e4bcb72c9289ba8ec3ecda985d9708a3a9cf3d77c9754c3b5d3",
+      "expression": {
+        "type": "scalar",
+        "name": "ell"
+      },
+      "status": "unchanged",
+      "operations": [],
+      "assumptions_used": [],
+      "notes": []
+    },
+    "solution_1_parameter_1": {
+      "canonical_sha256": "81fa053fac5b729d48b8c2a38f4c145c73d4f3d4af8996b5bc6800e24e513327",
+      "expression": {
+        "type": "scalar",
+        "name": "powerfE2B"
+      },
+      "status": "unchanged",
+      "operations": [],
+      "assumptions_used": [],
+      "notes": []
+    },
+    "solution_1_domain_0": {
+      "canonical_sha256": "0e043173c07e12dc58dac1a86d2613e162ed823980f0f959510321f4fad9864c",
+      "expression": {
+        "type": "add",
+        "terms": [
+          {
+            "type": "scalar",
+            "name": "powerfE2B"
+          },
+          {
+            "type": "mul",
+            "factors": [
+              {
+                "type": "power",
+                "base": {
+                  "type": "scalar",
+                  "name": "ell"
+                },
+                "exponent": {
+                  "type": "number",
+                  "numerator": -2,
+                  "denominator": 1
+                }
+              },
+              {
+                "type": "power",
+                "base": {
+                  "type": "scalar",
+                  "name": "r"
+                },
+                "exponent": {
+                  "type": "number",
+                  "numerator": 2,
+                  "denominator": 1
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "status": "unchanged",
+      "operations": [],
+      "assumptions_used": [],
+      "notes": [
+        "Potencias no justificadas conservadas como bloques; sin cancelación de sus factores."
+      ]
+    },
+    "solution_1_domain_1": {
+      "canonical_sha256": "5c15fec8040b7e4bcb72c9289ba8ec3ecda985d9708a3a9cf3d77c9754c3b5d3",
+      "expression": {
+        "type": "scalar",
+        "name": "ell"
+      },
+      "status": "unchanged",
+      "operations": [],
+      "assumptions_used": [],
+      "notes": []
+    },
+    "solution_1_domain_2": {
+      "canonical_sha256": "7521ff1994faa93e6319a3fe077ea749972f6a52b364436164e8d0252530a4d2",
+      "expression": {
+        "type": "scalar",
+        "name": "r"
+      },
+      "status": "unchanged",
+      "operations": [],
+      "assumptions_used": [],
+      "notes": []
+    },
+    "solution_1_domain_3": {
+      "canonical_sha256": "14b5bf06487c0087a6211ebfb69e9c6e25e1425e294e3ab07af2955cfddc977d",
+      "expression": {
+        "type": "power",
+        "base": {
+          "type": "scalar",
+          "name": "ell"
+        },
+        "exponent": {
+          "type": "number",
+          "numerator": -2,
+          "denominator": 1
+        }
+      },
+      "status": "unchanged",
+      "operations": [],
+      "assumptions_used": [],
+      "notes": [
+        "Potencias no justificadas conservadas como bloques; sin cancelación de sus factores."
+      ]
+    },
+    "solution_2_0_lhs": {
+      "canonical_sha256": "565dbbb71cc669d0062a92c954808277a865b6fd63e83ba97ead04a7d14eb091",
+      "expression": {
+        "type": "scalar",
+        "name": "q"
+      },
+      "status": "unchanged",
+      "operations": [],
+      "assumptions_used": [],
+      "notes": []
+    },
+    "solution_2_0": {
+      "canonical_sha256": "b2bc590c86d08e4b1da59ee0b9c7c91910b05be4719c3f5bbd69e59c22758242",
+      "expression": {
+        "type": "number",
+        "numerator": 0,
+        "denominator": 1
+      },
+      "status": "unchanged",
+      "operations": [],
+      "assumptions_used": [],
+      "notes": []
+    },
+    "solution_2_1_lhs": {
+      "canonical_sha256": "794f8cd81d7e3fc66597c5d8a697285182383f9485189042646e633842b9a24e",
+      "expression": {
+        "type": "function",
+        "name": "f",
+        "arguments": [
+          {
+            "type": "scalar",
+            "name": "r"
+          }
+        ]
+      },
+      "status": "unchanged",
+      "operations": [],
+      "assumptions_used": [],
+      "notes": []
+    },
+    "solution_2_1": {
+      "canonical_sha256": "96cd5602dd2f89c9fa7f4ecf5eaa46c561da19cf4a6d7fb8b67dd2fcad143523",
+      "expression": {
+        "type": "mul",
+        "factors": [
+          {
+            "type": "power",
+            "base": {
+              "type": "scalar",
+              "name": "ell"
+            },
+            "exponent": {
+              "type": "number",
+              "numerator": -2,
+              "denominator": 1
+            }
+          },
+          {
+            "type": "add",
+            "terms": [
+              {
+                "type": "power",
+                "base": {
+                  "type": "scalar",
+                  "name": "r"
+                },
+                "exponent": {
+                  "type": "number",
+                  "numerator": 2,
+                  "denominator": 1
+                }
+              },
+              {
+                "type": "mul",
+                "factors": [
+                  {
+                    "type": "scalar",
+                    "name": "polyfD2C0"
+                  },
+                  {
+                    "type": "power",
+                    "base": {
+                      "type": "scalar",
+                      "name": "ell"
+                    },
+                    "exponent": {
+                      "type": "number",
+                      "numerator": 2,
+                      "denominator": 1
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "status": "unchanged",
+      "operations": [],
+      "assumptions_used": [],
+      "notes": [
+        "Potencias no justificadas conservadas como bloques; sin cancelación de sus factores."
+      ]
+    },
+    "solution_2_parameter_0": {
+      "canonical_sha256": "d287aef027c6d2d9fe1975dc381f4d4ddfb7d430fd5b056424e05fda8f04402a",
+      "expression": {
+        "type": "scalar",
+        "name": "beta0"
+      },
+      "status": "unchanged",
+      "operations": [],
+      "assumptions_used": [],
+      "notes": []
+    },
+    "solution_2_parameter_1": {
+      "canonical_sha256": "5c15fec8040b7e4bcb72c9289ba8ec3ecda985d9708a3a9cf3d77c9754c3b5d3",
+      "expression": {
+        "type": "scalar",
+        "name": "ell"
+      },
+      "status": "unchanged",
+      "operations": [],
+      "assumptions_used": [],
+      "notes": []
+    },
+    "solution_2_parameter_2": {
+      "canonical_sha256": "9ccf9bf362a62c4d81be55b95e1253b629513f43e278e0583330b43489baffa0",
+      "expression": {
+        "type": "scalar",
+        "name": "polyfD2C0"
+      },
+      "status": "unchanged",
+      "operations": [],
+      "assumptions_used": [],
+      "notes": []
+    },
+    "solution_2_domain_0": {
+      "canonical_sha256": "65e02322020939140c3998241abafa4a0e22d552b4123cd188b7d5428fc614e7",
+      "expression": {
+        "type": "add",
+        "terms": [
+          {
+            "type": "scalar",
+            "name": "polyfD2C0"
+          },
+          {
+            "type": "mul",
+            "factors": [
+              {
+                "type": "power",
+                "base": {
+                  "type": "scalar",
+                  "name": "ell"
+                },
+                "exponent": {
+                  "type": "number",
+                  "numerator": -2,
+                  "denominator": 1
+                }
+              },
+              {
+                "type": "power",
+                "base": {
+                  "type": "scalar",
+                  "name": "r"
+                },
+                "exponent": {
+                  "type": "number",
+                  "numerator": 2,
+                  "denominator": 1
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "status": "unchanged",
+      "operations": [],
+      "assumptions_used": [],
+      "notes": [
+        "Potencias no justificadas conservadas como bloques; sin cancelación de sus factores."
+      ]
+    },
+    "solution_2_domain_1": {
+      "canonical_sha256": "5c15fec8040b7e4bcb72c9289ba8ec3ecda985d9708a3a9cf3d77c9754c3b5d3",
+      "expression": {
+        "type": "scalar",
+        "name": "ell"
+      },
+      "status": "unchanged",
+      "operations": [],
+      "assumptions_used": [],
+      "notes": []
+    },
+    "solution_2_domain_2": {
+      "canonical_sha256": "7521ff1994faa93e6319a3fe077ea749972f6a52b364436164e8d0252530a4d2",
+      "expression": {
+        "type": "scalar",
+        "name": "r"
+      },
+      "status": "unchanged",
+      "operations": [],
+      "assumptions_used": [],
+      "notes": []
+    },
+    "solution_2_domain_3": {
+      "canonical_sha256": "d287aef027c6d2d9fe1975dc381f4d4ddfb7d430fd5b056424e05fda8f04402a",
+      "expression": {
+        "type": "scalar",
+        "name": "beta0"
+      },
+      "status": "unchanged",
+      "operations": [],
+      "assumptions_used": [],
+      "notes": []
+    },
+    "solution_2_domain_4": {
+      "canonical_sha256": "14b5bf06487c0087a6211ebfb69e9c6e25e1425e294e3ab07af2955cfddc977d",
+      "expression": {
+        "type": "power",
+        "base": {
+          "type": "scalar",
+          "name": "ell"
+        },
+        "exponent": {
+          "type": "number",
+          "numerator": -2,
+          "denominator": 1
+        }
+      },
+      "status": "unchanged",
+      "operations": [],
+      "assumptions_used": [],
+      "notes": [
+        "Potencias no justificadas conservadas como bloques; sin cancelación de sus factores."
+      ]
+    },
+    "solution_3_0_lhs": {
+      "canonical_sha256": "565dbbb71cc669d0062a92c954808277a865b6fd63e83ba97ead04a7d14eb091",
+      "expression": {
+        "type": "scalar",
+        "name": "q"
+      },
+      "status": "unchanged",
+      "operations": [],
+      "assumptions_used": [],
+      "notes": []
+    },
+    "solution_3_0": {
+      "canonical_sha256": "b2bc590c86d08e4b1da59ee0b9c7c91910b05be4719c3f5bbd69e59c22758242",
+      "expression": {
+        "type": "number",
+        "numerator": 0,
+        "denominator": 1
+      },
+      "status": "unchanged",
+      "operations": [],
+      "assumptions_used": [],
+      "notes": []
+    },
+    "solution_3_1_lhs": {
+      "canonical_sha256": "794f8cd81d7e3fc66597c5d8a697285182383f9485189042646e633842b9a24e",
+      "expression": {
+        "type": "function",
+        "name": "f",
+        "arguments": [
+          {
+            "type": "scalar",
+            "name": "r"
+          }
+        ]
+      },
+      "status": "unchanged",
+      "operations": [],
+      "assumptions_used": [],
+      "notes": []
+    },
+    "solution_3_1": {
+      "canonical_sha256": "4d696bfabb05f71d897b94c6a75211312548fa8580c9fae17a52a6b0936ebbdb",
+      "expression": {
+        "type": "mul",
+        "factors": [
+          {
+            "type": "power",
+            "base": {
+              "type": "scalar",
+              "name": "ell"
+            },
+            "exponent": {
+              "type": "number",
+              "numerator": -2,
+              "denominator": 1
+            }
+          },
+          {
+            "type": "add",
+            "terms": [
+              {
+                "type": "power",
+                "base": {
+                  "type": "scalar",
+                  "name": "r"
+                },
+                "exponent": {
+                  "type": "number",
+                  "numerator": 2,
+                  "denominator": 1
+                }
+              },
+              {
+                "type": "mul",
+                "factors": [
+                  {
+                    "type": "scalar",
+                    "name": "powerfE2B"
+                  },
+                  {
+                    "type": "power",
+                    "base": {
+                      "type": "scalar",
+                      "name": "ell"
+                    },
+                    "exponent": {
+                      "type": "number",
+                      "numerator": 2,
+                      "denominator": 1
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "status": "unchanged",
+      "operations": [],
+      "assumptions_used": [],
+      "notes": [
+        "Potencias no justificadas conservadas como bloques; sin cancelación de sus factores."
+      ]
+    },
+    "solution_3_parameter_0": {
+      "canonical_sha256": "d287aef027c6d2d9fe1975dc381f4d4ddfb7d430fd5b056424e05fda8f04402a",
+      "expression": {
+        "type": "scalar",
+        "name": "beta0"
+      },
+      "status": "unchanged",
+      "operations": [],
+      "assumptions_used": [],
+      "notes": []
+    },
+    "solution_3_parameter_1": {
+      "canonical_sha256": "5c15fec8040b7e4bcb72c9289ba8ec3ecda985d9708a3a9cf3d77c9754c3b5d3",
+      "expression": {
+        "type": "scalar",
+        "name": "ell"
+      },
+      "status": "unchanged",
+      "operations": [],
+      "assumptions_used": [],
+      "notes": []
+    },
+    "solution_3_parameter_2": {
+      "canonical_sha256": "81fa053fac5b729d48b8c2a38f4c145c73d4f3d4af8996b5bc6800e24e513327",
+      "expression": {
+        "type": "scalar",
+        "name": "powerfE2B"
+      },
+      "status": "unchanged",
+      "operations": [],
+      "assumptions_used": [],
+      "notes": []
+    },
+    "solution_3_domain_0": {
+      "canonical_sha256": "0e043173c07e12dc58dac1a86d2613e162ed823980f0f959510321f4fad9864c",
+      "expression": {
+        "type": "add",
+        "terms": [
+          {
+            "type": "scalar",
+            "name": "powerfE2B"
+          },
+          {
+            "type": "mul",
+            "factors": [
+              {
+                "type": "power",
+                "base": {
+                  "type": "scalar",
+                  "name": "ell"
+                },
+                "exponent": {
+                  "type": "number",
+                  "numerator": -2,
+                  "denominator": 1
+                }
+              },
+              {
+                "type": "power",
+                "base": {
+                  "type": "scalar",
+                  "name": "r"
+                },
+                "exponent": {
+                  "type": "number",
+                  "numerator": 2,
+                  "denominator": 1
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "status": "unchanged",
+      "operations": [],
+      "assumptions_used": [],
+      "notes": [
+        "Potencias no justificadas conservadas como bloques; sin cancelación de sus factores."
+      ]
+    },
+    "solution_3_domain_1": {
+      "canonical_sha256": "5c15fec8040b7e4bcb72c9289ba8ec3ecda985d9708a3a9cf3d77c9754c3b5d3",
+      "expression": {
+        "type": "scalar",
+        "name": "ell"
+      },
+      "status": "unchanged",
+      "operations": [],
+      "assumptions_used": [],
+      "notes": []
+    },
+    "solution_3_domain_2": {
+      "canonical_sha256": "7521ff1994faa93e6319a3fe077ea749972f6a52b364436164e8d0252530a4d2",
+      "expression": {
+        "type": "scalar",
+        "name": "r"
+      },
+      "status": "unchanged",
+      "operations": [],
+      "assumptions_used": [],
+      "notes": []
+    },
+    "solution_3_domain_3": {
+      "canonical_sha256": "d287aef027c6d2d9fe1975dc381f4d4ddfb7d430fd5b056424e05fda8f04402a",
+      "expression": {
+        "type": "scalar",
+        "name": "beta0"
+      },
+      "status": "unchanged",
+      "operations": [],
+      "assumptions_used": [],
+      "notes": []
+    },
+    "solution_3_domain_4": {
+      "canonical_sha256": "14b5bf06487c0087a6211ebfb69e9c6e25e1425e294e3ab07af2955cfddc977d",
+      "expression": {
+        "type": "power",
+        "base": {
+          "type": "scalar",
+          "name": "ell"
+        },
+        "exponent": {
+          "type": "number",
+          "numerator": -2,
+          "denominator": 1
+        }
+      },
+      "status": "unchanged",
+      "operations": [],
+      "assumptions_used": [],
+      "notes": [
+        "Potencias no justificadas conservadas como bloques; sin cancelación de sus factores."
+      ]
+    },
+    "solution_4_0_lhs": {
+      "canonical_sha256": "d287aef027c6d2d9fe1975dc381f4d4ddfb7d430fd5b056424e05fda8f04402a",
+      "expression": {
+        "type": "scalar",
+        "name": "beta0"
+      },
+      "status": "unchanged",
+      "operations": [],
+      "assumptions_used": [],
+      "notes": []
+    },
+    "solution_4_0": {
+      "canonical_sha256": "b2bc590c86d08e4b1da59ee0b9c7c91910b05be4719c3f5bbd69e59c22758242",
+      "expression": {
+        "type": "number",
+        "numerator": 0,
+        "denominator": 1
+      },
+      "status": "unchanged",
+      "operations": [],
+      "assumptions_used": [],
+      "notes": []
+    },
+    "solution_4_1_lhs": {
+      "canonical_sha256": "794f8cd81d7e3fc66597c5d8a697285182383f9485189042646e633842b9a24e",
+      "expression": {
+        "type": "function",
+        "name": "f",
+        "arguments": [
+          {
+            "type": "scalar",
+            "name": "r"
+          }
+        ]
+      },
+      "status": "unchanged",
+      "operations": [],
+      "assumptions_used": [],
+      "notes": []
+    },
+    "solution_4_1": {
+      "canonical_sha256": "96cd5602dd2f89c9fa7f4ecf5eaa46c561da19cf4a6d7fb8b67dd2fcad143523",
+      "expression": {
+        "type": "mul",
+        "factors": [
+          {
+            "type": "power",
+            "base": {
+              "type": "scalar",
+              "name": "ell"
+            },
+            "exponent": {
+              "type": "number",
+              "numerator": -2,
+              "denominator": 1
+            }
+          },
+          {
+            "type": "add",
+            "terms": [
+              {
+                "type": "power",
+                "base": {
+                  "type": "scalar",
+                  "name": "r"
+                },
+                "exponent": {
+                  "type": "number",
+                  "numerator": 2,
+                  "denominator": 1
+                }
+              },
+              {
+                "type": "mul",
+                "factors": [
+                  {
+                    "type": "scalar",
+                    "name": "polyfD2C0"
+                  },
+                  {
+                    "type": "power",
+                    "base": {
+                      "type": "scalar",
+                      "name": "ell"
+                    },
+                    "exponent": {
+                      "type": "number",
+                      "numerator": 2,
+                      "denominator": 1
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "status": "unchanged",
+      "operations": [],
+      "assumptions_used": [],
+      "notes": [
+        "Potencias no justificadas conservadas como bloques; sin cancelación de sus factores."
+      ]
+    },
+    "solution_4_parameter_0": {
+      "canonical_sha256": "5c15fec8040b7e4bcb72c9289ba8ec3ecda985d9708a3a9cf3d77c9754c3b5d3",
+      "expression": {
+        "type": "scalar",
+        "name": "ell"
+      },
+      "status": "unchanged",
+      "operations": [],
+      "assumptions_used": [],
+      "notes": []
+    },
+    "solution_4_parameter_1": {
+      "canonical_sha256": "9ccf9bf362a62c4d81be55b95e1253b629513f43e278e0583330b43489baffa0",
+      "expression": {
+        "type": "scalar",
+        "name": "polyfD2C0"
+      },
+      "status": "unchanged",
+      "operations": [],
+      "assumptions_used": [],
+      "notes": []
+    },
+    "solution_4_parameter_2": {
+      "canonical_sha256": "565dbbb71cc669d0062a92c954808277a865b6fd63e83ba97ead04a7d14eb091",
+      "expression": {
+        "type": "scalar",
+        "name": "q"
+      },
+      "status": "unchanged",
+      "operations": [],
+      "assumptions_used": [],
+      "notes": []
+    },
+    "solution_4_domain_0": {
+      "canonical_sha256": "65e02322020939140c3998241abafa4a0e22d552b4123cd188b7d5428fc614e7",
+      "expression": {
+        "type": "add",
+        "terms": [
+          {
+            "type": "scalar",
+            "name": "polyfD2C0"
+          },
+          {
+            "type": "mul",
+            "factors": [
+              {
+                "type": "power",
+                "base": {
+                  "type": "scalar",
+                  "name": "ell"
+                },
+                "exponent": {
+                  "type": "number",
+                  "numerator": -2,
+                  "denominator": 1
+                }
+              },
+              {
+                "type": "power",
+                "base": {
+                  "type": "scalar",
+                  "name": "r"
+                },
+                "exponent": {
+                  "type": "number",
+                  "numerator": 2,
+                  "denominator": 1
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "status": "unchanged",
+      "operations": [],
+      "assumptions_used": [],
+      "notes": [
+        "Potencias no justificadas conservadas como bloques; sin cancelación de sus factores."
+      ]
+    },
+    "solution_4_domain_1": {
+      "canonical_sha256": "5c15fec8040b7e4bcb72c9289ba8ec3ecda985d9708a3a9cf3d77c9754c3b5d3",
+      "expression": {
+        "type": "scalar",
+        "name": "ell"
+      },
+      "status": "unchanged",
+      "operations": [],
+      "assumptions_used": [],
+      "notes": []
+    },
+    "solution_4_domain_2": {
+      "canonical_sha256": "7521ff1994faa93e6319a3fe077ea749972f6a52b364436164e8d0252530a4d2",
+      "expression": {
+        "type": "scalar",
+        "name": "r"
+      },
+      "status": "unchanged",
+      "operations": [],
+      "assumptions_used": [],
+      "notes": []
+    },
+    "solution_4_domain_3": {
+      "canonical_sha256": "565dbbb71cc669d0062a92c954808277a865b6fd63e83ba97ead04a7d14eb091",
+      "expression": {
+        "type": "scalar",
+        "name": "q"
+      },
+      "status": "unchanged",
+      "operations": [],
+      "assumptions_used": [],
+      "notes": []
+    },
+    "solution_4_domain_4": {
+      "canonical_sha256": "14b5bf06487c0087a6211ebfb69e9c6e25e1425e294e3ab07af2955cfddc977d",
+      "expression": {
+        "type": "power",
+        "base": {
+          "type": "scalar",
+          "name": "ell"
+        },
+        "exponent": {
+          "type": "number",
+          "numerator": -2,
+          "denominator": 1
+        }
+      },
+      "status": "unchanged",
+      "operations": [],
+      "assumptions_used": [],
+      "notes": [
+        "Potencias no justificadas conservadas como bloques; sin cancelación de sus factores."
+      ]
+    },
+    "solution_5_0_lhs": {
+      "canonical_sha256": "d287aef027c6d2d9fe1975dc381f4d4ddfb7d430fd5b056424e05fda8f04402a",
+      "expression": {
+        "type": "scalar",
+        "name": "beta0"
+      },
+      "status": "unchanged",
+      "operations": [],
+      "assumptions_used": [],
+      "notes": []
+    },
+    "solution_5_0": {
+      "canonical_sha256": "b2bc590c86d08e4b1da59ee0b9c7c91910b05be4719c3f5bbd69e59c22758242",
+      "expression": {
+        "type": "number",
+        "numerator": 0,
+        "denominator": 1
+      },
+      "status": "unchanged",
+      "operations": [],
+      "assumptions_used": [],
+      "notes": []
+    },
+    "solution_5_1_lhs": {
+      "canonical_sha256": "794f8cd81d7e3fc66597c5d8a697285182383f9485189042646e633842b9a24e",
+      "expression": {
+        "type": "function",
+        "name": "f",
+        "arguments": [
+          {
+            "type": "scalar",
+            "name": "r"
+          }
+        ]
+      },
+      "status": "unchanged",
+      "operations": [],
+      "assumptions_used": [],
+      "notes": []
+    },
+    "solution_5_1": {
+      "canonical_sha256": "4d696bfabb05f71d897b94c6a75211312548fa8580c9fae17a52a6b0936ebbdb",
+      "expression": {
+        "type": "mul",
+        "factors": [
+          {
+            "type": "power",
+            "base": {
+              "type": "scalar",
+              "name": "ell"
+            },
+            "exponent": {
+              "type": "number",
+              "numerator": -2,
+              "denominator": 1
+            }
+          },
+          {
+            "type": "add",
+            "terms": [
+              {
+                "type": "power",
+                "base": {
+                  "type": "scalar",
+                  "name": "r"
+                },
+                "exponent": {
+                  "type": "number",
+                  "numerator": 2,
+                  "denominator": 1
+                }
+              },
+              {
+                "type": "mul",
+                "factors": [
+                  {
+                    "type": "scalar",
+                    "name": "powerfE2B"
+                  },
+                  {
+                    "type": "power",
+                    "base": {
+                      "type": "scalar",
+                      "name": "ell"
+                    },
+                    "exponent": {
+                      "type": "number",
+                      "numerator": 2,
+                      "denominator": 1
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "status": "unchanged",
+      "operations": [],
+      "assumptions_used": [],
+      "notes": [
+        "Potencias no justificadas conservadas como bloques; sin cancelación de sus factores."
+      ]
+    },
+    "solution_5_parameter_0": {
+      "canonical_sha256": "5c15fec8040b7e4bcb72c9289ba8ec3ecda985d9708a3a9cf3d77c9754c3b5d3",
+      "expression": {
+        "type": "scalar",
+        "name": "ell"
+      },
+      "status": "unchanged",
+      "operations": [],
+      "assumptions_used": [],
+      "notes": []
+    },
+    "solution_5_parameter_1": {
+      "canonical_sha256": "81fa053fac5b729d48b8c2a38f4c145c73d4f3d4af8996b5bc6800e24e513327",
+      "expression": {
+        "type": "scalar",
+        "name": "powerfE2B"
+      },
+      "status": "unchanged",
+      "operations": [],
+      "assumptions_used": [],
+      "notes": []
+    },
+    "solution_5_parameter_2": {
+      "canonical_sha256": "565dbbb71cc669d0062a92c954808277a865b6fd63e83ba97ead04a7d14eb091",
+      "expression": {
+        "type": "scalar",
+        "name": "q"
+      },
+      "status": "unchanged",
+      "operations": [],
+      "assumptions_used": [],
+      "notes": []
+    },
+    "solution_5_domain_0": {
+      "canonical_sha256": "0e043173c07e12dc58dac1a86d2613e162ed823980f0f959510321f4fad9864c",
+      "expression": {
+        "type": "add",
+        "terms": [
+          {
+            "type": "scalar",
+            "name": "powerfE2B"
+          },
+          {
+            "type": "mul",
+            "factors": [
+              {
+                "type": "power",
+                "base": {
+                  "type": "scalar",
+                  "name": "ell"
+                },
+                "exponent": {
+                  "type": "number",
+                  "numerator": -2,
+                  "denominator": 1
+                }
+              },
+              {
+                "type": "power",
+                "base": {
+                  "type": "scalar",
+                  "name": "r"
+                },
+                "exponent": {
+                  "type": "number",
+                  "numerator": 2,
+                  "denominator": 1
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "status": "unchanged",
+      "operations": [],
+      "assumptions_used": [],
+      "notes": [
+        "Potencias no justificadas conservadas como bloques; sin cancelación de sus factores."
+      ]
+    },
+    "solution_5_domain_1": {
+      "canonical_sha256": "5c15fec8040b7e4bcb72c9289ba8ec3ecda985d9708a3a9cf3d77c9754c3b5d3",
+      "expression": {
+        "type": "scalar",
+        "name": "ell"
+      },
+      "status": "unchanged",
+      "operations": [],
+      "assumptions_used": [],
+      "notes": []
+    },
+    "solution_5_domain_2": {
+      "canonical_sha256": "7521ff1994faa93e6319a3fe077ea749972f6a52b364436164e8d0252530a4d2",
+      "expression": {
+        "type": "scalar",
+        "name": "r"
+      },
+      "status": "unchanged",
+      "operations": [],
+      "assumptions_used": [],
+      "notes": []
+    },
+    "solution_5_domain_3": {
+      "canonical_sha256": "565dbbb71cc669d0062a92c954808277a865b6fd63e83ba97ead04a7d14eb091",
+      "expression": {
+        "type": "scalar",
+        "name": "q"
+      },
+      "status": "unchanged",
+      "operations": [],
+      "assumptions_used": [],
+      "notes": []
+    },
+    "solution_5_domain_4": {
+      "canonical_sha256": "14b5bf06487c0087a6211ebfb69e9c6e25e1425e294e3ab07af2955cfddc977d",
+      "expression": {
+        "type": "power",
+        "base": {
+          "type": "scalar",
+          "name": "ell"
+        },
+        "exponent": {
+          "type": "number",
+          "numerator": -2,
+          "denominator": 1
+        }
+      },
+      "status": "unchanged",
+      "operations": [],
+      "assumptions_used": [],
+      "notes": [
+        "Potencias no justificadas conservadas como bloques; sin cancelación de sus factores."
+      ]
+    },
+    "solution_6_0_lhs": {
+      "canonical_sha256": "794f8cd81d7e3fc66597c5d8a697285182383f9485189042646e633842b9a24e",
+      "expression": {
+        "type": "function",
+        "name": "f",
+        "arguments": [
+          {
+            "type": "scalar",
+            "name": "r"
+          }
+        ]
+      },
+      "status": "unchanged",
+      "operations": [],
+      "assumptions_used": [],
+      "notes": []
+    },
+    "solution_6_0": {
+      "canonical_sha256": "bfae39211e99fa0b48610957836a3e669a53dea72d12dabbe8b8a8bd52e80af6",
+      "expression": {
+        "type": "mul",
+        "factors": [
+          {
+            "type": "power",
+            "base": {
+              "type": "scalar",
+              "name": "ell"
+            },
+            "exponent": {
+              "type": "number",
+              "numerator": -2,
+              "denominator": 1
+            }
+          },
+          {
+            "type": "power",
+            "base": {
+              "type": "scalar",
+              "name": "r"
+            },
+            "exponent": {
+              "type": "number",
+              "numerator": 2,
+              "denominator": 1
+            }
+          }
+        ]
+      },
+      "status": "unchanged",
+      "operations": [],
+      "assumptions_used": [],
+      "notes": [
+        "Potencias no justificadas conservadas como bloques; sin cancelación de sus factores."
+      ]
+    },
+    "solution_6_parameter_0": {
+      "canonical_sha256": "d287aef027c6d2d9fe1975dc381f4d4ddfb7d430fd5b056424e05fda8f04402a",
+      "expression": {
+        "type": "scalar",
+        "name": "beta0"
+      },
+      "status": "unchanged",
+      "operations": [],
+      "assumptions_used": [],
+      "notes": []
+    },
+    "solution_6_parameter_1": {
+      "canonical_sha256": "5c15fec8040b7e4bcb72c9289ba8ec3ecda985d9708a3a9cf3d77c9754c3b5d3",
+      "expression": {
+        "type": "scalar",
+        "name": "ell"
+      },
+      "status": "unchanged",
+      "operations": [],
+      "assumptions_used": [],
+      "notes": []
+    },
+    "solution_6_parameter_2": {
+      "canonical_sha256": "565dbbb71cc669d0062a92c954808277a865b6fd63e83ba97ead04a7d14eb091",
+      "expression": {
+        "type": "scalar",
+        "name": "q"
+      },
+      "status": "unchanged",
+      "operations": [],
+      "assumptions_used": [],
+      "notes": []
+    },
+    "solution_6_domain_0": {
+      "canonical_sha256": "bfae39211e99fa0b48610957836a3e669a53dea72d12dabbe8b8a8bd52e80af6",
+      "expression": {
+        "type": "mul",
+        "factors": [
+          {
+            "type": "power",
+            "base": {
+              "type": "scalar",
+              "name": "ell"
+            },
+            "exponent": {
+              "type": "number",
+              "numerator": -2,
+              "denominator": 1
+            }
+          },
+          {
+            "type": "power",
+            "base": {
+              "type": "scalar",
+              "name": "r"
+            },
+            "exponent": {
+              "type": "number",
+              "numerator": 2,
+              "denominator": 1
+            }
+          }
+        ]
+      },
+      "status": "unchanged",
+      "operations": [],
+      "assumptions_used": [],
+      "notes": [
+        "Potencias no justificadas conservadas como bloques; sin cancelación de sus factores."
+      ]
+    },
+    "solution_6_domain_1": {
+      "canonical_sha256": "5c15fec8040b7e4bcb72c9289ba8ec3ecda985d9708a3a9cf3d77c9754c3b5d3",
+      "expression": {
+        "type": "scalar",
+        "name": "ell"
+      },
+      "status": "unchanged",
+      "operations": [],
+      "assumptions_used": [],
+      "notes": []
+    },
+    "solution_6_domain_2": {
+      "canonical_sha256": "7521ff1994faa93e6319a3fe077ea749972f6a52b364436164e8d0252530a4d2",
+      "expression": {
+        "type": "scalar",
+        "name": "r"
+      },
+      "status": "unchanged",
+      "operations": [],
+      "assumptions_used": [],
+      "notes": []
+    },
+    "solution_6_domain_3": {
+      "canonical_sha256": "565dbbb71cc669d0062a92c954808277a865b6fd63e83ba97ead04a7d14eb091",
+      "expression": {
+        "type": "scalar",
+        "name": "q"
+      },
+      "status": "unchanged",
+      "operations": [],
+      "assumptions_used": [],
+      "notes": []
+    },
+    "solution_6_domain_4": {
+      "canonical_sha256": "d287aef027c6d2d9fe1975dc381f4d4ddfb7d430fd5b056424e05fda8f04402a",
+      "expression": {
+        "type": "scalar",
+        "name": "beta0"
+      },
+      "status": "unchanged",
+      "operations": [],
+      "assumptions_used": [],
+      "notes": []
+    },
+    "solution_6_domain_5": {
+      "canonical_sha256": "14b5bf06487c0087a6211ebfb69e9c6e25e1425e294e3ab07af2955cfddc977d",
+      "expression": {
+        "type": "power",
+        "base": {
+          "type": "scalar",
+          "name": "ell"
+        },
+        "exponent": {
+          "type": "number",
+          "numerator": -2,
+          "denominator": 1
+        }
+      },
+      "status": "unchanged",
+      "operations": [],
+      "assumptions_used": [],
+      "notes": [
+        "Potencias no justificadas conservadas como bloques; sin cancelación de sus factores."
+      ]
+    },
+    "solution_7_0_lhs": {
+      "canonical_sha256": "794f8cd81d7e3fc66597c5d8a697285182383f9485189042646e633842b9a24e",
+      "expression": {
+        "type": "function",
+        "name": "f",
+        "arguments": [
+          {
+            "type": "scalar",
+            "name": "r"
+          }
+        ]
+      },
+      "status": "unchanged",
+      "operations": [],
+      "assumptions_used": [],
+      "notes": []
+    },
+    "solution_7_0": {
+      "canonical_sha256": "bfae39211e99fa0b48610957836a3e669a53dea72d12dabbe8b8a8bd52e80af6",
+      "expression": {
+        "type": "mul",
+        "factors": [
+          {
+            "type": "power",
+            "base": {
+              "type": "scalar",
+              "name": "ell"
+            },
+            "exponent": {
+              "type": "number",
+              "numerator": -2,
+              "denominator": 1
+            }
+          },
+          {
+            "type": "power",
+            "base": {
+              "type": "scalar",
+              "name": "r"
+            },
+            "exponent": {
+              "type": "number",
+              "numerator": 2,
+              "denominator": 1
+            }
+          }
+        ]
+      },
+      "status": "unchanged",
+      "operations": [],
+      "assumptions_used": [],
+      "notes": [
+        "Potencias no justificadas conservadas como bloques; sin cancelación de sus factores."
+      ]
+    },
+    "solution_7_parameter_0": {
+      "canonical_sha256": "d287aef027c6d2d9fe1975dc381f4d4ddfb7d430fd5b056424e05fda8f04402a",
+      "expression": {
+        "type": "scalar",
+        "name": "beta0"
+      },
+      "status": "unchanged",
+      "operations": [],
+      "assumptions_used": [],
+      "notes": []
+    },
+    "solution_7_parameter_1": {
+      "canonical_sha256": "5c15fec8040b7e4bcb72c9289ba8ec3ecda985d9708a3a9cf3d77c9754c3b5d3",
+      "expression": {
+        "type": "scalar",
+        "name": "ell"
+      },
+      "status": "unchanged",
+      "operations": [],
+      "assumptions_used": [],
+      "notes": []
+    },
+    "solution_7_parameter_2": {
+      "canonical_sha256": "565dbbb71cc669d0062a92c954808277a865b6fd63e83ba97ead04a7d14eb091",
+      "expression": {
+        "type": "scalar",
+        "name": "q"
+      },
+      "status": "unchanged",
+      "operations": [],
+      "assumptions_used": [],
+      "notes": []
+    },
+    "solution_7_domain_0": {
+      "canonical_sha256": "bfae39211e99fa0b48610957836a3e669a53dea72d12dabbe8b8a8bd52e80af6",
+      "expression": {
+        "type": "mul",
+        "factors": [
+          {
+            "type": "power",
+            "base": {
+              "type": "scalar",
+              "name": "ell"
+            },
+            "exponent": {
+              "type": "number",
+              "numerator": -2,
+              "denominator": 1
+            }
+          },
+          {
+            "type": "power",
+            "base": {
+              "type": "scalar",
+              "name": "r"
+            },
+            "exponent": {
+              "type": "number",
+              "numerator": 2,
+              "denominator": 1
+            }
+          }
+        ]
+      },
+      "status": "unchanged",
+      "operations": [],
+      "assumptions_used": [],
+      "notes": [
+        "Potencias no justificadas conservadas como bloques; sin cancelación de sus factores."
+      ]
+    },
+    "solution_7_domain_1": {
+      "canonical_sha256": "5c15fec8040b7e4bcb72c9289ba8ec3ecda985d9708a3a9cf3d77c9754c3b5d3",
+      "expression": {
+        "type": "scalar",
+        "name": "ell"
+      },
+      "status": "unchanged",
+      "operations": [],
+      "assumptions_used": [],
+      "notes": []
+    },
+    "solution_7_domain_2": {
+      "canonical_sha256": "7521ff1994faa93e6319a3fe077ea749972f6a52b364436164e8d0252530a4d2",
+      "expression": {
+        "type": "scalar",
+        "name": "r"
+      },
+      "status": "unchanged",
+      "operations": [],
+      "assumptions_used": [],
+      "notes": []
+    },
+    "solution_7_domain_3": {
+      "canonical_sha256": "565dbbb71cc669d0062a92c954808277a865b6fd63e83ba97ead04a7d14eb091",
+      "expression": {
+        "type": "scalar",
+        "name": "q"
+      },
+      "status": "unchanged",
+      "operations": [],
+      "assumptions_used": [],
+      "notes": []
+    },
+    "solution_7_domain_4": {
+      "canonical_sha256": "d287aef027c6d2d9fe1975dc381f4d4ddfb7d430fd5b056424e05fda8f04402a",
+      "expression": {
+        "type": "scalar",
+        "name": "beta0"
+      },
+      "status": "unchanged",
+      "operations": [],
+      "assumptions_used": [],
+      "notes": []
+    },
+    "solution_7_domain_5": {
+      "canonical_sha256": "14b5bf06487c0087a6211ebfb69e9c6e25e1425e294e3ab07af2955cfddc977d",
+      "expression": {
+        "type": "power",
+        "base": {
+          "type": "scalar",
+          "name": "ell"
+        },
+        "exponent": {
+          "type": "number",
+          "numerator": -2,
+          "denominator": 1
+        }
+      },
+      "status": "unchanged",
+      "operations": [],
+      "assumptions_used": [],
+      "notes": [
+        "Potencias no justificadas conservadas como bloques; sin cancelación de sus factores."
+      ]
+    },
+    "solution_8_0_lhs": {
+      "canonical_sha256": "794f8cd81d7e3fc66597c5d8a697285182383f9485189042646e633842b9a24e",
+      "expression": {
+        "type": "function",
+        "name": "f",
+        "arguments": [
+          {
+            "type": "scalar",
+            "name": "r"
+          }
+        ]
+      },
+      "status": "unchanged",
+      "operations": [],
+      "assumptions_used": [],
+      "notes": []
+    },
+    "solution_8_0": {
+      "canonical_sha256": "a3ce8ab3ac30bfa52ce67b0bcb1299e2114e893f904160d13d6e89ff2d5cd716",
+      "expression": {
+        "type": "mul",
+        "factors": [
+          {
+            "type": "power",
+            "base": {
+              "type": "scalar",
+              "name": "ell"
+            },
+            "exponent": {
+              "type": "number",
+              "numerator": -2,
+              "denominator": 1
+            }
+          },
+          {
+            "type": "power",
+            "base": {
+              "type": "scalar",
+              "name": "r"
+            },
+            "exponent": {
+              "type": "number",
+              "numerator": 2,
+              "denominator": 1
+            }
+          },
+          {
+            "type": "power",
+            "base": {
+              "type": "add",
+              "terms": [
+                {
+                  "type": "power",
+                  "base": {
+                    "type": "scalar",
+                    "name": "r"
+                  },
+                  "exponent": {
+                    "type": "number",
+                    "numerator": 2,
+                    "denominator": 1
+                  }
+                },
+                {
+                  "type": "mul",
+                  "factors": [
+                    {
+                      "type": "scalar",
+                      "name": "beta0"
+                    },
+                    {
+                      "type": "power",
+                      "base": {
+                        "type": "scalar",
+                        "name": "ell"
+                      },
+                      "exponent": {
+                        "type": "number",
+                        "numerator": 2,
+                        "denominator": 1
+                      }
+                    },
+                    {
+                      "type": "power",
+                      "base": {
+                        "type": "scalar",
+                        "name": "q"
+                      },
+                      "exponent": {
+                        "type": "number",
+                        "numerator": 2,
+                        "denominator": 1
+                      }
+                    }
+                  ]
+                }
+              ]
+            },
+            "exponent": {
+              "type": "number",
+              "numerator": -1,
+              "denominator": 1
+            }
+          },
+          {
+            "type": "add",
+            "terms": [
+              {
+                "type": "power",
+                "base": {
+                  "type": "scalar",
+                  "name": "r"
+                },
+                "exponent": {
+                  "type": "number",
+                  "numerator": 2,
+                  "denominator": 1
+                }
+              },
+              {
+                "type": "mul",
+                "factors": [
+                  {
+                    "type": "scalar",
+                    "name": "integrationConstant1"
+                  },
+                  {
+                    "type": "power",
+                    "base": {
+                      "type": "scalar",
+                      "name": "ell"
+                    },
+                    "exponent": {
+                      "type": "number",
+                      "numerator": 2,
+                      "denominator": 1
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "status": "unchanged",
+      "operations": [],
+      "assumptions_used": [],
+      "notes": [
+        "Potencias no justificadas conservadas como bloques; sin cancelación de sus factores."
+      ]
+    },
+    "solution_8_parameter_0": {
+      "canonical_sha256": "d287aef027c6d2d9fe1975dc381f4d4ddfb7d430fd5b056424e05fda8f04402a",
+      "expression": {
+        "type": "scalar",
+        "name": "beta0"
+      },
+      "status": "unchanged",
+      "operations": [],
+      "assumptions_used": [],
+      "notes": []
+    },
+    "solution_8_parameter_1": {
+      "canonical_sha256": "5c15fec8040b7e4bcb72c9289ba8ec3ecda985d9708a3a9cf3d77c9754c3b5d3",
+      "expression": {
+        "type": "scalar",
+        "name": "ell"
+      },
+      "status": "unchanged",
+      "operations": [],
+      "assumptions_used": [],
+      "notes": []
+    },
+    "solution_8_parameter_2": {
+      "canonical_sha256": "cb72a95bcdf023ba8418340b16a2565383ddcfe4a4c4b52e08e09f877f7ecfaa",
+      "expression": {
+        "type": "scalar",
+        "name": "integrationConstant1"
+      },
+      "status": "unchanged",
+      "operations": [],
+      "assumptions_used": [],
+      "notes": []
+    },
+    "solution_8_parameter_3": {
+      "canonical_sha256": "565dbbb71cc669d0062a92c954808277a865b6fd63e83ba97ead04a7d14eb091",
+      "expression": {
+        "type": "scalar",
+        "name": "q"
+      },
+      "status": "unchanged",
+      "operations": [],
+      "assumptions_used": [],
+      "notes": []
+    },
+    "solution_8_domain_0": {
+      "canonical_sha256": "a3ce8ab3ac30bfa52ce67b0bcb1299e2114e893f904160d13d6e89ff2d5cd716",
+      "expression": {
+        "type": "mul",
+        "factors": [
+          {
+            "type": "power",
+            "base": {
+              "type": "scalar",
+              "name": "ell"
+            },
+            "exponent": {
+              "type": "number",
+              "numerator": -2,
+              "denominator": 1
+            }
+          },
+          {
+            "type": "power",
+            "base": {
+              "type": "scalar",
+              "name": "r"
+            },
+            "exponent": {
+              "type": "number",
+              "numerator": 2,
+              "denominator": 1
+            }
+          },
+          {
+            "type": "power",
+            "base": {
+              "type": "add",
+              "terms": [
+                {
+                  "type": "power",
+                  "base": {
+                    "type": "scalar",
+                    "name": "r"
+                  },
+                  "exponent": {
+                    "type": "number",
+                    "numerator": 2,
+                    "denominator": 1
+                  }
+                },
+                {
+                  "type": "mul",
+                  "factors": [
+                    {
+                      "type": "scalar",
+                      "name": "beta0"
+                    },
+                    {
+                      "type": "power",
+                      "base": {
+                        "type": "scalar",
+                        "name": "ell"
+                      },
+                      "exponent": {
+                        "type": "number",
+                        "numerator": 2,
+                        "denominator": 1
+                      }
+                    },
+                    {
+                      "type": "power",
+                      "base": {
+                        "type": "scalar",
+                        "name": "q"
+                      },
+                      "exponent": {
+                        "type": "number",
+                        "numerator": 2,
+                        "denominator": 1
+                      }
+                    }
+                  ]
+                }
+              ]
+            },
+            "exponent": {
+              "type": "number",
+              "numerator": -1,
+              "denominator": 1
+            }
+          },
+          {
+            "type": "add",
+            "terms": [
+              {
+                "type": "power",
+                "base": {
+                  "type": "scalar",
+                  "name": "r"
+                },
+                "exponent": {
+                  "type": "number",
+                  "numerator": 2,
+                  "denominator": 1
+                }
+              },
+              {
+                "type": "mul",
+                "factors": [
+                  {
+                    "type": "scalar",
+                    "name": "integrationConstant1"
+                  },
+                  {
+                    "type": "power",
+                    "base": {
+                      "type": "scalar",
+                      "name": "ell"
+                    },
+                    "exponent": {
+                      "type": "number",
+                      "numerator": 2,
+                      "denominator": 1
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "status": "unchanged",
+      "operations": [],
+      "assumptions_used": [],
+      "notes": [
+        "Potencias no justificadas conservadas como bloques; sin cancelación de sus factores."
+      ]
+    },
+    "solution_8_domain_1": {
+      "canonical_sha256": "5c15fec8040b7e4bcb72c9289ba8ec3ecda985d9708a3a9cf3d77c9754c3b5d3",
+      "expression": {
+        "type": "scalar",
+        "name": "ell"
+      },
+      "status": "unchanged",
+      "operations": [],
+      "assumptions_used": [],
+      "notes": []
+    },
+    "solution_8_domain_2": {
+      "canonical_sha256": "7521ff1994faa93e6319a3fe077ea749972f6a52b364436164e8d0252530a4d2",
+      "expression": {
+        "type": "scalar",
+        "name": "r"
+      },
+      "status": "unchanged",
+      "operations": [],
+      "assumptions_used": [],
+      "notes": []
+    },
+    "solution_8_domain_3": {
+      "canonical_sha256": "71796fce8c4202c381e8c8298338e9a711aeffb9af53eb982b48fcea7e08fbc9",
+      "expression": {
+        "type": "add",
+        "terms": [
+          {
+            "type": "power",
+            "base": {
+              "type": "scalar",
+              "name": "r"
+            },
+            "exponent": {
+              "type": "number",
+              "numerator": 2,
+              "denominator": 1
+            }
+          },
+          {
+            "type": "mul",
+            "factors": [
+              {
+                "type": "scalar",
+                "name": "beta0"
+              },
+              {
+                "type": "power",
+                "base": {
+                  "type": "scalar",
+                  "name": "ell"
+                },
+                "exponent": {
+                  "type": "number",
+                  "numerator": 2,
+                  "denominator": 1
+                }
+              },
+              {
+                "type": "power",
+                "base": {
+                  "type": "scalar",
+                  "name": "q"
+                },
+                "exponent": {
+                  "type": "number",
+                  "numerator": 2,
+                  "denominator": 1
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "status": "unchanged",
+      "operations": [],
+      "assumptions_used": [],
+      "notes": []
+    },
+    "solution_9_0_lhs": {
+      "canonical_sha256": "794f8cd81d7e3fc66597c5d8a697285182383f9485189042646e633842b9a24e",
+      "expression": {
+        "type": "function",
+        "name": "f",
+        "arguments": [
+          {
+            "type": "scalar",
+            "name": "r"
+          }
+        ]
+      },
+      "status": "unchanged",
+      "operations": [],
+      "assumptions_used": [],
+      "notes": []
+    },
+    "solution_9_0": {
+      "canonical_sha256": "a3ce8ab3ac30bfa52ce67b0bcb1299e2114e893f904160d13d6e89ff2d5cd716",
+      "expression": {
+        "type": "mul",
+        "factors": [
+          {
+            "type": "power",
+            "base": {
+              "type": "scalar",
+              "name": "ell"
+            },
+            "exponent": {
+              "type": "number",
+              "numerator": -2,
+              "denominator": 1
+            }
+          },
+          {
+            "type": "power",
+            "base": {
+              "type": "scalar",
+              "name": "r"
+            },
+            "exponent": {
+              "type": "number",
+              "numerator": 2,
+              "denominator": 1
+            }
+          },
+          {
+            "type": "power",
+            "base": {
+              "type": "add",
+              "terms": [
+                {
+                  "type": "power",
+                  "base": {
+                    "type": "scalar",
+                    "name": "r"
+                  },
+                  "exponent": {
+                    "type": "number",
+                    "numerator": 2,
+                    "denominator": 1
+                  }
+                },
+                {
+                  "type": "mul",
+                  "factors": [
+                    {
+                      "type": "scalar",
+                      "name": "beta0"
+                    },
+                    {
+                      "type": "power",
+                      "base": {
+                        "type": "scalar",
+                        "name": "ell"
+                      },
+                      "exponent": {
+                        "type": "number",
+                        "numerator": 2,
+                        "denominator": 1
+                      }
+                    },
+                    {
+                      "type": "power",
+                      "base": {
+                        "type": "scalar",
+                        "name": "q"
+                      },
+                      "exponent": {
+                        "type": "number",
+                        "numerator": 2,
+                        "denominator": 1
+                      }
+                    }
+                  ]
+                }
+              ]
+            },
+            "exponent": {
+              "type": "number",
+              "numerator": -1,
+              "denominator": 1
+            }
+          },
+          {
+            "type": "add",
+            "terms": [
+              {
+                "type": "power",
+                "base": {
+                  "type": "scalar",
+                  "name": "r"
+                },
+                "exponent": {
+                  "type": "number",
+                  "numerator": 2,
+                  "denominator": 1
+                }
+              },
+              {
+                "type": "mul",
+                "factors": [
+                  {
+                    "type": "scalar",
+                    "name": "integrationConstant1"
+                  },
+                  {
+                    "type": "power",
+                    "base": {
+                      "type": "scalar",
+                      "name": "ell"
+                    },
+                    "exponent": {
+                      "type": "number",
+                      "numerator": 2,
+                      "denominator": 1
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "status": "unchanged",
+      "operations": [],
+      "assumptions_used": [],
+      "notes": [
+        "Potencias no justificadas conservadas como bloques; sin cancelación de sus factores."
+      ]
+    },
+    "solution_9_parameter_0": {
+      "canonical_sha256": "d287aef027c6d2d9fe1975dc381f4d4ddfb7d430fd5b056424e05fda8f04402a",
+      "expression": {
+        "type": "scalar",
+        "name": "beta0"
+      },
+      "status": "unchanged",
+      "operations": [],
+      "assumptions_used": [],
+      "notes": []
+    },
+    "solution_9_parameter_1": {
+      "canonical_sha256": "5c15fec8040b7e4bcb72c9289ba8ec3ecda985d9708a3a9cf3d77c9754c3b5d3",
+      "expression": {
+        "type": "scalar",
+        "name": "ell"
+      },
+      "status": "unchanged",
+      "operations": [],
+      "assumptions_used": [],
+      "notes": []
+    },
+    "solution_9_parameter_2": {
+      "canonical_sha256": "cb72a95bcdf023ba8418340b16a2565383ddcfe4a4c4b52e08e09f877f7ecfaa",
+      "expression": {
+        "type": "scalar",
+        "name": "integrationConstant1"
+      },
+      "status": "unchanged",
+      "operations": [],
+      "assumptions_used": [],
+      "notes": []
+    },
+    "solution_9_parameter_3": {
+      "canonical_sha256": "565dbbb71cc669d0062a92c954808277a865b6fd63e83ba97ead04a7d14eb091",
+      "expression": {
+        "type": "scalar",
+        "name": "q"
+      },
+      "status": "unchanged",
+      "operations": [],
+      "assumptions_used": [],
+      "notes": []
+    },
+    "solution_9_domain_0": {
+      "canonical_sha256": "a3ce8ab3ac30bfa52ce67b0bcb1299e2114e893f904160d13d6e89ff2d5cd716",
+      "expression": {
+        "type": "mul",
+        "factors": [
+          {
+            "type": "power",
+            "base": {
+              "type": "scalar",
+              "name": "ell"
+            },
+            "exponent": {
+              "type": "number",
+              "numerator": -2,
+              "denominator": 1
+            }
+          },
+          {
+            "type": "power",
+            "base": {
+              "type": "scalar",
+              "name": "r"
+            },
+            "exponent": {
+              "type": "number",
+              "numerator": 2,
+              "denominator": 1
+            }
+          },
+          {
+            "type": "power",
+            "base": {
+              "type": "add",
+              "terms": [
+                {
+                  "type": "power",
+                  "base": {
+                    "type": "scalar",
+                    "name": "r"
+                  },
+                  "exponent": {
+                    "type": "number",
+                    "numerator": 2,
+                    "denominator": 1
+                  }
+                },
+                {
+                  "type": "mul",
+                  "factors": [
+                    {
+                      "type": "scalar",
+                      "name": "beta0"
+                    },
+                    {
+                      "type": "power",
+                      "base": {
+                        "type": "scalar",
+                        "name": "ell"
+                      },
+                      "exponent": {
+                        "type": "number",
+                        "numerator": 2,
+                        "denominator": 1
+                      }
+                    },
+                    {
+                      "type": "power",
+                      "base": {
+                        "type": "scalar",
+                        "name": "q"
+                      },
+                      "exponent": {
+                        "type": "number",
+                        "numerator": 2,
+                        "denominator": 1
+                      }
+                    }
+                  ]
+                }
+              ]
+            },
+            "exponent": {
+              "type": "number",
+              "numerator": -1,
+              "denominator": 1
+            }
+          },
+          {
+            "type": "add",
+            "terms": [
+              {
+                "type": "power",
+                "base": {
+                  "type": "scalar",
+                  "name": "r"
+                },
+                "exponent": {
+                  "type": "number",
+                  "numerator": 2,
+                  "denominator": 1
+                }
+              },
+              {
+                "type": "mul",
+                "factors": [
+                  {
+                    "type": "scalar",
+                    "name": "integrationConstant1"
+                  },
+                  {
+                    "type": "power",
+                    "base": {
+                      "type": "scalar",
+                      "name": "ell"
+                    },
+                    "exponent": {
+                      "type": "number",
+                      "numerator": 2,
+                      "denominator": 1
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "status": "unchanged",
+      "operations": [],
+      "assumptions_used": [],
+      "notes": [
+        "Potencias no justificadas conservadas como bloques; sin cancelación de sus factores."
+      ]
+    },
+    "solution_9_domain_1": {
+      "canonical_sha256": "5c15fec8040b7e4bcb72c9289ba8ec3ecda985d9708a3a9cf3d77c9754c3b5d3",
+      "expression": {
+        "type": "scalar",
+        "name": "ell"
+      },
+      "status": "unchanged",
+      "operations": [],
+      "assumptions_used": [],
+      "notes": []
+    },
+    "solution_9_domain_2": {
+      "canonical_sha256": "7521ff1994faa93e6319a3fe077ea749972f6a52b364436164e8d0252530a4d2",
+      "expression": {
+        "type": "scalar",
+        "name": "r"
+      },
+      "status": "unchanged",
+      "operations": [],
+      "assumptions_used": [],
+      "notes": []
+    },
+    "solution_9_domain_3": {
+      "canonical_sha256": "71796fce8c4202c381e8c8298338e9a711aeffb9af53eb982b48fcea7e08fbc9",
+      "expression": {
+        "type": "add",
+        "terms": [
+          {
+            "type": "power",
+            "base": {
+              "type": "scalar",
+              "name": "r"
+            },
+            "exponent": {
+              "type": "number",
+              "numerator": 2,
+              "denominator": 1
+            }
+          },
+          {
+            "type": "mul",
+            "factors": [
+              {
+                "type": "scalar",
+                "name": "beta0"
+              },
+              {
+                "type": "power",
+                "base": {
+                  "type": "scalar",
+                  "name": "ell"
+                },
+                "exponent": {
+                  "type": "number",
+                  "numerator": 2,
+                  "denominator": 1
+                }
+              },
+              {
+                "type": "power",
+                "base": {
+                  "type": "scalar",
+                  "name": "q"
+                },
+                "exponent": {
+                  "type": "number",
+                  "numerator": 2,
+                  "denominator": 1
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "status": "unchanged",
+      "operations": [],
+      "assumptions_used": [],
+      "notes": []
+    }
+  },
+  "display_aliases": {
+    "solution_0_0_lhs": {
+      "polyfD2C0": "C_1"
+    },
+    "solution_0_0": {
+      "polyfD2C0": "C_1"
+    },
+    "solution_0_1_lhs": {
+      "polyfD2C0": "C_1"
+    },
+    "solution_0_1": {
+      "polyfD2C0": "C_1"
+    },
+    "solution_0_2_lhs": {
+      "polyfD2C0": "C_1"
+    },
+    "solution_0_2": {
+      "polyfD2C0": "C_1"
+    },
+    "solution_0_parameter_0": {
+      "polyfD2C0": "C_1"
+    },
+    "solution_0_parameter_1": {
+      "polyfD2C0": "C_1"
+    },
+    "solution_0_domain_0": {
+      "polyfD2C0": "C_1"
+    },
+    "solution_0_domain_1": {
+      "polyfD2C0": "C_1"
+    },
+    "solution_0_domain_2": {
+      "polyfD2C0": "C_1"
+    },
+    "solution_0_domain_3": {
+      "polyfD2C0": "C_1"
+    },
+    "solution_1_0_lhs": {
+      "powerfE2B": "C_1"
+    },
+    "solution_1_0": {
+      "powerfE2B": "C_1"
+    },
+    "solution_1_1_lhs": {
+      "powerfE2B": "C_1"
+    },
+    "solution_1_1": {
+      "powerfE2B": "C_1"
+    },
+    "solution_1_2_lhs": {
+      "powerfE2B": "C_1"
+    },
+    "solution_1_2": {
+      "powerfE2B": "C_1"
+    },
+    "solution_1_parameter_0": {
+      "powerfE2B": "C_1"
+    },
+    "solution_1_parameter_1": {
+      "powerfE2B": "C_1"
+    },
+    "solution_1_domain_0": {
+      "powerfE2B": "C_1"
+    },
+    "solution_1_domain_1": {
+      "powerfE2B": "C_1"
+    },
+    "solution_1_domain_2": {
+      "powerfE2B": "C_1"
+    },
+    "solution_1_domain_3": {
+      "powerfE2B": "C_1"
+    },
+    "solution_2_0_lhs": {
+      "polyfD2C0": "C_1"
+    },
+    "solution_2_0": {
+      "polyfD2C0": "C_1"
+    },
+    "solution_2_1_lhs": {
+      "polyfD2C0": "C_1"
+    },
+    "solution_2_1": {
+      "polyfD2C0": "C_1"
+    },
+    "solution_2_parameter_0": {
+      "polyfD2C0": "C_1"
+    },
+    "solution_2_parameter_1": {
+      "polyfD2C0": "C_1"
+    },
+    "solution_2_parameter_2": {
+      "polyfD2C0": "C_1"
+    },
+    "solution_2_domain_0": {
+      "polyfD2C0": "C_1"
+    },
+    "solution_2_domain_1": {
+      "polyfD2C0": "C_1"
+    },
+    "solution_2_domain_2": {
+      "polyfD2C0": "C_1"
+    },
+    "solution_2_domain_3": {
+      "polyfD2C0": "C_1"
+    },
+    "solution_2_domain_4": {
+      "polyfD2C0": "C_1"
+    },
+    "solution_3_0_lhs": {
+      "powerfE2B": "C_1"
+    },
+    "solution_3_0": {
+      "powerfE2B": "C_1"
+    },
+    "solution_3_1_lhs": {
+      "powerfE2B": "C_1"
+    },
+    "solution_3_1": {
+      "powerfE2B": "C_1"
+    },
+    "solution_3_parameter_0": {
+      "powerfE2B": "C_1"
+    },
+    "solution_3_parameter_1": {
+      "powerfE2B": "C_1"
+    },
+    "solution_3_parameter_2": {
+      "powerfE2B": "C_1"
+    },
+    "solution_3_domain_0": {
+      "powerfE2B": "C_1"
+    },
+    "solution_3_domain_1": {
+      "powerfE2B": "C_1"
+    },
+    "solution_3_domain_2": {
+      "powerfE2B": "C_1"
+    },
+    "solution_3_domain_3": {
+      "powerfE2B": "C_1"
+    },
+    "solution_3_domain_4": {
+      "powerfE2B": "C_1"
+    },
+    "solution_4_0_lhs": {
+      "polyfD2C0": "C_1"
+    },
+    "solution_4_0": {
+      "polyfD2C0": "C_1"
+    },
+    "solution_4_1_lhs": {
+      "polyfD2C0": "C_1"
+    },
+    "solution_4_1": {
+      "polyfD2C0": "C_1"
+    },
+    "solution_4_parameter_0": {
+      "polyfD2C0": "C_1"
+    },
+    "solution_4_parameter_1": {
+      "polyfD2C0": "C_1"
+    },
+    "solution_4_parameter_2": {
+      "polyfD2C0": "C_1"
+    },
+    "solution_4_domain_0": {
+      "polyfD2C0": "C_1"
+    },
+    "solution_4_domain_1": {
+      "polyfD2C0": "C_1"
+    },
+    "solution_4_domain_2": {
+      "polyfD2C0": "C_1"
+    },
+    "solution_4_domain_3": {
+      "polyfD2C0": "C_1"
+    },
+    "solution_4_domain_4": {
+      "polyfD2C0": "C_1"
+    },
+    "solution_5_0_lhs": {
+      "powerfE2B": "C_1"
+    },
+    "solution_5_0": {
+      "powerfE2B": "C_1"
+    },
+    "solution_5_1_lhs": {
+      "powerfE2B": "C_1"
+    },
+    "solution_5_1": {
+      "powerfE2B": "C_1"
+    },
+    "solution_5_parameter_0": {
+      "powerfE2B": "C_1"
+    },
+    "solution_5_parameter_1": {
+      "powerfE2B": "C_1"
+    },
+    "solution_5_parameter_2": {
+      "powerfE2B": "C_1"
+    },
+    "solution_5_domain_0": {
+      "powerfE2B": "C_1"
+    },
+    "solution_5_domain_1": {
+      "powerfE2B": "C_1"
+    },
+    "solution_5_domain_2": {
+      "powerfE2B": "C_1"
+    },
+    "solution_5_domain_3": {
+      "powerfE2B": "C_1"
+    },
+    "solution_5_domain_4": {
+      "powerfE2B": "C_1"
+    },
+    "solution_8_0_lhs": {
+      "integrationConstant1": "C_1"
+    },
+    "solution_8_0": {
+      "integrationConstant1": "C_1"
+    },
+    "solution_8_parameter_0": {
+      "integrationConstant1": "C_1"
+    },
+    "solution_8_parameter_1": {
+      "integrationConstant1": "C_1"
+    },
+    "solution_8_parameter_2": {
+      "integrationConstant1": "C_1"
+    },
+    "solution_8_parameter_3": {
+      "integrationConstant1": "C_1"
+    },
+    "solution_8_domain_0": {
+      "integrationConstant1": "C_1"
+    },
+    "solution_8_domain_1": {
+      "integrationConstant1": "C_1"
+    },
+    "solution_8_domain_2": {
+      "integrationConstant1": "C_1"
+    },
+    "solution_8_domain_3": {
+      "integrationConstant1": "C_1"
+    },
+    "solution_9_0_lhs": {
+      "integrationConstant1": "C_1"
+    },
+    "solution_9_0": {
+      "integrationConstant1": "C_1"
+    },
+    "solution_9_parameter_0": {
+      "integrationConstant1": "C_1"
+    },
+    "solution_9_parameter_1": {
+      "integrationConstant1": "C_1"
+    },
+    "solution_9_parameter_2": {
+      "integrationConstant1": "C_1"
+    },
+    "solution_9_parameter_3": {
+      "integrationConstant1": "C_1"
+    },
+    "solution_9_domain_0": {
+      "integrationConstant1": "C_1"
+    },
+    "solution_9_domain_1": {
+      "integrationConstant1": "C_1"
+    },
+    "solution_9_domain_2": {
+      "integrationConstant1": "C_1"
+    },
+    "solution_9_domain_3": {
+      "integrationConstant1": "C_1"
+    }
+  },
+  "solver_summary": {
+    "model": "draft4_case_2",
+    "ansatz": "draft4_circular_specialized",
+    "status": "verified_with_pending_branches",
+    "completeness_proven": false,
+    "candidate_status_counts": {
+      "verified_on_domain": 10,
+      "rejected": 7,
+      "undetermined": 5,
+      "partial": 12
+    }
+  }
+}

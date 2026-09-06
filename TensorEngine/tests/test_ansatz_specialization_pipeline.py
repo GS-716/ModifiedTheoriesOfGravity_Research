@@ -171,19 +171,29 @@ def test_backend_limitation_in_specialization_is_nonfatal() -> None:
     assert all(item.reason for item in run.specialized.quantities)
 
 
-def test_notebook_contains_exactly_one_independent_cell_per_draft4_case() -> None:
+def test_notebook_draft4_cases_leave_metric_generic_and_solve_after_tensor_run() -> None:
     notebook_path = Path(__file__).parents[2] / "ResearchWorkflow" / "01_modified_gravity_workflow.ipynb"
     notebook = json.loads(notebook_path.read_text(encoding="utf-8"))
     by_id = {cell.get("id"): cell for cell in notebook["cells"]}
     assert {"draft4-case-0", "draft4-case-1", "draft4-case-2"}.issubset(by_id)
     assert sum(cell.get("id", "").startswith("draft4-case-") for cell in notebook["cells"]) == 3
     for number in range(3):
-        source = "".join(by_id[f"draft4-case-{number}"]["source"])
-        assert "f_input =" in source
-        assert "phi_input =" in source
-        assert "AnsatzSpecialization(" in source
-        assert "specialization=specialization" in source
-        assert f'name="draft4_case_{number}"' in source
+        cell = by_id[f"draft4-case-{number}"]
+        source = "".join(cell["source"])
+        assert "f_input" not in source
+        assert "phi_input" not in source
+        assert "AnsatzSpecialization(" not in source
+        assert "specialization=" not in source
+        assert "metric_functions" not in source
+        assert f'run_case_{number} = ejecutar(' in source
+        assert f'"draft4_case_{number}"' in source
+        assert 'output_group="draft4_cases"' in source
+        assert cell["execution_count"] is None
+        assert cell["outputs"] == []
+        assert any(
+            f"solveFieldEq(True, run_case_{number})" in "".join(other["source"])
+            for other in notebook["cells"]
+        )
 
 
 def test_latex_without_specialization_keeps_the_two_existing_sections() -> None:
