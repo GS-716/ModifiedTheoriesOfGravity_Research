@@ -5,6 +5,3 @@ __pycache__/
 
 FieldEquationsSolver/output/*
 !FieldEquationsSolver/output/README.md
-ResearchWorkflow/outputs/*
-!ResearchWorkflow/outputs/README.md
-

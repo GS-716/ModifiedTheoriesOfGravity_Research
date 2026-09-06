@@ -1,0 +1,658 @@
+\documentclass[11pt]{article}
+\usepackage[margin=2.2cm]{geometry}
+\usepackage{amsmath,amssymb}
+\usepackage{breqn}
+\usepackage{needspace}
+\usepackage[T1]{fontenc}
+\begin{document}
+\begin{center}
+{\Large\bfseries TensorEngine: informe de corrida}
+\end{center}
+\textbf{Modelo:} \texttt{R\_plus\_alpha\_times\_RicciSq}\\
+\textbf{Run ID:} \texttt{run\_553ab359848815da4ede}\\
+\textbf{Estado:} \texttt{partial}\\
+\textbf{Backend:} \texttt{structural-python 0.9.0}\\
+\textbf{Verificaciones:} 45 aprobadas, 0 fallidas, 3 indeterminadas.
+\par\smallskip
+\textbf{Presentación:} simplificación protegida, sin modificar los objetos canónicos. Las operaciones e hipótesis usadas por expresión constan en \texttt{presentation.json} y en los comentarios del archivo LaTeX. La validación xAct corresponde a la IR canónica.\par
+\textbf{Deltas canónicos:} 2481 sustituciones y 0 trazas registradas en las pasadas del álgebra (incluidas verificaciones); 0 deltas explícitos en las 13 cantidades finales. Detalle e índices sustituidos en \texttt{delta\_contractions.json}.\par
+\section*{Expresiones tensoriales abstractas}
+Las expresiones de esta sección son covariantes y no incorporan sustituciones del ansatz.
+\Needspace{9\baselineskip}
+\subsection*{$ L $}
+% display: {"assumptions_used": [], "key": "abstract.lagrangian", "notes": [], "operations": [], "status": "unchanged"}
+\begin{dmath*}[breakdepth={5}]
+L = R{}_{d_{0}\,d_{1}\,d_{2}\,d_{3}}\,g{}^{d_{0}\,d_{2}}\,g{}^{d_{1}\,d_{3}} + R{}_{d_{0}\,d_{1}\,d_{2}\,d_{3}}\,g{}^{d_{0}\,d_{2}}\,g{}^{d_{1}\,d_{4}}\,g{}^{d_{3}\,d_{5}}\,R{}_{d_{4}\,d_{6}\,d_{5}\,d_{7}}\,g{}^{d_{6}\,d_{7}}\,\alpha
+\end{dmath*}
+\par\vspace{1.2\baselineskip}\noindent
+\begin{minipage}{\linewidth}
+\textbf{Significado:} Densidad lagrangiana escalar normalizada de la teoría.\par
+\textbf{Índices libres y varianzas:} $ \varnothing\;\text{(escalar)} $\par
+\textbf{Fuentes del pipeline:} \texttt{validated\_model}\par
+\textbf{Wolfram/xAct:} validación xAct no solicitada. La corrida no solicitó validación Wolfram/xAct.\par
+\end{minipage}
+\Needspace{9\baselineskip}
+\subsection*{$ M_{ab} $}
+% display: {"assumptions_used": [], "key": "abstract.metric_momentum", "notes": [], "operations": ["combine_like_terms", "deterministic_order", "normalize_signs_and_numbers", "together_safe_fractions", "collect_parameters", "factor_common_scalar_terms"], "status": "simplified"}
+\begin{dmath*}[breakdepth={5}]
+M_{ab} = 2\,\left(R{}_{a\,d_{0}\,b}{}^{d_{0}} + \alpha\,\left(R{}_{a\,d_{0}}{}^{d_{0}\,d_{2}}\,R{}_{b\,d_{1}}{}^{d_{1}}{}_{d_{2}} + R{}_{a}{}^{d_{1}}{}_{b}{}^{d_{2}}\,R{}_{d_{0}\,d_{1}}{}^{d_{0}}{}_{d_{2}}\right)\right)
+\end{dmath*}
+\par\vspace{1.2\baselineskip}\noindent
+\begin{minipage}{\linewidth}
+\textbf{Significado:} Derivada de L respecto de la métrica inversa, M\_ab.\par
+\textbf{Índices libres y varianzas:} $ a_{\downarrow},\;b_{\downarrow} $\par
+\textbf{Fuentes del pipeline:} \texttt{lagrangian}\par
+\textbf{Wolfram/xAct:} validación xAct no solicitada. La corrida no solicitó validación Wolfram/xAct.\par
+\end{minipage}
+\Needspace{9\baselineskip}
+\subsection*{$ P^{abcd} $}
+% display: {"assumptions_used": [], "key": "abstract.curvature_momentum", "notes": [], "operations": [], "status": "unchanged"}
+\begin{dmath*}[breakdepth={5}]
+P^{abcd} = -\frac{g{}^{a\,d}\,g{}^{b\,c}}{2} - \frac{g{}^{a\,d}\,R{}^{b}{}_{d_{0}}{}^{c\,d_{0}}\,\alpha}{2} - \frac{R{}^{a}{}_{d_{0}}{}^{d\,d_{0}}\,g{}^{b\,c}\,\alpha}{2} + \frac{g{}^{a\,c}\,g{}^{b\,d}}{2} + \frac{g{}^{a\,c}\,R{}^{b}{}_{d_{0}}{}^{d\,d_{0}}\,\alpha}{2} + \frac{R{}^{a}{}_{d_{0}}{}^{c\,d_{0}}\,g{}^{b\,d}\,\alpha}{2}
+\end{dmath*}
+\par\vspace{1.2\baselineskip}\noindent
+\begin{minipage}{\linewidth}
+\textbf{Significado:} Momento de curvatura P^{abcd}=partial L/partial R\_abcd.\par
+\textbf{Índices libres y varianzas:} $ a^{\uparrow},\;b^{\uparrow},\;c^{\uparrow},\;d^{\uparrow} $\par
+\textbf{Fuentes del pipeline:} \texttt{lagrangian}\par
+\textbf{Wolfram/xAct:} validación xAct no solicitada. La corrida no solicitó validación Wolfram/xAct.\par
+\end{minipage}
+\Needspace{9\baselineskip}
+\subsection*{$ J^a $}
+% display: {"assumptions_used": [], "key": "abstract.scalar_gradient_momentum", "notes": [], "operations": [], "status": "unchanged"}
+\begin{dmath*}[breakdepth={5}]
+J^a = 0
+\end{dmath*}
+\par\vspace{1.2\baselineskip}\noindent
+\begin{minipage}{\linewidth}
+\textbf{Significado:} Momento J^a conjugado a nabla\_a phi.\par
+\textbf{Índices libres y varianzas:} $ a^{\uparrow} $\par
+\textbf{Fuentes del pipeline:} \texttt{lagrangian}\par
+\textbf{Wolfram/xAct:} validación xAct no solicitada. La corrida no solicitó validación Wolfram/xAct.\par
+\end{minipage}
+\Needspace{9\baselineskip}
+\subsection*{$ F_{\phi} $}
+% display: {"assumptions_used": [], "key": "abstract.scalar_derivative", "notes": [], "operations": [], "status": "unchanged"}
+\begin{dmath*}[breakdepth={5}]
+F_{\phi} = 0
+\end{dmath*}
+\par\vspace{1.2\baselineskip}\noindent
+\begin{minipage}{\linewidth}
+\textbf{Significado:} Derivada explícita F\_phi=partial L/partial phi.\par
+\textbf{Índices libres y varianzas:} $ \varnothing\;\text{(escalar)} $\par
+\textbf{Fuentes del pipeline:} \texttt{lagrangian}\par
+\textbf{Wolfram/xAct:} validación xAct no solicitada. La corrida no solicitó validación Wolfram/xAct.\par
+\end{minipage}
+\Needspace{9\baselineskip}
+\subsection*{$ E_{ab} $}
+% display: {"assumptions_used": [], "key": "abstract.metric_euler", "notes": [], "operations": ["combine_like_terms", "deterministic_order", "normalize_signs_and_numbers", "together_safe_fractions", "collect_parameters"], "status": "simplified"}
+\begin{dmath*}[breakdepth={5}]
+E_{ab} = R{}_{a\,d_{0}\,b}{}^{d_{0}} - \frac{g{}_{a\,b}\,R{}_{d_{0}\,d_{1}}{}^{d_{0}\,d_{1}}}{2} + \frac{1}{2}\,\alpha\,\left(\nabla_{d_{4}}\!\left(\nabla_{d_{3}}\!\left(R{}_{d_{0}}{}^{d_{1}\,d_{0}\,d_{2}}\right)\right)\,g{}_{a\,d_{1}}\,g{}_{b\,d_{2}}\,g{}^{d_{3}\,d_{4}} + \nabla_{d_{4}}\!\left(\nabla_{d_{3}}\!\left(R{}_{d_{0}}{}^{d_{1}\,d_{0}\,d_{2}}\right)\right)\,g{}_{a\,d_{2}}\,g{}_{b\,d_{1}}\,g{}^{d_{3}\,d_{4}} + R{}_{a\,d_{0}}{}^{d_{0}}{}_{d_{2}}\,R{}_{b\,d_{1}}{}^{d_{1}\,d_{2}} + R{}_{a\,d_{0}}{}^{d_{0}\,d_{2}}\,R{}_{b\,d_{1}}{}^{d_{1}}{}_{d_{2}} - \nabla_{a}\!\left(\nabla_{d_{1}}\!\left(R{}_{d_{0}}{}^{d_{2}\,d_{0}\,d_{1}}\right)\right)\,g{}_{b\,d_{2}} - \nabla_{b}\!\left(\nabla_{d_{1}}\!\left(R{}_{d_{0}}{}^{d_{2}\,d_{0}\,d_{1}}\right)\right)\,g{}_{a\,d_{2}} - \nabla_{d_{1}}\!\left(\nabla_{a}\!\left(R{}_{d_{0}}{}^{d_{1}\,d_{0}\,d_{2}}\right)\right)\,g{}_{b\,d_{2}} - \nabla_{d_{1}}\!\left(\nabla_{b}\!\left(R{}_{d_{0}}{}^{d_{1}\,d_{0}\,d_{2}}\right)\right)\,g{}_{a\,d_{2}} - g{}_{a\,b}\,R{}_{d_{0}}{}^{d_{2}\,d_{0}\,d_{3}}\,R{}_{d_{1}\,d_{2}}{}^{d_{1}}{}_{d_{3}} - R{}_{a\,d_{1}\,b\,d_{2}}\,R{}_{d_{0}}{}^{d_{1}\,d_{0}\,d_{2}} - R{}_{a\,d_{1}\,b\,d_{2}}\,R{}_{d_{0}}{}^{d_{2}\,d_{0}\,d_{1}} + 2\,\nabla_{d_{2}}\!\left(\nabla_{d_{1}}\!\left(R{}_{d_{0}}{}^{d_{2}\,d_{0}\,d_{1}}\right)\right)\,g{}_{a\,b} + 2\,R{}_{a}{}^{d_{1}}{}_{b}{}^{d_{2}}\,R{}_{d_{0}\,d_{1}}{}^{d_{0}}{}_{d_{2}} + 2\,R{}_{a}{}^{d_{1}}{}_{b}{}^{d_{2}}\,R{}_{d_{0}\,d_{2}}{}^{d_{0}}{}_{d_{1}}\right)
+\end{dmath*}
+\par\vspace{1.2\baselineskip}\noindent
+\begin{minipage}{\linewidth}
+\textbf{Significado:} Ecuación de Euler-Lagrange métrica E\_ab.\par
+\textbf{Índices libres y varianzas:} $ a_{\downarrow},\;b_{\downarrow} $\par
+\textbf{Fuentes del pipeline:} \texttt{delta\_lagrangian, curvature\_derivative\_metric\_term}\par
+\textbf{Wolfram/xAct:} validación xAct no solicitada. La corrida no solicitó validación Wolfram/xAct.\par
+\end{minipage}
+% display: {"assumptions_used": [], "key": "abstract.curvature_derivative_metric_term", "notes": [], "operations": ["combine_like_terms", "deterministic_order", "normalize_signs_and_numbers", "together_safe_fractions"], "status": "simplified"}
+\begin{dmath*}[breakdepth={5}]
+\left.E_{ab}\right|_{\nabla\nabla P} = \frac{1}{2}\,\alpha\,\left(\nabla_{d_{4}}\!\left(\nabla_{d_{3}}\!\left(R{}_{d_{0}}{}^{d_{1}\,d_{0}\,d_{2}}\right)\right)\,g{}_{a\,d_{1}}\,g{}_{b\,d_{2}}\,g{}^{d_{3}\,d_{4}} + \nabla_{d_{4}}\!\left(\nabla_{d_{3}}\!\left(R{}_{d_{0}}{}^{d_{1}\,d_{0}\,d_{2}}\right)\right)\,g{}_{a\,d_{2}}\,g{}_{b\,d_{1}}\,g{}^{d_{3}\,d_{4}} - \nabla_{a}\!\left(\nabla_{d_{1}}\!\left(R{}_{d_{0}}{}^{d_{2}\,d_{0}\,d_{1}}\right)\right)\,g{}_{b\,d_{2}} - \nabla_{b}\!\left(\nabla_{d_{1}}\!\left(R{}_{d_{0}}{}^{d_{2}\,d_{0}\,d_{1}}\right)\right)\,g{}_{a\,d_{2}} - \nabla_{d_{1}}\!\left(\nabla_{a}\!\left(R{}_{d_{0}}{}^{d_{1}\,d_{0}\,d_{2}}\right)\right)\,g{}_{b\,d_{2}} - \nabla_{d_{1}}\!\left(\nabla_{b}\!\left(R{}_{d_{0}}{}^{d_{1}\,d_{0}\,d_{2}}\right)\right)\,g{}_{a\,d_{2}} + 2\,\nabla_{d_{2}}\!\left(\nabla_{d_{1}}\!\left(R{}_{d_{0}}{}^{d_{2}\,d_{0}\,d_{1}}\right)\right)\,g{}_{a\,b}\right)
+\end{dmath*}
+\par\vspace{0.8\baselineskip}\noindent
+\begin{minipage}{\linewidth}
+La expresión anterior identifica la contribución $-2\nabla^c\nabla^dP_{acdb}$ dentro de $E_{ab}$.\par
+\end{minipage}
+\Needspace{9\baselineskip}
+\subsection*{$ E_{\phi} $}
+% display: {"assumptions_used": [], "key": "abstract.scalar_euler", "notes": [], "operations": [], "status": "unchanged"}
+\begin{dmath*}[breakdepth={5}]
+E_{\phi} = 0
+\end{dmath*}
+\par\vspace{1.2\baselineskip}\noindent
+\begin{minipage}{\linewidth}
+\textbf{Significado:} Ecuación de Euler-Lagrange escalar E\_phi.\par
+\textbf{Índices libres y varianzas:} $ \varnothing\;\text{(escalar)} $\par
+\textbf{Fuentes del pipeline:} \texttt{scalar\_derivative, scalar\_gradient\_momentum}\par
+\textbf{Wolfram/xAct:} validación xAct no solicitada. La corrida no solicitó validación Wolfram/xAct.\par
+\end{minipage}
+\Needspace{9\baselineskip}
+\subsection*{$ \mathcal{R} $}
+% display: {"assumptions_used": [], "key": "abstract.ricci_scalar", "notes": [], "operations": [], "status": "unchanged"}
+\begin{dmath*}[breakdepth={5}]
+\mathcal{R} = g{}^{a\,c}\,g{}^{b\,d}\,R{}_{a\,b\,c\,d}
+\end{dmath*}
+\par\vspace{1.2\baselineskip}\noindent
+\begin{minipage}{\linewidth}
+\textbf{Significado:} Escalar de Ricci construido con la convención geométrica activa.\par
+\textbf{Índices libres y varianzas:} $ \varnothing\;\text{(escalar)} $\par
+\textbf{Fuentes del pipeline:} \texttt{validated\_model}\par
+\textbf{Wolfram/xAct:} validación xAct no solicitada. La corrida no solicitó validación Wolfram/xAct.\par
+\end{minipage}
+\Needspace{9\baselineskip}
+\subsection*{$ R_{ab}R^{ab} $}
+% display: {"assumptions_used": [], "key": "abstract.ricci_squared", "notes": [], "operations": [], "status": "unchanged"}
+\begin{dmath*}[breakdepth={5}]
+R_{ab}R^{ab} = g{}^{a\,c}\,R{}_{a\,b\,c\,d}\,g{}^{b\,e}\,g{}^{d\,f}\,g{}^{g\,h}\,R{}_{g\,e\,h\,f}
+\end{dmath*}
+\par\vspace{1.2\baselineskip}\noindent
+\begin{minipage}{\linewidth}
+\textbf{Significado:} Invariante cuadrático de Ricci R\_ab R^ab.\par
+\textbf{Índices libres y varianzas:} $ \varnothing\;\text{(escalar)} $\par
+\textbf{Fuentes del pipeline:} \texttt{validated\_model, riemann\_tensor}\par
+\textbf{Wolfram/xAct:} validación xAct no solicitada. La corrida no solicitó validación Wolfram/xAct.\par
+\end{minipage}
+\Needspace{9\baselineskip}
+\subsection*{$ R_{abcd} $}
+% display: {"assumptions_used": [], "key": "abstract.riemann_tensor", "notes": [], "operations": [], "status": "unchanged"}
+\begin{dmath*}[breakdepth={5}]
+R_{abcd} = R{}_{a\,b\,c\,d}
+\end{dmath*}
+\par\vspace{1.2\baselineskip}\noindent
+\begin{minipage}{\linewidth}
+\textbf{Significado:} Tensor de Riemann covariante tratado como entrada geométrica.\par
+\textbf{Índices libres y varianzas:} $ a_{\downarrow},\;b_{\downarrow},\;c_{\downarrow},\;d_{\downarrow} $\par
+\textbf{Fuentes del pipeline:} \texttt{validated\_model}\par
+\textbf{Wolfram/xAct:} validación xAct no solicitada. La corrida no solicitó validación Wolfram/xAct.\par
+\end{minipage}
+\Needspace{9\baselineskip}
+\subsection*{$ R_{abcd}R^{abcd} $}
+% display: {"assumptions_used": [], "key": "abstract.riemann_squared", "notes": [], "operations": [], "status": "unchanged"}
+\begin{dmath*}[breakdepth={5}]
+R_{abcd}R^{abcd} = g{}^{a\,e}\,g{}^{b\,f}\,g{}^{c\,g}\,g{}^{d\,h}\,R{}_{a\,b\,c\,d}\,R{}_{e\,f\,g\,h}
+\end{dmath*}
+\par\vspace{1.2\baselineskip}\noindent
+\begin{minipage}{\linewidth}
+\textbf{Significado:} Invariante de Kretschmann R\_abcd R^abcd.\par
+\textbf{Índices libres y varianzas:} $ \varnothing\;\text{(escalar)} $\par
+\textbf{Fuentes del pipeline:} \texttt{validated\_model, riemann\_tensor}\par
+\textbf{Wolfram/xAct:} validación xAct no solicitada. La corrida no solicitó validación Wolfram/xAct.\par
+\end{minipage}
+\Needspace{9\baselineskip}
+\subsection*{$ \nabla_e P^{abcd} $}
+% display: {"assumptions_used": [], "key": "abstract.nabla_P", "notes": [], "operations": ["combine_like_terms", "deterministic_order", "normalize_signs_and_numbers", "together_safe_fractions"], "status": "simplified"}
+\begin{dmath*}[breakdepth={5}]
+\nabla_e P^{abcd} = \frac{1}{2}\,\alpha\,\left(\nabla_{e}\!\left(R{}^{a}{}_{d_{0}}{}^{c\,d_{0}}\right)\,g{}^{b\,d} + \nabla_{e}\!\left(R{}^{b}{}_{d_{0}}{}^{d\,d_{0}}\right)\,g{}^{a\,c} - \nabla_{e}\!\left(R{}^{a}{}_{d_{0}}{}^{d\,d_{0}}\right)\,g{}^{b\,c} - \nabla_{e}\!\left(R{}^{b}{}_{d_{0}}{}^{c\,d_{0}}\right)\,g{}^{a\,d}\right)
+\end{dmath*}
+\par\vspace{1.2\baselineskip}\noindent
+\begin{minipage}{\linewidth}
+\textbf{Significado:} Primera derivada covariante del momento de curvatura.\par
+\textbf{Índices libres y varianzas:} $ a^{\uparrow},\;b^{\uparrow},\;c^{\uparrow},\;d^{\uparrow},\;e_{\downarrow} $\par
+\textbf{Fuentes del pipeline:} \texttt{curvature\_momentum}\par
+\textbf{Wolfram/xAct:} validación xAct no solicitada. La corrida no solicitó validación Wolfram/xAct.\par
+\end{minipage}
+\Needspace{9\baselineskip}
+\subsection*{$ \nabla_f\nabla_e P^{abcd} $}
+% display: {"assumptions_used": [], "key": "abstract.nabla_nabla_P", "notes": [], "operations": ["combine_like_terms", "deterministic_order", "normalize_signs_and_numbers", "together_safe_fractions"], "status": "simplified"}
+\begin{dmath*}[breakdepth={5}]
+\nabla_f\nabla_e P^{abcd} = \frac{1}{2}\,\alpha\,\left(\nabla_{f}\!\left(\nabla_{e}\!\left(R{}^{a}{}_{d_{0}}{}^{c\,d_{0}}\right)\right)\,g{}^{b\,d} + \nabla_{f}\!\left(\nabla_{e}\!\left(R{}^{b}{}_{d_{0}}{}^{d\,d_{0}}\right)\right)\,g{}^{a\,c} - \nabla_{f}\!\left(\nabla_{e}\!\left(R{}^{a}{}_{d_{0}}{}^{d\,d_{0}}\right)\right)\,g{}^{b\,c} - \nabla_{f}\!\left(\nabla_{e}\!\left(R{}^{b}{}_{d_{0}}{}^{c\,d_{0}}\right)\right)\,g{}^{a\,d}\right)
+\end{dmath*}
+\par\vspace{1.2\baselineskip}\noindent
+\begin{minipage}{\linewidth}
+\textbf{Significado:} Segunda derivada covariante del momento de curvatura.\par
+\textbf{Índices libres y varianzas:} $ a^{\uparrow},\;b^{\uparrow},\;c^{\uparrow},\;d^{\uparrow},\;e_{\downarrow},\;f_{\downarrow} $\par
+\textbf{Fuentes del pipeline:} \texttt{nabla\_P}\par
+\textbf{Wolfram/xAct:} validación xAct no solicitada. La corrida no solicitó validación Wolfram/xAct.\par
+\end{minipage}
+\Needspace{12\baselineskip}
+\par\bigskip\noindent{\large\bfseries Descomposición compacta adicional}\par
+Esta vista se agrega después de los resultados anteriores y reutiliza exactamente la IR canónica ya calculada. No interviene en la validación ni en los fingerprints.\par
+\Needspace{10\baselineskip}
+\par\medskip\noindent\textbf{Descomposición de $ E_{ab} $.}\par
+\begin{dmath*}[breakdepth={5}]
+E_{ab}=M_{ab}-\mathcal{R}_{(ab)}[P]-\frac{1}{2}g_{ab}L-2\nabla_m\nabla_nP^{mn}{}_{ab}
+\end{dmath*}
+\textbf{Reconstrucción IR:} symbolic. El backend conservador no redujo a cero el residual de reconstrucción.\par
+% compact-display: {"assumptions_used": [], "key": "abstract.compact.metric_euler", "notes": [], "operations": ["combine_like_terms", "deterministic_order", "normalize_signs_and_numbers", "together_safe_fractions", "collect_parameters"], "status": "simplified"}
+\begin{dmath*}[breakdepth={5}]
+\text{forma compacta:}\quad E_{ab} = R{}_{a\,d_{0}\,b}{}^{d_{0}} - \frac{g{}_{a\,b}\,R{}_{d_{0}\,d_{1}}{}^{d_{0}\,d_{1}}}{2} + \frac{1}{2}\,\alpha\,\left(\nabla_{d_{4}}\!\left(\nabla_{d_{3}}\!\left(R{}_{d_{0}}{}^{d_{1}\,d_{0}\,d_{2}}\right)\right)\,g{}_{a\,d_{1}}\,g{}_{b\,d_{2}}\,g{}^{d_{3}\,d_{4}} + \nabla_{d_{4}}\!\left(\nabla_{d_{3}}\!\left(R{}_{d_{0}}{}^{d_{1}\,d_{0}\,d_{2}}\right)\right)\,g{}_{a\,d_{2}}\,g{}_{b\,d_{1}}\,g{}^{d_{3}\,d_{4}} + R{}_{a\,d_{0}}{}^{d_{0}}{}_{d_{2}}\,R{}_{b\,d_{1}}{}^{d_{1}\,d_{2}} + R{}_{a\,d_{0}}{}^{d_{0}\,d_{2}}\,R{}_{b\,d_{1}}{}^{d_{1}}{}_{d_{2}} - \nabla_{a}\!\left(\nabla_{d_{1}}\!\left(R{}_{d_{0}}{}^{d_{2}\,d_{0}\,d_{1}}\right)\right)\,g{}_{b\,d_{2}} - \nabla_{b}\!\left(\nabla_{d_{1}}\!\left(R{}_{d_{0}}{}^{d_{2}\,d_{0}\,d_{1}}\right)\right)\,g{}_{a\,d_{2}} - \nabla_{d_{1}}\!\left(\nabla_{a}\!\left(R{}_{d_{0}}{}^{d_{1}\,d_{0}\,d_{2}}\right)\right)\,g{}_{b\,d_{2}} - \nabla_{d_{1}}\!\left(\nabla_{b}\!\left(R{}_{d_{0}}{}^{d_{1}\,d_{0}\,d_{2}}\right)\right)\,g{}_{a\,d_{2}} - g{}_{a\,b}\,R{}_{d_{0}}{}^{d_{2}\,d_{0}\,d_{3}}\,R{}_{d_{1}\,d_{2}}{}^{d_{1}}{}_{d_{3}} - R{}_{a\,d_{1}\,b\,d_{2}}\,R{}_{d_{0}}{}^{d_{1}\,d_{0}\,d_{2}} - R{}_{a\,d_{1}\,b\,d_{2}}\,R{}_{d_{0}}{}^{d_{2}\,d_{0}\,d_{1}} + 2\,\nabla_{d_{2}}\!\left(\nabla_{d_{1}}\!\left(R{}_{d_{0}}{}^{d_{2}\,d_{0}\,d_{1}}\right)\right)\,g{}_{a\,b} + 2\,R{}_{a}{}^{d_{1}}{}_{b}{}^{d_{2}}\,R{}_{d_{0}\,d_{1}}{}^{d_{0}}{}_{d_{2}} + 2\,R{}_{a}{}^{d_{1}}{}_{b}{}^{d_{2}}\,R{}_{d_{0}\,d_{2}}{}^{d_{0}}{}_{d_{1}}\right)
+\end{dmath*}
+\par\smallskip\noindent\textbf{Bloque $ M_{ab} $} (fuentes: \texttt{metric\_momentum}).\par
+% compact-display: {"assumptions_used": [], "key": "abstract.compact.metric_euler.metric_momentum", "notes": [], "operations": ["combine_like_terms", "deterministic_order", "normalize_signs_and_numbers", "together_safe_fractions", "collect_parameters", "factor_common_scalar_terms"], "status": "simplified"}
+\begin{dmath*}[breakdepth={5}]
+\text{forma compacta:}\quad M_{ab} = 2\,\left(R{}_{a\,d_{0}\,b}{}^{d_{0}} + \alpha\,\left(R{}_{a\,d_{0}}{}^{d_{0}\,d_{2}}\,R{}_{b\,d_{1}}{}^{d_{1}}{}_{d_{2}} + R{}_{a}{}^{d_{1}}{}_{b}{}^{d_{2}}\,R{}_{d_{0}\,d_{1}}{}^{d_{0}}{}_{d_{2}}\right)\right)
+\end{dmath*}
+\par\smallskip\noindent\textbf{Bloque $ -\mathcal{R}_{(ab)}[P] $} (fuentes: \texttt{curvature\_momentum, riemann\_tensor}).\par
+% compact-display: {"assumptions_used": [], "key": "abstract.compact.metric_euler.curvature_algebraic", "notes": [], "operations": [], "status": "unchanged"}
+\begin{dmath*}[breakdepth={5}]
+\text{forma compacta:}\quad -\mathcal{R}_{(ab)}[P] = \frac{1}{2}\,\left(-g{}_{a\,d_{1}}\,\left(-\frac{g{}^{d_{1}\,d_{2}}\,g{}^{d_{3}\,d_{4}}}{2} - \frac{g{}^{d_{1}\,d_{2}}\,R{}^{d_{3}}{}_{d_{0}}{}^{d_{4}\,d_{0}}\,\alpha}{2} - \frac{R{}^{d_{1}}{}_{d_{0}}{}^{d_{2}\,d_{0}}\,g{}^{d_{3}\,d_{4}}\,\alpha}{2} + \frac{g{}^{d_{1}\,d_{4}}\,g{}^{d_{3}\,d_{2}}}{2} + \frac{g{}^{d_{1}\,d_{4}}\,R{}^{d_{3}}{}_{d_{0}}{}^{d_{2}\,d_{0}}\,\alpha}{2} + \frac{R{}^{d_{1}}{}_{d_{0}}{}^{d_{4}\,d_{0}}\,g{}^{d_{3}\,d_{2}}\,\alpha}{2}\right)\,R{}_{b\,d_{3}\,d_{4}\,d_{2}} - g{}_{b\,d_{1}}\,\left(-\frac{g{}^{d_{1}\,d_{2}}\,g{}^{d_{3}\,d_{4}}}{2} - \frac{g{}^{d_{1}\,d_{2}}\,R{}^{d_{3}}{}_{d_{0}}{}^{d_{4}\,d_{0}}\,\alpha}{2} - \frac{R{}^{d_{1}}{}_{d_{0}}{}^{d_{2}\,d_{0}}\,g{}^{d_{3}\,d_{4}}\,\alpha}{2} + \frac{g{}^{d_{1}\,d_{4}}\,g{}^{d_{3}\,d_{2}}}{2} + \frac{g{}^{d_{1}\,d_{4}}\,R{}^{d_{3}}{}_{d_{0}}{}^{d_{2}\,d_{0}}\,\alpha}{2} + \frac{R{}^{d_{1}}{}_{d_{0}}{}^{d_{4}\,d_{0}}\,g{}^{d_{3}\,d_{2}}\,\alpha}{2}\right)\,R{}_{a\,d_{3}\,d_{4}\,d_{2}}\right)
+\end{dmath*}
+\par\smallskip\noindent\textbf{Bloque $ -\frac{1}{2}g_{ab}L $} (fuentes: \texttt{lagrangian}).\par
+% compact-display: {"assumptions_used": [], "key": "abstract.compact.metric_euler.volume_term", "notes": [], "operations": [], "status": "unchanged"}
+\begin{dmath*}[breakdepth={5}]
+\text{forma compacta:}\quad -\frac{1}{2}g_{ab}L = -\frac{1}{2}\,g{}_{a\,b}\,\left(R{}_{d_{0}\,d_{1}\,d_{2}\,d_{3}}\,g{}^{d_{0}\,d_{2}}\,g{}^{d_{1}\,d_{3}} + R{}_{d_{0}\,d_{1}\,d_{2}\,d_{3}}\,g{}^{d_{0}\,d_{2}}\,g{}^{d_{1}\,d_{4}}\,g{}^{d_{3}\,d_{5}}\,R{}_{d_{4}\,d_{6}\,d_{5}\,d_{7}}\,g{}^{d_{6}\,d_{7}}\,\alpha\right)
+\end{dmath*}
+\par\smallskip\noindent\textbf{Bloque $ E_{ab}^{(\nabla\nabla P)} $} (fuentes: \texttt{curvature\_momentum, nabla\_nabla\_P}).\par
+% compact-display: {"assumptions_used": [], "key": "abstract.compact.metric_euler.curvature_derivative", "notes": [], "operations": ["combine_like_terms", "deterministic_order", "normalize_signs_and_numbers", "together_safe_fractions"], "status": "simplified"}
+\begin{dmath*}[breakdepth={5}]
+\text{forma compacta:}\quad E_{ab}^{(\nabla\nabla P)} = \frac{1}{2}\,\alpha\,\left(\nabla_{d_{4}}\!\left(\nabla_{d_{3}}\!\left(R{}_{d_{0}}{}^{d_{1}\,d_{0}\,d_{2}}\right)\right)\,g{}_{a\,d_{1}}\,g{}_{b\,d_{2}}\,g{}^{d_{3}\,d_{4}} + \nabla_{d_{4}}\!\left(\nabla_{d_{3}}\!\left(R{}_{d_{0}}{}^{d_{1}\,d_{0}\,d_{2}}\right)\right)\,g{}_{a\,d_{2}}\,g{}_{b\,d_{1}}\,g{}^{d_{3}\,d_{4}} - \nabla_{a}\!\left(\nabla_{d_{1}}\!\left(R{}_{d_{0}}{}^{d_{2}\,d_{0}\,d_{1}}\right)\right)\,g{}_{b\,d_{2}} - \nabla_{b}\!\left(\nabla_{d_{1}}\!\left(R{}_{d_{0}}{}^{d_{2}\,d_{0}\,d_{1}}\right)\right)\,g{}_{a\,d_{2}} - \nabla_{d_{1}}\!\left(\nabla_{a}\!\left(R{}_{d_{0}}{}^{d_{1}\,d_{0}\,d_{2}}\right)\right)\,g{}_{b\,d_{2}} - \nabla_{d_{1}}\!\left(\nabla_{b}\!\left(R{}_{d_{0}}{}^{d_{1}\,d_{0}\,d_{2}}\right)\right)\,g{}_{a\,d_{2}} + 2\,\nabla_{d_{2}}\!\left(\nabla_{d_{1}}\!\left(R{}_{d_{0}}{}^{d_{2}\,d_{0}\,d_{1}}\right)\right)\,g{}_{a\,b}\right)
+\end{dmath*}
+\Needspace{10\baselineskip}
+\par\medskip\noindent\textbf{Descomposición de $ E_{\phi} $.}\par
+\begin{dmath*}[breakdepth={5}]
+E_{\phi}=F_{\phi}-\nabla_aJ^a
+\end{dmath*}
+\textbf{Reconstrucción IR:} verified. Los dos bloques reconstruyen exactamente E\_phi en la IR canónica.\par
+% compact-display: {"assumptions_used": [], "key": "abstract.compact.scalar_euler", "notes": [], "operations": [], "status": "unchanged"}
+\begin{dmath*}[breakdepth={5}]
+\text{forma compacta:}\quad E_{\phi} = 0
+\end{dmath*}
+\par\smallskip\noindent\textbf{Bloque $ F_{\phi} $} (fuentes: \texttt{scalar\_derivative}).\par
+% compact-display: {"assumptions_used": [], "key": "abstract.compact.scalar_euler.scalar_force", "notes": [], "operations": [], "status": "unchanged"}
+\begin{dmath*}[breakdepth={5}]
+\text{forma compacta:}\quad F_{\phi} = 0
+\end{dmath*}
+\par\smallskip\noindent\textbf{Bloque $ -\nabla_a J^a $} (fuentes: \texttt{scalar\_gradient\_momentum, scalar\_euler}).\par
+% compact-display: {"assumptions_used": [], "key": "abstract.compact.scalar_euler.scalar_current_divergence", "notes": [], "operations": [], "status": "unchanged"}
+\begin{dmath*}[breakdepth={5}]
+\text{forma compacta:}\quad -\nabla_a J^a = 0
+\end{dmath*}
+\Needspace{10\baselineskip}
+\par\medskip\noindent\textbf{Descomposición de $ P^{abcd} $.}\par
+\begin{dmath*}[breakdepth={5}]
+P^{abcd}=\partial L/\partial R_{abcd}
+\end{dmath*}
+\textbf{Reconstrucción IR:} verified. La forma compacta y la expandida referencian el mismo objeto P^{abcd}.\par
+% compact-display: {"assumptions_used": [], "key": "abstract.compact.curvature_momentum", "notes": [], "operations": [], "status": "unchanged"}
+\begin{dmath*}[breakdepth={5}]
+\text{forma compacta:}\quad P^{abcd} = -\frac{g{}^{a\,d}\,g{}^{b\,c}}{2} - \frac{g{}^{a\,d}\,R{}^{b}{}_{d_{0}}{}^{c\,d_{0}}\,\alpha}{2} - \frac{R{}^{a}{}_{d_{0}}{}^{d\,d_{0}}\,g{}^{b\,c}\,\alpha}{2} + \frac{g{}^{a\,c}\,g{}^{b\,d}}{2} + \frac{g{}^{a\,c}\,R{}^{b}{}_{d_{0}}{}^{d\,d_{0}}\,\alpha}{2} + \frac{R{}^{a}{}_{d_{0}}{}^{c\,d_{0}}\,g{}^{b\,d}\,\alpha}{2}
+\end{dmath*}
+\section*{Expresiones proyectadas mediante el ansatz}
+\textbf{Ansatz utilizado:} \texttt{draft4\_circular}.
+\begin{dmath*}[breakdepth={3}]
+(x^\mu)=\left(\tau, r, \varphi\right),\qquad ds^2 = -f\!\left(r\right)\,d\tau^2 + \frac{1}{f\!\left(r\right)}\,dr^2 + {r}^{2}\,d\varphi^2
+\end{dmath*}
+\begin{dmath*}[breakdepth={3}]
+\phi = \Phi\!\left(r, \varphi\right)\qquad\text{(genérico, sin especialización)}
+\end{dmath*}
+Las componentes completas se conservan de forma dispersa en \texttt{results.json}; el documento muestra como máximo doce componentes no nulas por tensor.
+\Needspace{7\baselineskip}
+\subsection*{$ L $}
+\textbf{Ansatz:} \texttt{draft4\_circular}; \textbf{estado:} completada.\par
+% display: {"assumptions_used": [], "key": "projected.lagrangian.scalar", "notes": [], "operations": [], "status": "unchanged"}
+\begin{dmath*}[breakdepth={5}]
+L\big|_{\mathrm{ansatz}} = \frac{1}{2\,{r}^{2}}\,\left(3\,\alpha\,{f'\!\left(r\right)}^{2} + {r}^{2}\,\left(\alpha\,f''\!\left(r\right) - 2\right)\,f''\!\left(r\right) + 2\,r\,\left(\alpha\,f''\!\left(r\right) - 2\right)\,f'\!\left(r\right)\right)
+\end{dmath*}
+\par\smallskip
+Proyección completa almacenada: 1 componentes no nulas de 1. Proyectada respetando el ansatz 'draft4\_circular'.\par\medskip
+\Needspace{7\baselineskip}
+\subsection*{$ M_{ab} $}
+\textbf{Ansatz:} \texttt{draft4\_circular}; \textbf{estado:} completada.\par
+% display: {"assumptions_used": ["r>0"], "key": "projected.metric_momentum[0,0]", "notes": [], "operations": ["combine_like_terms", "deterministic_order", "normalize_signs_and_numbers", "together_safe_fractions", "collect_parameters"], "status": "simplified"}
+\begin{dmath*}[breakdepth={5}]
+\left[M_{ab}\right]_{00} = \frac{1}{2\,{r}^{2}}\,f\!\left(r\right)\,\left(\alpha\,\left(-3\,{f'\!\left(r\right)}^{2} - 2\,{r}^{2}\,{f''\!\left(r\right)}^{2} - 3\,r\,f'\!\left(r\right)\,f''\!\left(r\right)\right) + 2\,r\,f'\!\left(r\right) + 2\,f''\!\left(r\right)\,{r}^{2}\right)
+\end{dmath*}
+\par\smallskip
+% display: {"assumptions_used": [], "key": "projected.metric_momentum[1,1]", "notes": [], "operations": [], "status": "unchanged"}
+\begin{dmath*}[breakdepth={5}]
+\left[M_{ab}\right]_{11} = \frac{1}{{r}^{2}\,f\!\left(r\right)}\,\left(-r\,f'\!\left(r\right) - {r}^{2}\,f''\!\left(r\right) + \frac{3\,\alpha\,{f'\!\left(r\right)}^{2}}{2} + \alpha\,{r}^{2}\,{f''\!\left(r\right)}^{2} + \frac{3\,\alpha\,r\,f'\!\left(r\right)\,f''\!\left(r\right)}{2}\right)
+\end{dmath*}
+\par\smallskip
+% display: {"assumptions_used": [], "key": "projected.metric_momentum[2,2]", "notes": [], "operations": [], "status": "unchanged"}
+\begin{dmath*}[breakdepth={5}]
+\left[M_{ab}\right]_{22} = \left(-2\,r + 3\,\alpha\,f'\!\left(r\right) + \alpha\,r\,f''\!\left(r\right)\right)\,f'\!\left(r\right)
+\end{dmath*}
+\par\smallskip
+Proyección completa almacenada: 3 componentes no nulas de 9. Proyectada respetando el ansatz 'draft4\_circular'.\par\medskip
+\Needspace{7\baselineskip}
+\subsection*{$ P^{abcd} $}
+\textbf{Ansatz:} \texttt{draft4\_circular}; \textbf{estado:} completada.\par
+% display: {"assumptions_used": [], "key": "projected.curvature_momentum[0,0,1,1]", "notes": [], "operations": [], "status": "unchanged"}
+\begin{dmath*}[breakdepth={5}]
+\left[P^{abcd}\right]^{0110} = \frac{\left(r - \alpha\,\left(r\,f''\!\left(r\right) + f'\!\left(r\right)\right)\right)}{2\,r}
+\end{dmath*}
+\par\smallskip
+% display: {"assumptions_used": [], "key": "projected.curvature_momentum[0,0,2,2]", "notes": [], "operations": [], "status": "unchanged"}
+\begin{dmath*}[breakdepth={5}]
+\left[P^{abcd}\right]^{0220} = \frac{\left(2\,r - \alpha\,\left(3\,f'\!\left(r\right) + r\,f''\!\left(r\right)\right)\right)}{4\,{r}^{3}\,f\!\left(r\right)}
+\end{dmath*}
+\par\smallskip
+% display: {"assumptions_used": [], "key": "projected.curvature_momentum[0,1,1,0]", "notes": [], "operations": [], "status": "unchanged"}
+\begin{dmath*}[breakdepth={5}]
+\left[P^{abcd}\right]^{0101} = \frac{\left(-r + \alpha\,\left(r\,f''\!\left(r\right) + f'\!\left(r\right)\right)\right)}{2\,r}
+\end{dmath*}
+\par\smallskip
+% display: {"assumptions_used": [], "key": "projected.curvature_momentum[0,2,2,0]", "notes": [], "operations": [], "status": "unchanged"}
+\begin{dmath*}[breakdepth={5}]
+\left[P^{abcd}\right]^{0202} = \frac{\left(-2\,r + \alpha\,\left(3\,f'\!\left(r\right) + r\,f''\!\left(r\right)\right)\right)}{4\,{r}^{3}\,f\!\left(r\right)}
+\end{dmath*}
+\par\smallskip
+% display: {"assumptions_used": [], "key": "projected.curvature_momentum[1,0,0,1]", "notes": [], "operations": [], "status": "unchanged"}
+\begin{dmath*}[breakdepth={5}]
+\left[P^{abcd}\right]^{1010} = \frac{\left(-r + \alpha\,\left(r\,f''\!\left(r\right) + f'\!\left(r\right)\right)\right)}{2\,r}
+\end{dmath*}
+\par\smallskip
+% display: {"assumptions_used": [], "key": "projected.curvature_momentum[1,1,0,0]", "notes": [], "operations": [], "status": "unchanged"}
+\begin{dmath*}[breakdepth={5}]
+\left[P^{abcd}\right]^{1001} = \frac{\left(r - \alpha\,\left(r\,f''\!\left(r\right) + f'\!\left(r\right)\right)\right)}{2\,r}
+\end{dmath*}
+\par\smallskip
+% display: {"assumptions_used": [], "key": "projected.curvature_momentum[1,1,2,2]", "notes": [], "operations": [], "status": "unchanged"}
+\begin{dmath*}[breakdepth={5}]
+\left[P^{abcd}\right]^{1221} = \frac{\left(-2\,r + \alpha\,\left(3\,f'\!\left(r\right) + r\,f''\!\left(r\right)\right)\right)\,f\!\left(r\right)}{4\,{r}^{3}}
+\end{dmath*}
+\par\smallskip
+% display: {"assumptions_used": [], "key": "projected.curvature_momentum[1,2,2,1]", "notes": [], "operations": [], "status": "unchanged"}
+\begin{dmath*}[breakdepth={5}]
+\left[P^{abcd}\right]^{1212} = -\frac{\left(-2\,r + \alpha\,\left(3\,f'\!\left(r\right) + r\,f''\!\left(r\right)\right)\right)\,f\!\left(r\right)}{4\,{r}^{3}}
+\end{dmath*}
+\par\smallskip
+% display: {"assumptions_used": [], "key": "projected.curvature_momentum[2,0,0,2]", "notes": [], "operations": [], "status": "unchanged"}
+\begin{dmath*}[breakdepth={5}]
+\left[P^{abcd}\right]^{2020} = \frac{\left(-2\,r + \alpha\,\left(3\,f'\!\left(r\right) + r\,f''\!\left(r\right)\right)\right)}{4\,{r}^{3}\,f\!\left(r\right)}
+\end{dmath*}
+\par\smallskip
+% display: {"assumptions_used": [], "key": "projected.curvature_momentum[2,1,1,2]", "notes": [], "operations": [], "status": "unchanged"}
+\begin{dmath*}[breakdepth={5}]
+\left[P^{abcd}\right]^{2121} = -\frac{\left(-2\,r + \alpha\,\left(3\,f'\!\left(r\right) + r\,f''\!\left(r\right)\right)\right)\,f\!\left(r\right)}{4\,{r}^{3}}
+\end{dmath*}
+\par\smallskip
+% display: {"assumptions_used": [], "key": "projected.curvature_momentum[2,2,0,0]", "notes": [], "operations": [], "status": "unchanged"}
+\begin{dmath*}[breakdepth={5}]
+\left[P^{abcd}\right]^{2002} = \frac{\left(2\,r - \alpha\,\left(3\,f'\!\left(r\right) + r\,f''\!\left(r\right)\right)\right)}{4\,{r}^{3}\,f\!\left(r\right)}
+\end{dmath*}
+\par\smallskip
+% display: {"assumptions_used": [], "key": "projected.curvature_momentum[2,2,1,1]", "notes": [], "operations": [], "status": "unchanged"}
+\begin{dmath*}[breakdepth={5}]
+\left[P^{abcd}\right]^{2112} = \frac{\left(-2\,r + \alpha\,\left(3\,f'\!\left(r\right) + r\,f''\!\left(r\right)\right)\right)\,f\!\left(r\right)}{4\,{r}^{3}}
+\end{dmath*}
+\par\smallskip
+Proyección completa almacenada: 12 componentes no nulas de 81. Proyectada respetando el ansatz 'draft4\_circular'.\par\medskip
+\Needspace{7\baselineskip}
+\subsection*{$ J^a $}
+\textbf{Ansatz:} \texttt{draft4\_circular}; \textbf{estado:} completada.\par
+% display: {"assumptions_used": [], "key": "projected.scalar_gradient_momentum.zero", "notes": [], "operations": [], "status": "unchanged"}
+Todas las componentes de esta cantidad son nulas.
+Proyección completa almacenada: 0 componentes no nulas de 3. La expresión abstracta es nula; todas sus componentes son cero.\par\medskip
+\Needspace{7\baselineskip}
+\subsection*{$ F_{\phi} $}
+\textbf{Ansatz:} \texttt{draft4\_circular}; \textbf{estado:} completada.\par
+% display: {"assumptions_used": [], "key": "projected.scalar_derivative.scalar", "notes": [], "operations": [], "status": "unchanged"}
+\begin{dmath*}[breakdepth={5}]
+F_{\phi}\big|_{\mathrm{ansatz}} = 0
+\end{dmath*}
+\par\smallskip
+Proyección completa almacenada: 0 componentes no nulas de 1. La expresión abstracta es nula; todas sus componentes son cero.\par\medskip
+\Needspace{7\baselineskip}
+\subsection*{$ E_{ab} $}
+\textbf{Ansatz:} \texttt{draft4\_circular}; \textbf{estado:} completada.\par
+% display: {"assumptions_used": ["r>0"], "key": "projected.metric_euler[0,0]", "notes": [], "operations": ["combine_like_terms", "deterministic_order", "normalize_signs_and_numbers", "together_safe_fractions", "collect_parameters"], "status": "simplified"}
+\begin{dmath*}[breakdepth={5}]
+\left[E_{ab}\right]_{00} = \frac{1}{4\,{r}^{3}}\,f\!\left(r\right)\,\left(\alpha\,\left(-{r}^{3}\,{f''\!\left(r\right)}^{2} - 3\,r\,{f'\!\left(r\right)}^{2} + 6\,f'\!\left(r\right)\,f\!\left(r\right) - 6\,r\,f''\!\left(r\right)\,f\!\left(r\right) + 2\,f'\!\left(r\right)\,f''\!\left(r\right)\,{r}^{2} + 2\,f'\!\left(r\right)\,f^{(3)}\!\left(r\right)\,{r}^{3} + 4\,f\!\left(r\right)\,f^{(4)}\!\left(r\right)\,{r}^{3} + 10\,f\!\left(r\right)\,f^{(3)}\!\left(r\right)\,{r}^{2}\right) - 2\,f'\!\left(r\right)\,{r}^{2}\right)
+\end{dmath*}
+\par\smallskip
+% display: {"assumptions_used": ["f(r)!=0", "r>0"], "key": "projected.metric_euler[1,1]", "notes": [], "operations": ["combine_like_terms", "deterministic_order", "normalize_signs_and_numbers", "together_safe_fractions", "collect_parameters"], "status": "simplified"}
+\begin{dmath*}[breakdepth={5}]
+\left[E_{ab}\right]_{11} = \frac{1}{4\,{r}^{3}\,f\!\left(r\right)}\,\left(\alpha\,\left({r}^{3}\,{f''\!\left(r\right)}^{2} + 3\,r\,{f'\!\left(r\right)}^{2} + 6\,f\!\left(r\right)\,f'\!\left(r\right) - 6\,r\,f\!\left(r\right)\,f''\!\left(r\right) - 2\,f\!\left(r\right)\,f^{(3)}\!\left(r\right)\,{r}^{2} - 2\,f'\!\left(r\right)\,f''\!\left(r\right)\,{r}^{2} - 2\,f'\!\left(r\right)\,f^{(3)}\!\left(r\right)\,{r}^{3}\right) + 2\,f'\!\left(r\right)\,{r}^{2}\right)
+\end{dmath*}
+\par\smallskip
+% display: {"assumptions_used": ["r>0"], "key": "projected.metric_euler[2,2]", "notes": [], "operations": ["combine_like_terms", "deterministic_order", "normalize_signs_and_numbers", "together_safe_fractions", "collect_parameters"], "status": "simplified"}
+\begin{dmath*}[breakdepth={5}]
+\left[E_{ab}\right]_{22} = \frac{1}{4\,r}\,\left(r\,\left(\alpha\,\left(9\,{f'\!\left(r\right)}^{2} - {r}^{2}\,{f''\!\left(r\right)}^{2} + 12\,f''\!\left(r\right)\,f\!\left(r\right) - 6\,r\,f''\!\left(r\right)\,f'\!\left(r\right) - 6\,r\,f\!\left(r\right)\,f^{(3)}\!\left(r\right) - 2\,f'\!\left(r\right)\,f^{(3)}\!\left(r\right)\,{r}^{2} - 2\,f\!\left(r\right)\,f^{(4)}\!\left(r\right)\,{r}^{2}\right) + 2\,f''\!\left(r\right)\,{r}^{2}\right) - 12\,\alpha\,f'\!\left(r\right)\,f\!\left(r\right)\right)
+\end{dmath*}
+\par\smallskip
+Proyección completa almacenada: 3 componentes no nulas de 9. Reutilizada desde la etapa de componentes de E\_ab.\par\medskip
+\Needspace{7\baselineskip}
+\subsection*{$ E_{\phi} $}
+\textbf{Ansatz:} \texttt{draft4\_circular}; \textbf{estado:} completada.\par
+% display: {"assumptions_used": [], "key": "projected.scalar_euler.scalar", "notes": [], "operations": [], "status": "unchanged"}
+\begin{dmath*}[breakdepth={5}]
+E_{\phi}\big|_{\mathrm{ansatz}} = 0
+\end{dmath*}
+\par\smallskip
+Proyección completa almacenada: 0 componentes no nulas de 1. Reutilizada desde la etapa de componentes de E\_phi.\par\medskip
+\Needspace{7\baselineskip}
+\subsection*{$ \mathcal{R} $}
+\textbf{Ansatz:} \texttt{draft4\_circular}; \textbf{estado:} completada.\par
+% display: {"assumptions_used": [], "key": "projected.ricci_scalar.scalar", "notes": [], "operations": [], "status": "unchanged"}
+\begin{dmath*}[breakdepth={5}]
+\mathcal{R}\big|_{\mathrm{ansatz}} = -\left(\frac{2\,f'\!\left(r\right)}{r} + f''\!\left(r\right)\right)
+\end{dmath*}
+\par\smallskip
+Proyección completa almacenada: 1 componentes no nulas de 1. Proyectada respetando el ansatz 'draft4\_circular'. La corrida no solicitó validación Wolfram/xAct.\par\medskip
+\Needspace{7\baselineskip}
+\subsection*{$ R_{ab}R^{ab} $}
+\textbf{Ansatz:} \texttt{draft4\_circular}; \textbf{estado:} completada.\par
+% display: {"assumptions_used": [], "key": "projected.ricci_squared.scalar", "notes": [], "operations": [], "status": "unchanged"}
+\begin{dmath*}[breakdepth={5}]
+R_{ab}R^{ab}\big|_{\mathrm{ansatz}} = \frac{{f''\!\left(r\right)}^{2}}{2} + \frac{3\,{f'\!\left(r\right)}^{2}}{2\,{r}^{2}} + \frac{f'\!\left(r\right)\,f''\!\left(r\right)}{r}
+\end{dmath*}
+\par\smallskip
+Proyección completa almacenada: 1 componentes no nulas de 1. Proyectada respetando el ansatz 'draft4\_circular'. La corrida no solicitó validación Wolfram/xAct.\par\medskip
+\Needspace{7\baselineskip}
+\subsection*{$ R_{abcd} $}
+\textbf{Ansatz:} \texttt{draft4\_circular}; \textbf{estado:} completada.\par
+% display: {"assumptions_used": [], "key": "projected.riemann_tensor[0,1,0,1]", "notes": [], "operations": [], "status": "unchanged"}
+\begin{dmath*}[breakdepth={5}]
+\left[R_{abcd}\right]_{0101} = \frac{f''\!\left(r\right)}{2}
+\end{dmath*}
+\par\smallskip
+% display: {"assumptions_used": [], "key": "projected.riemann_tensor[0,1,1,0]", "notes": [], "operations": [], "status": "unchanged"}
+\begin{dmath*}[breakdepth={5}]
+\left[R_{abcd}\right]_{0110} = -\frac{f''\!\left(r\right)}{2}
+\end{dmath*}
+\par\smallskip
+% display: {"assumptions_used": [], "key": "projected.riemann_tensor[0,2,0,2]", "notes": [], "operations": [], "status": "unchanged"}
+\begin{dmath*}[breakdepth={5}]
+\left[R_{abcd}\right]_{0202} = \frac{r\,f'\!\left(r\right)\,f\!\left(r\right)}{2}
+\end{dmath*}
+\par\smallskip
+% display: {"assumptions_used": [], "key": "projected.riemann_tensor[0,2,2,0]", "notes": [], "operations": [], "status": "unchanged"}
+\begin{dmath*}[breakdepth={5}]
+\left[R_{abcd}\right]_{0220} = -\frac{r\,f'\!\left(r\right)\,f\!\left(r\right)}{2}
+\end{dmath*}
+\par\smallskip
+% display: {"assumptions_used": [], "key": "projected.riemann_tensor[1,0,0,1]", "notes": [], "operations": [], "status": "unchanged"}
+\begin{dmath*}[breakdepth={5}]
+\left[R_{abcd}\right]_{1001} = -\frac{f''\!\left(r\right)}{2}
+\end{dmath*}
+\par\smallskip
+% display: {"assumptions_used": [], "key": "projected.riemann_tensor[1,0,1,0]", "notes": [], "operations": [], "status": "unchanged"}
+\begin{dmath*}[breakdepth={5}]
+\left[R_{abcd}\right]_{1010} = \frac{f''\!\left(r\right)}{2}
+\end{dmath*}
+\par\smallskip
+% display: {"assumptions_used": [], "key": "projected.riemann_tensor[1,2,1,2]", "notes": [], "operations": [], "status": "unchanged"}
+\begin{dmath*}[breakdepth={5}]
+\left[R_{abcd}\right]_{1212} = -\frac{r\,f'\!\left(r\right)}{2\,f\!\left(r\right)}
+\end{dmath*}
+\par\smallskip
+% display: {"assumptions_used": [], "key": "projected.riemann_tensor[1,2,2,1]", "notes": [], "operations": [], "status": "unchanged"}
+\begin{dmath*}[breakdepth={5}]
+\left[R_{abcd}\right]_{1221} = \frac{r\,f'\!\left(r\right)}{2\,f\!\left(r\right)}
+\end{dmath*}
+\par\smallskip
+% display: {"assumptions_used": [], "key": "projected.riemann_tensor[2,0,0,2]", "notes": [], "operations": [], "status": "unchanged"}
+\begin{dmath*}[breakdepth={5}]
+\left[R_{abcd}\right]_{2002} = -\frac{r\,f'\!\left(r\right)\,f\!\left(r\right)}{2}
+\end{dmath*}
+\par\smallskip
+% display: {"assumptions_used": [], "key": "projected.riemann_tensor[2,0,2,0]", "notes": [], "operations": [], "status": "unchanged"}
+\begin{dmath*}[breakdepth={5}]
+\left[R_{abcd}\right]_{2020} = \frac{r\,f'\!\left(r\right)\,f\!\left(r\right)}{2}
+\end{dmath*}
+\par\smallskip
+% display: {"assumptions_used": [], "key": "projected.riemann_tensor[2,1,1,2]", "notes": [], "operations": [], "status": "unchanged"}
+\begin{dmath*}[breakdepth={5}]
+\left[R_{abcd}\right]_{2112} = \frac{r\,f'\!\left(r\right)}{2\,f\!\left(r\right)}
+\end{dmath*}
+\par\smallskip
+% display: {"assumptions_used": [], "key": "projected.riemann_tensor[2,1,2,1]", "notes": [], "operations": [], "status": "unchanged"}
+\begin{dmath*}[breakdepth={5}]
+\left[R_{abcd}\right]_{2121} = -\frac{r\,f'\!\left(r\right)}{2\,f\!\left(r\right)}
+\end{dmath*}
+\par\smallskip
+Proyección completa almacenada: 12 componentes no nulas de 81. Proyectada respetando el ansatz 'draft4\_circular'. La corrida no solicitó validación Wolfram/xAct.\par\medskip
+\Needspace{7\baselineskip}
+\subsection*{$ R_{abcd}R^{abcd} $}
+\textbf{Ansatz:} \texttt{draft4\_circular}; \textbf{estado:} completada.\par
+% display: {"assumptions_used": [], "key": "projected.riemann_squared.scalar", "notes": [], "operations": [], "status": "unchanged"}
+\begin{dmath*}[breakdepth={5}]
+R_{abcd}R^{abcd}\big|_{\mathrm{ansatz}} = {f''\!\left(r\right)}^{2} + \frac{2\,{f'\!\left(r\right)}^{2}}{{r}^{2}}
+\end{dmath*}
+\par\smallskip
+Proyección completa almacenada: 1 componentes no nulas de 1. Proyectada respetando el ansatz 'draft4\_circular'. La corrida no solicitó validación Wolfram/xAct.\par\medskip
+\Needspace{7\baselineskip}
+\subsection*{$ \nabla_e P^{abcd} $}
+\textbf{Ansatz:} \texttt{draft4\_circular}; \textbf{estado:} completada.\par
+% display: {"assumptions_used": [], "key": "projected.nabla_P[0,0,1,1,1]", "notes": [], "operations": [], "status": "unchanged"}
+\begin{dmath*}[breakdepth={5}]
+\left[\nabla_e P^{abcd}\right]_{1}^{0110} = \frac{\alpha\,\left(-r\,f''\!\left(r\right) - {r}^{2}\,f^{(3)}\!\left(r\right) + f'\!\left(r\right)\right)}{2\,{r}^{2}}
+\end{dmath*}
+\par\smallskip
+% display: {"assumptions_used": [], "key": "projected.nabla_P[0,0,1,2,2]", "notes": [], "operations": [], "status": "unchanged"}
+\begin{dmath*}[breakdepth={5}]
+\left[\nabla_e P^{abcd}\right]_{1}^{0220} = \frac{\alpha\,\left(3\,f'\!\left(r\right) - {r}^{2}\,f^{(3)}\!\left(r\right) - 3\,r\,f''\!\left(r\right)\right)}{4\,{r}^{4}\,f\!\left(r\right)}
+\end{dmath*}
+\par\smallskip
+% display: {"assumptions_used": [], "key": "projected.nabla_P[0,0,2,1,2]", "notes": [], "operations": [], "status": "unchanged"}
+\begin{dmath*}[breakdepth={5}]
+\left[\nabla_e P^{abcd}\right]_{2}^{0120} = \frac{\alpha\,\left(-r\,f''\!\left(r\right) + f'\!\left(r\right)\right)}{4\,{r}^{2}}
+\end{dmath*}
+\par\smallskip
+% display: {"assumptions_used": [], "key": "projected.nabla_P[0,0,2,2,1]", "notes": [], "operations": [], "status": "unchanged"}
+\begin{dmath*}[breakdepth={5}]
+\left[\nabla_e P^{abcd}\right]_{2}^{0210} = \frac{\alpha\,\left(-r\,f''\!\left(r\right) + f'\!\left(r\right)\right)}{4\,{r}^{2}}
+\end{dmath*}
+\par\smallskip
+% display: {"assumptions_used": [], "key": "projected.nabla_P[0,1,1,1,0]", "notes": [], "operations": [], "status": "unchanged"}
+\begin{dmath*}[breakdepth={5}]
+\left[\nabla_e P^{abcd}\right]_{1}^{0101} = \frac{\alpha\,\left(-f'\!\left(r\right) + r\,f''\!\left(r\right) + {r}^{2}\,f^{(3)}\!\left(r\right)\right)}{2\,{r}^{2}}
+\end{dmath*}
+\par\smallskip
+% display: {"assumptions_used": [], "key": "projected.nabla_P[0,1,2,2,0]", "notes": [], "operations": [], "status": "unchanged"}
+\begin{dmath*}[breakdepth={5}]
+\left[\nabla_e P^{abcd}\right]_{2}^{0201} = \frac{\alpha\,\left(-f'\!\left(r\right) + r\,f''\!\left(r\right)\right)}{4\,{r}^{2}}
+\end{dmath*}
+\par\smallskip
+% display: {"assumptions_used": [], "key": "projected.nabla_P[0,2,1,2,0]", "notes": [], "operations": [], "status": "unchanged"}
+\begin{dmath*}[breakdepth={5}]
+\left[\nabla_e P^{abcd}\right]_{1}^{0202} = \frac{\alpha\,\left(-3\,f'\!\left(r\right) + {r}^{2}\,f^{(3)}\!\left(r\right) + 3\,r\,f''\!\left(r\right)\right)}{4\,{r}^{4}\,f\!\left(r\right)}
+\end{dmath*}
+\par\smallskip
+% display: {"assumptions_used": [], "key": "projected.nabla_P[0,2,2,1,0]", "notes": [], "operations": [], "status": "unchanged"}
+\begin{dmath*}[breakdepth={5}]
+\left[\nabla_e P^{abcd}\right]_{2}^{0102} = \frac{\alpha\,\left(-f'\!\left(r\right) + r\,f''\!\left(r\right)\right)}{4\,{r}^{2}}
+\end{dmath*}
+\par\smallskip
+% display: {"assumptions_used": [], "key": "projected.nabla_P[1,0,1,0,1]", "notes": [], "operations": [], "status": "unchanged"}
+\begin{dmath*}[breakdepth={5}]
+\left[\nabla_e P^{abcd}\right]_{1}^{1010} = \frac{\alpha\,\left(-f'\!\left(r\right) + r\,f''\!\left(r\right) + {r}^{2}\,f^{(3)}\!\left(r\right)\right)}{2\,{r}^{2}}
+\end{dmath*}
+\par\smallskip
+% display: {"assumptions_used": [], "key": "projected.nabla_P[1,0,2,0,2]", "notes": [], "operations": [], "status": "unchanged"}
+\begin{dmath*}[breakdepth={5}]
+\left[\nabla_e P^{abcd}\right]_{2}^{1020} = \frac{\alpha\,\left(-f'\!\left(r\right) + r\,f''\!\left(r\right)\right)}{4\,{r}^{2}}
+\end{dmath*}
+\par\smallskip
+% display: {"assumptions_used": [], "key": "projected.nabla_P[1,1,1,0,0]", "notes": [], "operations": [], "status": "unchanged"}
+\begin{dmath*}[breakdepth={5}]
+\left[\nabla_e P^{abcd}\right]_{1}^{1001} = \frac{\alpha\,\left(-r\,f''\!\left(r\right) - {r}^{2}\,f^{(3)}\!\left(r\right) + f'\!\left(r\right)\right)}{2\,{r}^{2}}
+\end{dmath*}
+\par\smallskip
+% display: {"assumptions_used": [], "key": "projected.nabla_P[1,1,1,2,2]", "notes": [], "operations": [], "status": "unchanged"}
+\begin{dmath*}[breakdepth={5}]
+\left[\nabla_e P^{abcd}\right]_{1}^{1221} = \frac{\alpha\,\left(-3\,f'\!\left(r\right) + {r}^{2}\,f^{(3)}\!\left(r\right) + 3\,r\,f''\!\left(r\right)\right)\,f\!\left(r\right)}{4\,{r}^{4}}
+\end{dmath*}
+\par\smallskip
+Representación compacta: se muestran 12 de 20 componentes no nulas.
+Proyección completa almacenada: 20 componentes no nulas de 243. Proyectada respetando el ansatz 'draft4\_circular'. La corrida no solicitó validación Wolfram/xAct.\par\medskip
+\Needspace{7\baselineskip}
+\subsection*{$ \nabla_f\nabla_e P^{abcd} $}
+\textbf{Ansatz:} \texttt{draft4\_circular}; \textbf{estado:} completada.\par
+% display: {"assumptions_used": [], "key": "projected.nabla_nabla_P[0,0,0,0,1,1]", "notes": [], "operations": [], "status": "unchanged"}
+\begin{dmath*}[breakdepth={5}]
+\left[\nabla_f\nabla_e P^{abcd}\right]_{00}^{0110} = \frac{\alpha\,\left(-f'\!\left(r\right) + r\,f''\!\left(r\right) + {r}^{2}\,f^{(3)}\!\left(r\right)\right)\,f'\!\left(r\right)\,f\!\left(r\right)}{4\,{r}^{2}}
+\end{dmath*}
+\par\smallskip
+% display: {"assumptions_used": [], "key": "projected.nabla_nabla_P[0,0,0,0,2,2]", "notes": [], "operations": [], "status": "unchanged"}
+\begin{dmath*}[breakdepth={5}]
+\left[\nabla_f\nabla_e P^{abcd}\right]_{00}^{0220} = \frac{\alpha\,\left(-3\,f'\!\left(r\right) + {r}^{2}\,f^{(3)}\!\left(r\right) + 3\,r\,f''\!\left(r\right)\right)\,f'\!\left(r\right)}{8\,{r}^{4}}
+\end{dmath*}
+\par\smallskip
+% display: {"assumptions_used": [], "key": "projected.nabla_nabla_P[0,0,1,1,1,1]", "notes": [], "operations": [], "status": "unchanged"}
+\begin{dmath*}[breakdepth={5}]
+\left[\nabla_f\nabla_e P^{abcd}\right]_{11}^{0110} = \alpha\,\left(-\frac{f^{(4)}\!\left(r\right)}{2} + \frac{f''\!\left(r\right)}{{r}^{2}} - \frac{f'\!\left(r\right)}{{r}^{3}} - \frac{f^{(3)}\!\left(r\right)}{2\,r} - \frac{f'\!\left(r\right)\,f^{(3)}\!\left(r\right)}{4\,f\!\left(r\right)} + \frac{{f'\!\left(r\right)}^{2}}{4\,{r}^{2}\,f\!\left(r\right)} - \frac{f'\!\left(r\right)\,f''\!\left(r\right)}{4\,r\,f\!\left(r\right)}\right)
+\end{dmath*}
+\par\smallskip
+% display: {"assumptions_used": [], "key": "projected.nabla_nabla_P[0,0,1,1,2,2]", "notes": [], "operations": [], "status": "unchanged"}
+\begin{dmath*}[breakdepth={5}]
+\left[\nabla_f\nabla_e P^{abcd}\right]_{11}^{0220} = \frac{1}{8\,{r}^{5}\,{f\!\left(r\right)}^{2}}\,\alpha\,\left(-12\,f'\!\left(r\right)\,f\!\left(r\right) + 3\,r\,{f'\!\left(r\right)}^{2} - {r}^{3}\,f'\!\left(r\right)\,f^{(3)}\!\left(r\right) - 6\,{r}^{2}\,f^{(3)}\!\left(r\right)\,f\!\left(r\right) - 3\,{r}^{2}\,f'\!\left(r\right)\,f''\!\left(r\right) - 2\,{r}^{3}\,f^{(4)}\!\left(r\right)\,f\!\left(r\right) + 12\,r\,f''\!\left(r\right)\,f\!\left(r\right)\right)
+\end{dmath*}
+\par\smallskip
+% display: {"assumptions_used": [], "key": "projected.nabla_nabla_P[0,0,1,2,1,2]", "notes": [], "operations": [], "status": "unchanged"}
+\begin{dmath*}[breakdepth={5}]
+\left[\nabla_f\nabla_e P^{abcd}\right]_{12}^{0120} = \frac{\alpha\,\left(-2\,f'\!\left(r\right) - {r}^{2}\,f^{(3)}\!\left(r\right) + 2\,r\,f''\!\left(r\right)\right)}{4\,{r}^{3}}
+\end{dmath*}
+\par\smallskip
+% display: {"assumptions_used": [], "key": "projected.nabla_nabla_P[0,0,1,2,2,1]", "notes": [], "operations": [], "status": "unchanged"}
+\begin{dmath*}[breakdepth={5}]
+\left[\nabla_f\nabla_e P^{abcd}\right]_{12}^{0210} = \frac{\alpha\,\left(-2\,f'\!\left(r\right) - {r}^{2}\,f^{(3)}\!\left(r\right) + 2\,r\,f''\!\left(r\right)\right)}{4\,{r}^{3}}
+\end{dmath*}
+\par\smallskip
+% display: {"assumptions_used": [], "key": "projected.nabla_nabla_P[0,0,2,1,1,2]", "notes": [], "operations": [], "status": "unchanged"}
+\begin{dmath*}[breakdepth={5}]
+\left[\nabla_f\nabla_e P^{abcd}\right]_{21}^{0120} = -\frac{1}{8\,{r}^{3}\,f\!\left(r\right)}\,\alpha\,\left(-4\,\left(-f'\!\left(r\right) + r\,f''\!\left(r\right)\right)\,f\!\left(r\right) + r\,\left(-f'\!\left(r\right) + r\,f''\!\left(r\right)\right)\,f'\!\left(r\right) + 2\,{r}^{2}\,f^{(3)}\!\left(r\right)\,f\!\left(r\right)\right)
+\end{dmath*}
+\par\smallskip
+% display: {"assumptions_used": [], "key": "projected.nabla_nabla_P[0,0,2,1,2,1]", "notes": [], "operations": [], "status": "unchanged"}
+\begin{dmath*}[breakdepth={5}]
+\left[\nabla_f\nabla_e P^{abcd}\right]_{21}^{0210} = -\frac{1}{8\,{r}^{3}\,f\!\left(r\right)}\,\alpha\,\left(-4\,\left(-f'\!\left(r\right) + r\,f''\!\left(r\right)\right)\,f\!\left(r\right) + r\,\left(-f'\!\left(r\right) + r\,f''\!\left(r\right)\right)\,f'\!\left(r\right) + 2\,{r}^{2}\,f^{(3)}\!\left(r\right)\,f\!\left(r\right)\right)
+\end{dmath*}
+\par\smallskip
+% display: {"assumptions_used": [], "key": "projected.nabla_nabla_P[0,0,2,2,1,1]", "notes": [], "operations": [], "status": "unchanged"}
+\begin{dmath*}[breakdepth={5}]
+\left[\nabla_f\nabla_e P^{abcd}\right]_{22}^{0110} = -\frac{\alpha\,r\,f^{(3)}\!\left(r\right)\,f\!\left(r\right)}{2}
+\end{dmath*}
+\par\smallskip
+% display: {"assumptions_used": [], "key": "projected.nabla_nabla_P[0,0,2,2,2,2]", "notes": [], "operations": [], "status": "unchanged"}
+\begin{dmath*}[breakdepth={5}]
+\left[\nabla_f\nabla_e P^{abcd}\right]_{22}^{0220} = \frac{\alpha\,\left(5\,f'\!\left(r\right) - {r}^{2}\,f^{(3)}\!\left(r\right) - 5\,r\,f''\!\left(r\right)\right)}{4\,{r}^{3}}
+\end{dmath*}
+\par\smallskip
+% display: {"assumptions_used": [], "key": "projected.nabla_nabla_P[0,1,0,0,1,0]", "notes": [], "operations": [], "status": "unchanged"}
+\begin{dmath*}[breakdepth={5}]
+\left[\nabla_f\nabla_e P^{abcd}\right]_{00}^{0101} = \frac{\alpha\,\left(-r\,f''\!\left(r\right) - {r}^{2}\,f^{(3)}\!\left(r\right) + f'\!\left(r\right)\right)\,f'\!\left(r\right)\,f\!\left(r\right)}{4\,{r}^{2}}
+\end{dmath*}
+\par\smallskip
+% display: {"assumptions_used": [], "key": "projected.nabla_nabla_P[0,1,1,1,1,0]", "notes": [], "operations": [], "status": "unchanged"}
+\begin{dmath*}[breakdepth={5}]
+\left[\nabla_f\nabla_e P^{abcd}\right]_{11}^{0101} = \alpha\,\left(\frac{f^{(4)}\!\left(r\right)}{2} + \frac{f'\!\left(r\right)}{{r}^{3}} + \frac{f^{(3)}\!\left(r\right)}{2\,r} - \frac{f''\!\left(r\right)}{{r}^{2}} - \frac{{f'\!\left(r\right)}^{2}}{4\,{r}^{2}\,f\!\left(r\right)} + \frac{f'\!\left(r\right)\,f^{(3)}\!\left(r\right)}{4\,f\!\left(r\right)} + \frac{f'\!\left(r\right)\,f''\!\left(r\right)}{4\,r\,f\!\left(r\right)}\right)
+\end{dmath*}
+\par\smallskip
+Representación compacta: se muestran 12 de 60 componentes no nulas.
+Proyección completa almacenada: 60 componentes no nulas de 729. Proyectada respetando el ansatz 'draft4\_circular'. La corrida no solicitó validación Wolfram/xAct.\par\medskip
+\par\medskip Extras: perfiles escalares de una variable, con la misma métrica del ansatz genérico. Se sustituyen únicamente las componentes de $L$ y $P^{abcd}$ ya calculadas; sin validación xAct independiente de estos perfiles. Las componentes completas de estos extras constan en \texttt{presentation.json}.
+\Needspace{8\baselineskip}
+\subsection*{Extra: $\phi=\Phi\!\left(r\right)$}
+\begin{dmath*}[breakdepth={5}]
+L=\frac{1}{2\,{r}^{2}}\,\left(3\,\alpha\,{f'\!\left(r\right)}^{2} + {r}^{2}\,\left(\alpha\,f''\!\left(r\right) - 2\right)\,f''\!\left(r\right) + 2\,r\,\left(\alpha\,f''\!\left(r\right) - 2\right)\,f'\!\left(r\right)\right)
+\end{dmath*}
+Componentes independientes no nulas; $P^{abcd}=-P^{bacd}=-P^{abdc}=P^{cdab}$.
+\begin{dmath*}[breakdepth={5}]
+\left[P^{abcd}\right]^{0101}=\frac{\left(-r + \alpha\,\left(r\,f''\!\left(r\right) + f'\!\left(r\right)\right)\right)}{2\,r}
+\end{dmath*}
+\begin{dmath*}[breakdepth={5}]
+\left[P^{abcd}\right]^{0202}=\frac{\left(-2\,r + \alpha\,\left(3\,f'\!\left(r\right) + r\,f''\!\left(r\right)\right)\right)}{4\,{r}^{3}\,f\!\left(r\right)}
+\end{dmath*}
+\begin{dmath*}[breakdepth={5}]
+\left[P^{abcd}\right]^{1212}=-\frac{\left(-2\,r + \alpha\,\left(3\,f'\!\left(r\right) + r\,f''\!\left(r\right)\right)\right)\,f\!\left(r\right)}{4\,{r}^{3}}
+\end{dmath*}
+\Needspace{8\baselineskip}
+\subsection*{Extra: $\phi=\Phi\!\left(\varphi\right)$}
+\begin{dmath*}[breakdepth={5}]
+L=\frac{1}{2\,{r}^{2}}\,\left(3\,\alpha\,{f'\!\left(r\right)}^{2} + {r}^{2}\,\left(\alpha\,f''\!\left(r\right) - 2\right)\,f''\!\left(r\right) + 2\,r\,\left(\alpha\,f''\!\left(r\right) - 2\right)\,f'\!\left(r\right)\right)
+\end{dmath*}
+Componentes independientes no nulas; $P^{abcd}=-P^{bacd}=-P^{abdc}=P^{cdab}$.
+\begin{dmath*}[breakdepth={5}]
+\left[P^{abcd}\right]^{0101}=\frac{\left(-r + \alpha\,\left(r\,f''\!\left(r\right) + f'\!\left(r\right)\right)\right)}{2\,r}
+\end{dmath*}
+\begin{dmath*}[breakdepth={5}]
+\left[P^{abcd}\right]^{0202}=\frac{\left(-2\,r + \alpha\,\left(3\,f'\!\left(r\right) + r\,f''\!\left(r\right)\right)\right)}{4\,{r}^{3}\,f\!\left(r\right)}
+\end{dmath*}
+\begin{dmath*}[breakdepth={5}]
+\left[P^{abcd}\right]^{1212}=-\frac{\left(-2\,r + \alpha\,\left(3\,f'\!\left(r\right) + r\,f''\!\left(r\right)\right)\right)\,f\!\left(r\right)}{4\,{r}^{3}}
+\end{dmath*}
+\bigskip\noindent\textbf{Política de lectura.} Este PDF/LaTeX es una vista. El archivo \texttt{results.json} conserva la representación intermedia canónica y la trazabilidad completa.
+\end{document}

@@ -1,0 +1,87 @@
+\documentclass[10pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{amsmath,amssymb,adjustbox}
+\usepackage[margin=2cm]{geometry}
+\begin{document}
+\begin{center}\large Reducción y resolución formal\end{center}
+\textbf{Modelo:} R\_plus\_alpha\_times\_RiemannSq\par
+\[\adjustbox{max width=\linewidth}{$\displaystyle \text{Lagrangiano:}\qquad L=g{}^{a\,c}\,g{}^{b\,d}\,R{}_{a\,b\,c\,d} + \alpha\,g{}^{a\,e}\,g{}^{b\,f}\,g{}^{c\,g}\,g{}^{d\,h}\,R{}_{a\,b\,c\,d}\,R{}_{e\,f\,g\,h}$}\]
+\textbf{Ansatz:} draft4\_circular\_specialized\par
+\[\adjustbox{max width=\linewidth}{$\displaystyle \text{Especialización de }\phi:\quad \phi=q\,\varphi$}\]
+\textbf{Estado global:} hay familias verificadas y ramas pendientes\par
+\[\adjustbox{max width=\linewidth}{$\displaystyle \text{Dominio de trabajo:}\qquad f\!\left(r\right)\neq0,\quad r\neq0$}\]
+\textbf{Supuestos declarados:} r>0; f(r)!=0\par
+\section*{Ecuaciones combinadas}
+\[\adjustbox{max width=\linewidth}{$\displaystyle E^{\tau}_{\tau}-E^{r}_{r}=0$}\]
+\[\adjustbox{max width=\linewidth}{$\displaystyle E^{\tau}_{\tau}-E^{\varphi}_{\varphi}=0$}\]
+\[\adjustbox{max width=\linewidth}{$\displaystyle E^{r}_{r}-E^{\varphi}_{\varphi}=0$}\]
+\section*{Combinaciones proyectadas y reducidas}
+\[\adjustbox{max width=\linewidth}{$\displaystyle E^{\tau}_{\tau}-E^{r}_{r}=-\frac{1}{{r}^{3}}\,2\,\alpha\,\left(2\,f'\!\left(r\right) + {r}^{3}\,f^{(4)}\!\left(r\right) - 2\,r\,f''\!\left(r\right) + 2\,{r}^{2}\,f^{(3)}\!\left(r\right)\right)\,f\!\left(r\right)=0$}\]
+\[\adjustbox{max width=\linewidth}{$\displaystyle E^{\tau}_{\tau}-E^{\varphi}_{\varphi}=\frac{1}{2\,{r}^{3}}\,\left(f'\!\left(r\right)\,{r}^{2} - f''\!\left(r\right)\,{r}^{3} + 2\,\alpha\,\left({r}^{3}\,{f''\!\left(r\right)}^{2} - 2\,r\,{f'\!\left(r\right)}^{2} + 2\,f'\!\left(r\right)\,f\!\left(r\right) + f'\!\left(r\right)\,f''\!\left(r\right)\,{r}^{2} - f'\!\left(r\right)\,f^{(3)}\!\left(r\right)\,{r}^{3} - 2\,r\,f''\!\left(r\right)\,f\!\left(r\right) - 2\,f\!\left(r\right)\,f^{(3)}\!\left(r\right)\,{r}^{2} - 2\,f\!\left(r\right)\,f^{(4)}\!\left(r\right)\,{r}^{3}\right)\right)=0$}\]
+\[\adjustbox{max width=\linewidth}{$\displaystyle E^{r}_{r}-E^{\varphi}_{\varphi}=\frac{1}{2\,{r}^{3}}\,\left(f'\!\left(r\right)\,{r}^{2} - f''\!\left(r\right)\,{r}^{3} + 2\,\alpha\,\left({r}^{3}\,{f''\!\left(r\right)}^{2} - 2\,r\,{f'\!\left(r\right)}^{2} + 6\,f'\!\left(r\right)\,f\!\left(r\right) + f'\!\left(r\right)\,f''\!\left(r\right)\,{r}^{2} - f'\!\left(r\right)\,f^{(3)}\!\left(r\right)\,{r}^{3} - 6\,r\,f''\!\left(r\right)\,f\!\left(r\right) + 2\,f\!\left(r\right)\,f^{(3)}\!\left(r\right)\,{r}^{2}\right)\right)=0$}\]
+\section*{Ecuaciones absolutas y escalares}
+\[\adjustbox{max width=\linewidth}{$\displaystyle E^{\tau}_{\tau}=\frac{1}{2\,{r}^{3}}\,\left(f'\!\left(r\right)\,{r}^{2} + \alpha\,\left({r}^{3}\,{f''\!\left(r\right)}^{2} - 4\,f'\!\left(r\right)\,f\!\left(r\right) + 2\,r\,{f'\!\left(r\right)}^{2} - 8\,f\!\left(r\right)\,f^{(3)}\!\left(r\right)\,{r}^{2} - 4\,f\!\left(r\right)\,f^{(4)}\!\left(r\right)\,{r}^{3} - 2\,f'\!\left(r\right)\,f''\!\left(r\right)\,{r}^{2} - 2\,f'\!\left(r\right)\,f^{(3)}\!\left(r\right)\,{r}^{3} + 4\,r\,f''\!\left(r\right)\,f\!\left(r\right)\right)\right)=0$}\]
+\[\adjustbox{max width=\linewidth}{$\displaystyle E_\phi=0=0$}\]
+Componentes fuera de la diagonal: $0=0$.\par
+\section*{Familias verificadas}
+Familia 1: verificada en todas las ecuaciones, en el dominio declarado.\par
+\[\adjustbox{max width=\linewidth}{$\displaystyle \alpha=0$}\]
+\[\adjustbox{max width=\linewidth}{$\displaystyle q=0$}\]
+\[\adjustbox{max width=\linewidth}{$\displaystyle f\!\left(r\right)=C_{1}$}\]
+\textbf{Método:} búsqueda de soluciones constantes\par
+Parámetros libres en esta familia: $C_{1}$.\par
+\[\adjustbox{max width=\linewidth}{$\displaystyle \text{Restricciones no nulas:}\qquad C_{1}\neq0,\quad r\neq0,\quad C_{1}\neq0$}\]
+Supuestos: r>0; f(r)!=0\par
+Familia 2: verificada en todas las ecuaciones, en el dominio declarado.\par
+\[\adjustbox{max width=\linewidth}{$\displaystyle \alpha=0$}\]
+\[\adjustbox{max width=\linewidth}{$\displaystyle f\!\left(r\right)=C_{1}$}\]
+\textbf{Método:} búsqueda de soluciones constantes\par
+Parámetros libres en esta familia: $C_{1},\; q$.\par
+\[\adjustbox{max width=\linewidth}{$\displaystyle \text{Restricciones no nulas:}\qquad C_{1}\neq0,\quad r\neq0,\quad q\neq0,\quad C_{1}\neq0$}\]
+Supuestos: r>0; f(r)!=0\par
+Familia 3: verificada en todas las ecuaciones, en el dominio declarado.\par
+\[\adjustbox{max width=\linewidth}{$\displaystyle q=0$}\]
+\[\adjustbox{max width=\linewidth}{$\displaystyle f\!\left(r\right)=C_{1}$}\]
+\textbf{Método:} búsqueda de soluciones constantes\par
+Parámetros libres en esta familia: $C_{1},\; \alpha$.\par
+\[\adjustbox{max width=\linewidth}{$\displaystyle \text{Restricciones no nulas:}\qquad C_{1}\neq0,\quad r\neq0,\quad \alpha\neq0,\quad C_{1}\neq0$}\]
+Supuestos: r>0; f(r)!=0\par
+Familia 4: verificada en todas las ecuaciones, en el dominio declarado.\par
+\[\adjustbox{max width=\linewidth}{$\displaystyle f\!\left(r\right)=C_{1}$}\]
+\textbf{Método:} búsqueda de soluciones constantes\par
+Parámetros libres en esta familia: $C_{1},\; \alpha,\; q$.\par
+\[\adjustbox{max width=\linewidth}{$\displaystyle \text{Restricciones no nulas:}\qquad C_{1}\neq0,\quad r\neq0,\quad \alpha\neq0,\quad q\neq0,\quad C_{1}\neq0$}\]
+Supuestos: r>0; f(r)!=0\par
+Familia 5: verificada en todas las ecuaciones, en el dominio declarado.\par
+\[\adjustbox{max width=\linewidth}{$\displaystyle q=0$}\]
+\[\adjustbox{max width=\linewidth}{$\displaystyle f\!\left(r\right)=-\frac{\left({r}^{2} - 2\,\alpha\,C_{1}\right)}{2\,\alpha}$}\]
+\textbf{Método:} ansatz polinomial de grado 2\par
+Parámetros libres en esta familia: $\alpha,\; C_{1}$.\par
+\[\adjustbox{max width=\linewidth}{$\displaystyle \text{Restricciones no nulas:}\qquad C_{1} - \frac{{r}^{2}}{2\,\alpha}\neq0,\quad r\neq0,\quad \alpha\neq0,\quad -\frac{1}{2\,\alpha}\neq0$}\]
+Supuestos: r>0; f(r)!=0\par
+Familia 6: verificada en todas las ecuaciones, en el dominio declarado.\par
+\[\adjustbox{max width=\linewidth}{$\displaystyle q=0$}\]
+\[\adjustbox{max width=\linewidth}{$\displaystyle f\!\left(r\right)=-\frac{\left({r}^{2} - 2\,\alpha\,C_{1}\right)}{2\,\alpha}$}\]
+\textbf{Método:} ansatz de potencia con exponente 2\par
+Parámetros libres en esta familia: $\alpha,\; C_{1}$.\par
+\[\adjustbox{max width=\linewidth}{$\displaystyle \text{Restricciones no nulas:}\qquad C_{1} - \frac{{r}^{2}}{2\,\alpha}\neq0,\quad r\neq0,\quad \alpha\neq0,\quad -\frac{1}{2\,\alpha}\neq0$}\]
+Supuestos: r>0; f(r)!=0\par
+Familia 7: verificada en todas las ecuaciones, en el dominio declarado.\par
+\[\adjustbox{max width=\linewidth}{$\displaystyle f\!\left(r\right)=-\frac{\left({r}^{2} - 2\,\alpha\,C_{1}\right)}{2\,\alpha}$}\]
+\textbf{Método:} ansatz polinomial de grado 2\par
+Parámetros libres en esta familia: $\alpha,\; C_{1},\; q$.\par
+\[\adjustbox{max width=\linewidth}{$\displaystyle \text{Restricciones no nulas:}\qquad C_{1} - \frac{{r}^{2}}{2\,\alpha}\neq0,\quad r\neq0,\quad \alpha\neq0,\quad q\neq0,\quad -\frac{1}{2\,\alpha}\neq0$}\]
+Supuestos: r>0; f(r)!=0\par
+Familia 8: verificada en todas las ecuaciones, en el dominio declarado.\par
+\[\adjustbox{max width=\linewidth}{$\displaystyle f\!\left(r\right)=-\frac{\left({r}^{2} - 2\,\alpha\,C_{1}\right)}{2\,\alpha}$}\]
+\textbf{Método:} ansatz de potencia con exponente 2\par
+Parámetros libres en esta familia: $\alpha,\; C_{1},\; q$.\par
+\[\adjustbox{max width=\linewidth}{$\displaystyle \text{Restricciones no nulas:}\qquad C_{1} - \frac{{r}^{2}}{2\,\alpha}\neq0,\quad r\neq0,\quad \alpha\neq0,\quad q\neq0,\quad -\frac{1}{2\,\alpha}\neq0$}\]
+Supuestos: r>0; f(r)!=0\par
+\section*{Auditoría de ramas no aceptadas}
+Candidatos conservados solo en results.json: rejected=32, undetermined=1, partial=3.\par
+Sistema: ODE; orden máximo: 4.\par
+Funciones o parámetros libres: q\par
+Completitud: no demostrada. Una búsqueda simbólica acotada no certifica que no existan otras ramas diferenciales o singulares.\par
+\end{document}

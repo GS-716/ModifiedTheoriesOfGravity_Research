@@ -1,0 +1,22 @@
+{
+  "schema_version": "1.1",
+  "kind": "field_equation_solution",
+  "source_run_id": "run_4da30f66c796b55e8c29",
+  "source_fingerprint": "26271fd7b2f1202ac4b0992a716a135cedcf910e3c2716fef32726c49d4fabac",
+  "result_sha256": "d24a5fa679c54b378beeafd6f7046b0d75c3ce06289e139d5fdabffebfc1a5c7",
+  "files": {
+    "presentation.json": "d4eae6a9d7cf694489dd001de054ab8aad46cbf497015917ecceca93c62d89b8",
+    "report.pdf": "4d0fff9ed994a084e15d9e5720001cf33ebd8b6804946e2e063b3c0eac533285",
+    "report.tex": "f88a51ab3d00cad7c608d247f7a7fa5b71858f6ec5db373bc55e9a9c907e2b51",
+    "results.json": "d24a5fa679c54b378beeafd6f7046b0d75c3ce06289e139d5fdabffebfc1a5c7"
+  },
+  "pdf_diagnostic": null,
+  "global_status": "verified_with_pending_branches",
+  "completeness_proven": false,
+  "candidate_status_counts": {
+    "verified_on_domain": 4,
+    "rejected": 16,
+    "undetermined": 1,
+    "partial": 0
+  }
+}

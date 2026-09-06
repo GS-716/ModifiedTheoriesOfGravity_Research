@@ -1,0 +1,55 @@
+\documentclass[10pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{amsmath,amssymb,adjustbox}
+\usepackage[margin=2cm]{geometry}
+\begin{document}
+\begin{center}\large Reducción y resolución formal\end{center}
+\textbf{Modelo:} R\_plus\_alpha\_times\_RicciUU\par
+\[\adjustbox{max width=\linewidth}{$\displaystyle \text{Lagrangiano:}\qquad L=g{}^{a\,c}\,g{}^{b\,d}\,R{}_{a\,b\,c\,d} + \alpha\,g{}^{a\,c}\,R{}_{a\,b\,c\,d}\,g{}^{b\,e}\,g{}^{d\,f}\,u{}_{e}\,u{}_{f}$}\]
+\textbf{Ansatz:} draft4\_circular\_specialized\par
+\[\adjustbox{max width=\linewidth}{$\displaystyle \text{Campo escalar sin especialización posterior:}\quad \phi=q\,\varphi$}\]
+\textbf{Estado global:} hay familias verificadas y ramas pendientes\par
+\[\adjustbox{max width=\linewidth}{$\displaystyle \text{Dominio de trabajo:}\qquad f\!\left(r\right)\neq0,\quad r\neq0$}\]
+\textbf{Supuestos declarados:} r>0; f(r)!=0\par
+\section*{Ecuaciones combinadas}
+\[\adjustbox{max width=\linewidth}{$\displaystyle E^{\tau}_{\tau}-E^{r}_{r}=0$}\]
+\[\adjustbox{max width=\linewidth}{$\displaystyle E^{\tau}_{\tau}-E^{\varphi}_{\varphi}=0$}\]
+\[\adjustbox{max width=\linewidth}{$\displaystyle E^{r}_{r}-E^{\varphi}_{\varphi}=0$}\]
+\section*{Combinaciones proyectadas y reducidas}
+\[\adjustbox{max width=\linewidth}{$\displaystyle E^{\tau}_{\tau}-E^{r}_{r}=\frac{2\,\alpha\,{q}^{2}\,f\!\left(r\right)}{{r}^{4}}=0$}\]
+\[\adjustbox{max width=\linewidth}{$\displaystyle E^{\tau}_{\tau}-E^{\varphi}_{\varphi}=\frac{\left(f'\!\left(r\right)\,{r}^{3} - f''\!\left(r\right)\,{r}^{4} + 4\,\alpha\,{q}^{2}\,\left(-f\!\left(r\right) + r\,f'\!\left(r\right)\right)\right)}{2\,{r}^{4}}=0$}\]
+\[\adjustbox{max width=\linewidth}{$\displaystyle E^{r}_{r}-E^{\varphi}_{\varphi}=\frac{\left(f'\!\left(r\right)\,{r}^{3} - f''\!\left(r\right)\,{r}^{4} + 4\,\alpha\,{q}^{2}\,\left(-2\,f\!\left(r\right) + r\,f'\!\left(r\right)\right)\right)}{2\,{r}^{4}}=0$}\]
+\section*{Ecuaciones absolutas y escalares}
+\[\adjustbox{max width=\linewidth}{$\displaystyle E^{\tau}_{\tau}=\frac{\left({r}^{3}\,f'\!\left(r\right) + 2\,\alpha\,{q}^{2}\,f\!\left(r\right)\right)}{2\,{r}^{4}}=0$}\]
+\[\adjustbox{max width=\linewidth}{$\displaystyle E_\phi=0=0$}\]
+Componentes fuera de la diagonal: $0=0$.\par
+\section*{Familias verificadas}
+Familia 1: verificada en todas las ecuaciones, en el dominio declarado.\par
+\[\adjustbox{max width=\linewidth}{$\displaystyle \alpha=0$}\]
+\[\adjustbox{max width=\linewidth}{$\displaystyle q=0$}\]
+\[\adjustbox{max width=\linewidth}{$\displaystyle f\!\left(r\right)=C_{1}$}\]
+\textbf{Método:} búsqueda de soluciones constantes\par
+Parámetros libres en esta familia: $C_{1}$.\par
+\[\adjustbox{max width=\linewidth}{$\displaystyle \text{Restricciones no nulas:}\qquad C_{1}\neq0,\quad r\neq0,\quad C_{1}\neq0$}\]
+Supuestos: r>0; f(r)!=0\par
+Familia 2: verificada en todas las ecuaciones, en el dominio declarado.\par
+\[\adjustbox{max width=\linewidth}{$\displaystyle \alpha=0$}\]
+\[\adjustbox{max width=\linewidth}{$\displaystyle f\!\left(r\right)=C_{1}$}\]
+\textbf{Método:} búsqueda de soluciones constantes\par
+Parámetros libres en esta familia: $C_{1},\; q$.\par
+\[\adjustbox{max width=\linewidth}{$\displaystyle \text{Restricciones no nulas:}\qquad C_{1}\neq0,\quad r\neq0,\quad q\neq0,\quad C_{1}\neq0$}\]
+Supuestos: r>0; f(r)!=0\par
+Familia 3: verificada en todas las ecuaciones, en el dominio declarado.\par
+\[\adjustbox{max width=\linewidth}{$\displaystyle q=0$}\]
+\[\adjustbox{max width=\linewidth}{$\displaystyle f\!\left(r\right)=C_{1}$}\]
+\textbf{Método:} búsqueda de soluciones constantes\par
+Parámetros libres en esta familia: $C_{1},\; \alpha$.\par
+\[\adjustbox{max width=\linewidth}{$\displaystyle \text{Restricciones no nulas:}\qquad C_{1}\neq0,\quad r\neq0,\quad \alpha\neq0,\quad C_{1}\neq0$}\]
+Supuestos: r>0; f(r)!=0\par
+\section*{Auditoría de ramas no aceptadas}
+Candidatos conservados solo en results.json: rejected=32, undetermined=2, partial=8.\par
+Sistema: DAE; orden máximo: 2.\par
+Salida formal conservada en Wolfram: BesselI[0, ("alpha"*"q"\textasciicircum{}2)/"r"\textasciicircum{}2]\par
+Completitud: no demostrada. Una búsqueda simbólica acotada no certifica que no existan otras ramas diferenciales o singulares.\par
+\end{document}

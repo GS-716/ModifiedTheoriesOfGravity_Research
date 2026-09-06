@@ -1,0 +1,758 @@
+{
+  "adjudications": [],
+  "backend": {
+    "name": "structural-python",
+    "version": "0.9.0"
+  },
+  "checks": [
+    {
+      "key": "model.valid",
+      "message": "ModelSpec satisface el esquema y las convenciones activas.",
+      "residual": null,
+      "status": "passed"
+    },
+    {
+      "key": "symbols.declared",
+      "message": "Todos los símbolos calculados pertenecen al modelo o al vocabulario interno.",
+      "residual": null,
+      "status": "passed"
+    },
+    {
+      "key": "signature.metric_momentum",
+      "message": "La firma de índices coincide con el contrato.",
+      "residual": null,
+      "status": "passed"
+    },
+    {
+      "key": "signature.curvature_momentum",
+      "message": "La firma de índices coincide con el contrato.",
+      "residual": null,
+      "status": "passed"
+    },
+    {
+      "key": "signature.scalar_gradient_momentum",
+      "message": "La firma de índices coincide con el contrato.",
+      "residual": null,
+      "status": "passed"
+    },
+    {
+      "key": "signature.scalar_derivative",
+      "message": "La firma de índices coincide con el contrato.",
+      "residual": null,
+      "status": "passed"
+    },
+    {
+      "key": "symmetry.metric_momentum",
+      "message": "M_ab es simétrico.",
+      "residual": null,
+      "status": "passed"
+    },
+    {
+      "key": "symmetry.curvature_momentum.first_pair",
+      "message": "P^{abcd} es antisimétrico en el primer par.",
+      "residual": null,
+      "status": "passed"
+    },
+    {
+      "key": "symmetry.curvature_momentum.second_pair",
+      "message": "P^{abcd} es antisimétrico en el segundo par.",
+      "residual": null,
+      "status": "passed"
+    },
+    {
+      "key": "symmetry.curvature_momentum.pair_exchange",
+      "message": "P^{abcd}=P^{cdab}.",
+      "residual": null,
+      "status": "passed"
+    },
+    {
+      "key": "symmetry.curvature_momentum.first_bianchi",
+      "message": "P^{a[bcd]}=0.",
+      "residual": null,
+      "status": "passed"
+    },
+    {
+      "key": "recompute_momenta.metric",
+      "message": "metric coincide con su reconstrucción independiente dentro del pipeline.",
+      "residual": null,
+      "status": "passed"
+    },
+    {
+      "key": "recompute_momenta.curvature",
+      "message": "curvature coincide con su reconstrucción independiente dentro del pipeline.",
+      "residual": null,
+      "status": "passed"
+    },
+    {
+      "key": "recompute_momenta.scalar_gradient",
+      "message": "scalar_gradient coincide con su reconstrucción independiente dentro del pipeline.",
+      "residual": null,
+      "status": "passed"
+    },
+    {
+      "key": "recompute_momenta.scalar",
+      "message": "scalar coincide con su reconstrucción independiente dentro del pipeline.",
+      "residual": null,
+      "status": "passed"
+    },
+    {
+      "key": "signature.metric_euler",
+      "message": "La firma de índices coincide con el contrato.",
+      "residual": null,
+      "status": "passed"
+    },
+    {
+      "key": "signature.scalar_euler",
+      "message": "La firma de índices coincide con el contrato.",
+      "residual": null,
+      "status": "passed"
+    },
+    {
+      "key": "signature.boundary_metric",
+      "message": "La firma de índices coincide con el contrato.",
+      "residual": null,
+      "status": "passed"
+    },
+    {
+      "key": "signature.boundary_scalar",
+      "message": "La firma de índices coincide con el contrato.",
+      "residual": null,
+      "status": "passed"
+    },
+    {
+      "key": "signature.boundary_total",
+      "message": "La firma de índices coincide con el contrato.",
+      "residual": null,
+      "status": "passed"
+    },
+    {
+      "key": "signature.full_variation",
+      "message": "La firma de índices coincide con el contrato.",
+      "residual": null,
+      "status": "passed"
+    },
+    {
+      "key": "signature.density_variation",
+      "message": "La firma de índices coincide con el contrato.",
+      "residual": null,
+      "status": "passed"
+    },
+    {
+      "key": "signature.curvature_derivative_metric_term",
+      "message": "La firma de índices coincide con el contrato.",
+      "residual": null,
+      "status": "passed"
+    },
+    {
+      "key": "symmetry.metric_euler",
+      "message": "E_ab es simétrico.",
+      "residual": null,
+      "status": "passed"
+    },
+    {
+      "key": "boundary.total",
+      "message": "Theta^a coincide con la suma de sus sectores métrico y escalar.",
+      "residual": null,
+      "status": "passed"
+    },
+    {
+      "key": "density.factorization",
+      "message": "La variación de densidad es sqrt(-g) por la variación completa.",
+      "residual": null,
+      "status": "passed"
+    },
+    {
+      "key": "scalar_integration_by_parts",
+      "message": "La regla de cadena escalar coincide con bulk más frontera.",
+      "residual": null,
+      "status": "passed"
+    },
+    {
+      "key": "recompute_euler.metric",
+      "message": "metric coincide con su reconstrucción independiente dentro del pipeline.",
+      "residual": null,
+      "status": "passed"
+    },
+    {
+      "key": "recompute_euler.scalar",
+      "message": "scalar coincide con su reconstrucción independiente dentro del pipeline.",
+      "residual": null,
+      "status": "passed"
+    },
+    {
+      "key": "recompute_euler.boundary_metric",
+      "message": "boundary_metric coincide con su reconstrucción independiente dentro del pipeline.",
+      "residual": null,
+      "status": "passed"
+    },
+    {
+      "key": "recompute_euler.boundary_scalar",
+      "message": "boundary_scalar coincide con su reconstrucción independiente dentro del pipeline.",
+      "residual": null,
+      "status": "passed"
+    },
+    {
+      "key": "recompute_euler.boundary_total",
+      "message": "boundary_total coincide con su reconstrucción independiente dentro del pipeline.",
+      "residual": null,
+      "status": "passed"
+    },
+    {
+      "key": "recompute_euler.full_variation",
+      "message": "full_variation coincide con su reconstrucción independiente dentro del pipeline.",
+      "residual": null,
+      "status": "passed"
+    },
+    {
+      "key": "recompute_euler.density_variation",
+      "message": "density_variation coincide con su reconstrucción independiente dentro del pipeline.",
+      "residual": null,
+      "status": "passed"
+    },
+    {
+      "key": "recompute_euler.curvature_derivative_metric_term",
+      "message": "curvature_derivative_metric_term coincide con su reconstrucción independiente dentro del pipeline.",
+      "residual": null,
+      "status": "passed"
+    },
+    {
+      "key": "canonicalization.idempotent",
+      "message": "La segunda canonización no modifica ningún resultado.",
+      "residual": null,
+      "status": "passed"
+    },
+    {
+      "key": "variation.raw_reconstruction",
+      "message": "La variación cruda coincide con la reconstrucción desde los cuatro momentos.",
+      "residual": null,
+      "status": "passed"
+    },
+    {
+      "key": "signature.noether_current",
+      "message": "La firma de índices coincide con el contrato.",
+      "residual": null,
+      "status": "passed"
+    },
+    {
+      "key": "signature.charge_potential",
+      "message": "La firma de índices coincide con el contrato.",
+      "residual": null,
+      "status": "passed"
+    },
+    {
+      "key": "symmetry.charge_potential",
+      "message": "Q_xi^{ab} es antisimétrico.",
+      "residual": null,
+      "status": "passed"
+    },
+    {
+      "key": "noether_current_decomposition",
+      "message": "La descomposición fue construida, pero su reducción completa requiere identidades multitémino de un backend externo.",
+      "residual": {
+        "terms": [
+          {
+            "factors": [
+              {
+                "denominator": 1,
+                "numerator": -1,
+                "type": "number"
+              },
+              {
+                "index": {
+                  "name": "d2",
+                  "space": "M",
+                  "variance": "down"
+                },
+                "operand": {
+                  "index": {
+                    "name": "d1",
+                    "space": "M",
+                    "variance": "down"
+                  },
+                  "operand": {
+                    "indices": [
+                      {
+                        "name": "d0",
+                        "space": "M",
+                        "variance": "down"
+                      }
+                    ],
+                    "name": "xi",
+                    "type": "tensor"
+                  },
+                  "type": "covariant_derivative"
+                },
+                "type": "covariant_derivative"
+              },
+              {
+                "indices": [
+                  {
+                    "name": "a",
+                    "space": "M",
+                    "variance": "up"
+                  },
+                  {
+                    "name": "d0",
+                    "space": "M",
+                    "variance": "up"
+                  }
+                ],
+                "name": "g",
+                "type": "tensor"
+              },
+              {
+                "indices": [
+                  {
+                    "name": "d1",
+                    "space": "M",
+                    "variance": "up"
+                  },
+                  {
+                    "name": "d2",
+                    "space": "M",
+                    "variance": "up"
+                  }
+                ],
+                "name": "g",
+                "type": "tensor"
+              }
+            ],
+            "type": "mul"
+          },
+          {
+            "factors": [
+              {
+                "denominator": 1,
+                "numerator": -2,
+                "type": "number"
+              },
+              {
+                "index": {
+                  "name": "d1",
+                  "space": "M",
+                  "variance": "down"
+                },
+                "operand": {
+                  "index": {
+                    "name": "d0",
+                    "space": "M",
+                    "variance": "down"
+                  },
+                  "operand": {
+                    "indices": [
+                      {
+                        "name": "d0",
+                        "space": "M",
+                        "variance": "up"
+                      }
+                    ],
+                    "name": "xi",
+                    "type": "tensor"
+                  },
+                  "type": "covariant_derivative"
+                },
+                "type": "covariant_derivative"
+              },
+              {
+                "indices": [
+                  {
+                    "name": "a",
+                    "space": "M",
+                    "variance": "up"
+                  },
+                  {
+                    "name": "d1",
+                    "space": "M",
+                    "variance": "up"
+                  }
+                ],
+                "name": "g",
+                "type": "tensor"
+              }
+            ],
+            "type": "mul"
+          },
+          {
+            "factors": [
+              {
+                "denominator": 1,
+                "numerator": 2,
+                "type": "number"
+              },
+              {
+                "indices": [
+                  {
+                    "name": "a",
+                    "space": "M",
+                    "variance": "up"
+                  },
+                  {
+                    "name": "d0",
+                    "space": "M",
+                    "variance": "down"
+                  },
+                  {
+                    "name": "d0",
+                    "space": "M",
+                    "variance": "up"
+                  },
+                  {
+                    "name": "d1",
+                    "space": "M",
+                    "variance": "down"
+                  }
+                ],
+                "name": "Riemann",
+                "type": "tensor"
+              },
+              {
+                "indices": [
+                  {
+                    "name": "d1",
+                    "space": "M",
+                    "variance": "up"
+                  }
+                ],
+                "name": "xi",
+                "type": "tensor"
+              }
+            ],
+            "type": "mul"
+          },
+          {
+            "factors": [
+              {
+                "index": {
+                  "name": "d0",
+                  "space": "M",
+                  "variance": "down"
+                },
+                "operand": {
+                  "index": {
+                    "name": "d1",
+                    "space": "M",
+                    "variance": "down"
+                  },
+                  "operand": {
+                    "indices": [
+                      {
+                        "name": "d0",
+                        "space": "M",
+                        "variance": "up"
+                      }
+                    ],
+                    "name": "xi",
+                    "type": "tensor"
+                  },
+                  "type": "covariant_derivative"
+                },
+                "type": "covariant_derivative"
+              },
+              {
+                "indices": [
+                  {
+                    "name": "a",
+                    "space": "M",
+                    "variance": "up"
+                  },
+                  {
+                    "name": "d1",
+                    "space": "M",
+                    "variance": "up"
+                  }
+                ],
+                "name": "g",
+                "type": "tensor"
+              }
+            ],
+            "type": "mul"
+          },
+          {
+            "factors": [
+              {
+                "index": {
+                  "name": "d1",
+                  "space": "M",
+                  "variance": "down"
+                },
+                "operand": {
+                  "index": {
+                    "name": "d0",
+                    "space": "M",
+                    "variance": "down"
+                  },
+                  "operand": {
+                    "indices": [
+                      {
+                        "name": "a",
+                        "space": "M",
+                        "variance": "up"
+                      }
+                    ],
+                    "name": "xi",
+                    "type": "tensor"
+                  },
+                  "type": "covariant_derivative"
+                },
+                "type": "covariant_derivative"
+              },
+              {
+                "indices": [
+                  {
+                    "name": "d0",
+                    "space": "M",
+                    "variance": "up"
+                  },
+                  {
+                    "name": "d1",
+                    "space": "M",
+                    "variance": "up"
+                  }
+                ],
+                "name": "g",
+                "type": "tensor"
+              }
+            ],
+            "type": "mul"
+          },
+          {
+            "factors": [
+              {
+                "index": {
+                  "name": "d2",
+                  "space": "M",
+                  "variance": "down"
+                },
+                "operand": {
+                  "index": {
+                    "name": "d1",
+                    "space": "M",
+                    "variance": "down"
+                  },
+                  "operand": {
+                    "indices": [
+                      {
+                        "name": "d0",
+                        "space": "M",
+                        "variance": "down"
+                      }
+                    ],
+                    "name": "xi",
+                    "type": "tensor"
+                  },
+                  "type": "covariant_derivative"
+                },
+                "type": "covariant_derivative"
+              },
+              {
+                "indices": [
+                  {
+                    "name": "a",
+                    "space": "M",
+                    "variance": "up"
+                  },
+                  {
+                    "name": "d1",
+                    "space": "M",
+                    "variance": "up"
+                  }
+                ],
+                "name": "g",
+                "type": "tensor"
+              },
+              {
+                "indices": [
+                  {
+                    "name": "d0",
+                    "space": "M",
+                    "variance": "up"
+                  },
+                  {
+                    "name": "d2",
+                    "space": "M",
+                    "variance": "up"
+                  }
+                ],
+                "name": "g",
+                "type": "tensor"
+              }
+            ],
+            "type": "mul"
+          }
+        ],
+        "type": "add"
+      },
+      "status": "undetermined"
+    },
+    {
+      "key": "diffeomorphism_noether_identity",
+      "message": "La identidad requiere Bianchi diferencial o conmutación de derivadas que el backend estructural no fuerza.",
+      "residual": {
+        "terms": [
+          {
+            "factors": [
+              {
+                "denominator": 1,
+                "numerator": -1,
+                "type": "number"
+              },
+              {
+                "index": {
+                  "name": "b",
+                  "space": "M",
+                  "variance": "down"
+                },
+                "operand": {
+                  "indices": [
+                    {
+                      "name": "d0",
+                      "space": "M",
+                      "variance": "down"
+                    },
+                    {
+                      "name": "d1",
+                      "space": "M",
+                      "variance": "down"
+                    },
+                    {
+                      "name": "d0",
+                      "space": "M",
+                      "variance": "up"
+                    },
+                    {
+                      "name": "d1",
+                      "space": "M",
+                      "variance": "up"
+                    }
+                  ],
+                  "name": "Riemann",
+                  "type": "tensor"
+                },
+                "type": "covariant_derivative"
+              }
+            ],
+            "type": "mul"
+          },
+          {
+            "factors": [
+              {
+                "denominator": 1,
+                "numerator": 2,
+                "type": "number"
+              },
+              {
+                "index": {
+                  "name": "d2",
+                  "space": "M",
+                  "variance": "down"
+                },
+                "operand": {
+                  "factors": [
+                    {
+                      "denominator": 1,
+                      "numerator": -1,
+                      "type": "number"
+                    },
+                    {
+                      "indices": [
+                        {
+                          "name": "b",
+                          "space": "M",
+                          "variance": "down"
+                        },
+                        {
+                          "name": "d0",
+                          "space": "M",
+                          "variance": "down"
+                        },
+                        {
+                          "name": "d0",
+                          "space": "M",
+                          "variance": "up"
+                        },
+                        {
+                          "name": "d1",
+                          "space": "M",
+                          "variance": "down"
+                        }
+                      ],
+                      "name": "Riemann",
+                      "type": "tensor"
+                    }
+                  ],
+                  "type": "mul"
+                },
+                "type": "covariant_derivative"
+              },
+              {
+                "indices": [
+                  {
+                    "name": "d1",
+                    "space": "M",
+                    "variance": "up"
+                  },
+                  {
+                    "name": "d2",
+                    "space": "M",
+                    "variance": "up"
+                  }
+                ],
+                "name": "g",
+                "type": "tensor"
+              }
+            ],
+            "type": "mul"
+          }
+        ],
+        "type": "add"
+      },
+      "status": "undetermined"
+    },
+    {
+      "key": "recompute_noether.current",
+      "message": "current coincide con su reconstrucción independiente dentro del pipeline.",
+      "residual": null,
+      "status": "passed"
+    },
+    {
+      "key": "recompute_noether.charge",
+      "message": "charge coincide con su reconstrucción independiente dentro del pipeline.",
+      "residual": null,
+      "status": "passed"
+    },
+    {
+      "key": "recompute_noether.identity",
+      "message": "identity coincide con su reconstrucción independiente dentro del pipeline.",
+      "residual": null,
+      "status": "passed"
+    },
+    {
+      "key": "components.metric_projection",
+      "message": "Las componentes métricas coinciden con la proyección directa de E_ab.",
+      "residual": null,
+      "status": "passed"
+    },
+    {
+      "key": "components.scalar_projection",
+      "message": "La componente escalar coincide con la proyección directa de E_phi.",
+      "residual": null,
+      "status": "passed"
+    },
+    {
+      "key": "components.metric_symmetry",
+      "message": "La matriz coordenada de E_ab es simétrica.",
+      "residual": null,
+      "status": "passed"
+    }
+  ],
+  "external_bindings": [],
+  "external_sources": [],
+  "model_name": "R",
+  "schema_version": "1.0",
+  "status": "partial",
+  "summary": {
+    "failed": 0,
+    "passed": 46,
+    "undetermined": 2
+  }
+}
