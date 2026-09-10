@@ -188,12 +188,21 @@ def test_notebook_draft4_cases_leave_metric_generic_and_solve_after_tensor_run()
         assert f'run_case_{number} = ejecutar(' in source
         assert f'"draft4_case_{number}"' in source
         assert 'output_group="draft4_cases"' in source
-        assert cell["execution_count"] is None
-        assert cell["outputs"] == []
         assert any(
             f"solveFieldEq(True, run_case_{number})" in "".join(other["source"])
             for other in notebook["cells"]
         )
+    setup = "".join(by_id["setup"]["source"])
+    solver = "".join(by_id["optional-field-equation-solver"]["source"])
+    summary = "".join(by_id["make-model-summary"]["source"])
+    cleanup = "".join(by_id["define-workflow-cleanup"]["source"])
+    assert "_TENSOR_RUNS[nombre] = run" in setup
+    assert "_FIELD_SOLUTIONS[run_a_resolver.package.model.name] = solucion" in solver
+    assert "makeSummary(" in summary
+    assert "def clean():" in cleanup
+    assert 'expected_root=WORKFLOW_ROOT / "outputs"' in cleanup
+    assert not any(line.strip() == "clean()" for line in cleanup.splitlines())
+    assert notebook["cells"][-1]["id"] == "define-workflow-cleanup"
 
 
 def test_latex_without_specialization_keeps_the_two_existing_sections() -> None:

@@ -1,0 +1,12 @@
+{
+  "files": {
+    "report.pdf": "0726852658714a88b538b67cec089701d140710927b445bd74a67015c58ac04f",
+    "report.tex": "d25b523afaa51a89f463d29059598df895c0a2390899813b9763f78755d531a7",
+    "summary.json": "854627f5e585efd87b27d7c8cc8ddcaf9095a31c2844c7bf1ce79f6255aab70d"
+  },
+  "kind": "research_workflow_summary",
+  "model_count": 10,
+  "pdf_diagnostic": null,
+  "schema_version": "1.0",
+  "summary_sha256": "854627f5e585efd87b27d7c8cc8ddcaf9095a31c2844c7bf1ce79f6255aab70d"
+}

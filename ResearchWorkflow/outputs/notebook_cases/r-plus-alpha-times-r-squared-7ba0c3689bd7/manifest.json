@@ -4,7 +4,7 @@
     "name": "structural-python",
     "version": "0.9.0"
   },
-  "created_at_utc": "2026-09-06T04:32:22.565742Z",
+  "created_at_utc": "2026-09-10T15:28:36.559723Z",
   "expressions": [
     {
       "form": "raw",
@@ -139,7 +139,7 @@
       "key": "results",
       "media_type": "application/json",
       "relative_path": "results.json",
-      "sha256": "44354cc2b2fc5df4b486a71694a9e4aaed8a0772640f269d610efa2579c64015",
+      "sha256": "17991fb46580f99ae41bd5b6cccf793444ac6409d4e2d829897054cedadc930b",
       "size_bytes": 3161372
     },
     {
@@ -272,18 +272,18 @@
   "schema_version": "1.0",
   "status": "partial",
   "timing": {
-    "duration_seconds": 40.35680280002998,
+    "duration_seconds": 34.64500899997074,
     "stages": {
-      "components": 5.6776226999936625,
-      "derive_intermediate_quantities": 15.591511300008278,
-      "derive_momenta": 5.904532899992773,
-      "integrate_by_parts": 0.6050543999881484,
-      "noether": 1.1900193000037689,
-      "normalize_lagrangian": 0.008680300001287833,
-      "organize_result_views": 3.1746039999998175,
-      "raw_variation": 0.01558360000490211,
-      "validate_model": 0.0001435000158380717,
-      "verify": 8.189050800021505
+      "components": 4.663534999941476,
+      "derive_intermediate_quantities": 12.886084500001743,
+      "derive_momenta": 5.93950970005244,
+      "integrate_by_parts": 0.5277142999693751,
+      "noether": 1.1496204000432044,
+      "normalize_lagrangian": 0.0072336000157520175,
+      "organize_result_views": 2.5988957999506965,
+      "raw_variation": 0.01388270000461489,
+      "validate_model": 0.00013429997488856316,
+      "verify": 6.858398700016551
     }
   }
 }

@@ -256,3 +256,35 @@ El [manual de resolución](../FieldEquationsSolver/README.md) describe los estad
 las restricciones de dominio y la verificación. El PDF compacto y los JSON de
 resolución se guardan en un bundle separado bajo
 `ResearchWorkflow/outputs/field_equations`.
+
+## Resumen final de modelos
+
+Después de ejecutar los casos deseados y, opcionalmente, sus resoluciones,
+la última celda crea un resumen conjunto sin repetir cálculos:
+
+~~~python
+summary = makeSummary(max_components=3)
+~~~
+
+La función reutiliza las corridas registradas por `ejecutar(...)` y las
+soluciones registradas por `solveFieldEq(...)`. Genera `report.tex`,
+`report.pdf` cuando LaTeX está disponible, `summary.json` y `manifest.json`
+bajo `ResearchWorkflow/outputs/summary/`. La sección **Sin ansatz** muestra
+$P^{abcd}$ y $P_{ab}\equiv M_{ab}$ de cada modelo; **Con ansatz** añade sus
+componentes proyectadas y una familia verificada del solver, o indica que el
+solver no fue ejecutado. `max_components` limita únicamente lo mostrado en el
+PDF: `summary.json` conserva todas las componentes disponibles.
+
+## Limpiar los outputs
+
+La última celda del notebook define una función de limpieza explícita:
+
+~~~python
+clean()
+~~~
+
+La llamada elimina los bundles contenidos en `ResearchWorkflow/outputs/`,
+conserva el `README.md` de esa carpeta y limpia los registros en memoria usados
+por `makeSummary()`. No elimina el notebook, el código fuente ni archivos
+situados fuera de esa ruta. La celda define la función, pero no la ejecuta
+automáticamente.

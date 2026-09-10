@@ -36676,18 +36676,18 @@
   "run_id": "run_aa43c3ed782e2f3b0c98",
   "schema_version": "1.0",
   "timing": {
-    "duration_seconds": 11.271416200092062,
+    "duration_seconds": 6.693477299879305,
     "stages": {
-      "components": 1.373080100020161,
-      "derive_intermediate_quantities": 1.340099100023508,
-      "derive_momenta": 3.002047699992545,
-      "integrate_by_parts": 0.24050579997128807,
-      "noether": 0.5308508000161964,
-      "normalize_lagrangian": 0.003427300020121038,
-      "organize_result_views": 0.8570445000077598,
-      "raw_variation": 0.008167899999534711,
-      "validate_model": 9.00000159163028e-05,
-      "verify": 3.916103000025032
+      "components": 0.9890638999640942,
+      "derive_intermediate_quantities": 0.7529717999277636,
+      "derive_momenta": 1.8114510999293998,
+      "integrate_by_parts": 0.12875569995958358,
+      "noether": 0.26347180001903325,
+      "normalize_lagrangian": 0.0018736000638455153,
+      "organize_result_views": 0.4385683999862522,
+      "raw_variation": 0.005168500007130206,
+      "validate_model": 8.240004535764456e-05,
+      "verify": 2.302070099976845
     }
   },
   "verification": {

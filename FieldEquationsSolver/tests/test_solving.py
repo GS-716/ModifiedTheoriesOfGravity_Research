@@ -241,6 +241,47 @@ def test_notebook_solver_cell_is_optional():
     assert namespace["solveFieldEq"](False, object()) is None
 
 
+def test_workflow_summary_reuses_runs_and_solver_results(eh, tmp_path):
+    import sys
+    from pathlib import Path
+
+    repository_root = Path(__file__).parents[2]
+    sys.path.insert(0, str(repository_root))
+    from ResearchWorkflow.summary import make_summary
+
+    package_before = json.dumps(eh.package.to_data(), sort_keys=True)
+    solution = solveFieldEquations(
+        eh,
+        search_policy=SolverSearchPolicy(
+            constant_branches=False,
+            factor_branches=False,
+            singular_branches=False,
+            polynomial_degrees=(2,),
+            power_exponents=(),
+            zero_or_nonzero_parameters=(),
+            use_wolfram=False,
+        ),
+    )
+    bundle = make_summary(
+        {eh.package.model.name: eh},
+        {eh.package.model.name: solution},
+        output_root=tmp_path,
+        max_components=2,
+        compile_pdf=False,
+    )
+    tex = bundle.tex_path.read_text(encoding="utf-8")
+    data = json.loads(bundle.json_path.read_text(encoding="utf-8"))
+    assert bundle.model_count == 1
+    assert bundle.pdf_path is None
+    assert "\\section*{Sin ansatz}" in tex
+    assert "\\section*{Con ansatz}" in tex
+    assert "P_{ab}\\equiv M_{ab}" in tex
+    assert "Solución de las ecuaciones de campo" in tex
+    assert data["models"][0]["model"] == eh.package.model.name
+    assert data["models"][0]["abstract"]["metric_momentum_label"] == "P_ab ≡ M_ab"
+    assert json.dumps(eh.package.to_data(), sort_keys=True) == package_before
+
+
 @pytest.mark.skipif(os.environ.get("TENSOR_ENGINE_RUN_WOLFRAM_TESTS") != "1", reason="Wolfram opt-in")
 def test_live_solve_reduce_eliminate_and_unsupported_node_diagnostic():
     a, b = Scalar("a"), Scalar("b")

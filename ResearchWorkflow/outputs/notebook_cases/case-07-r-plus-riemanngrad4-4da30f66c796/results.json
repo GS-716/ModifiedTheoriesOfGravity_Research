@@ -64585,18 +64585,18 @@
   "run_id": "run_4da30f66c796b55e8c29",
   "schema_version": "1.0",
   "timing": {
-    "duration_seconds": 16.34533809995628,
+    "duration_seconds": 15.246689000166953,
     "stages": {
-      "components": 1.2108533999999054,
-      "derive_intermediate_quantities": 0.9674034000199754,
-      "derive_momenta": 6.50968789999024,
-      "integrate_by_parts": 0.19921760002034716,
-      "noether": 0.39356969998334534,
-      "normalize_lagrangian": 0.014445999986492097,
-      "organize_result_views": 0.8443783999828156,
-      "raw_variation": 0.006568999990122393,
-      "validate_model": 0.0001908999984152615,
-      "verify": 6.199021799984621
+      "components": 1.0896202999865636,
+      "derive_intermediate_quantities": 0.7426059000426903,
+      "derive_momenta": 6.685794900055043,
+      "integrate_by_parts": 0.18476050009485334,
+      "noether": 0.39237100002355874,
+      "normalize_lagrangian": 0.010151800001040101,
+      "organize_result_views": 0.6916765000205487,
+      "raw_variation": 0.005656299996189773,
+      "validate_model": 0.00016489997506141663,
+      "verify": 5.443886899971403
     }
   },
   "verification": {

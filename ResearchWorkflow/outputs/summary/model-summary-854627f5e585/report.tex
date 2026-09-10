@@ -1,0 +1,104 @@
+\documentclass[10pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{amsmath,amssymb,breqn,needspace}
+\usepackage[margin=1.8cm]{geometry}
+\setlength{\parindent}{0pt}
+\begin{document}
+\begin{center}{\Large Resumen de modelos}\end{center}
+\small
+\section*{Sin ansatz}
+Para cada modelo se muestran $P^{abcd}$ y $P_{ab}\equiv M_{ab}$ en forma covariante.
+\Needspace{8\baselineskip}\subsection*{R}
+\begin{dmath*}P^{abcd}=-\frac{g{}^{a\,d}\,g{}^{b\,c}}{2} + \frac{g{}^{a\,c}\,g{}^{b\,d}}{2}\end{dmath*}
+\begin{dmath*}P_{ab}\equiv M_{ab}=2\,R{}_{a\,d_{0}\,b}{}^{d_{0}}\end{dmath*}
+\Needspace{8\baselineskip}\subsection*{R\_plus\_alpha\_times\_R\_squared}
+\begin{dmath*}P^{abcd}=-g{}^{a\,d}\,g{}^{b\,c}\,R{}_{d_{0}\,d_{1}}{}^{d_{0}\,d_{1}}\,\alpha - \frac{g{}^{a\,d}\,g{}^{b\,c}}{2} + \frac{g{}^{a\,c}\,g{}^{b\,d}}{2} + g{}^{a\,c}\,g{}^{b\,d}\,R{}_{d_{0}\,d_{1}}{}^{d_{0}\,d_{1}}\,\alpha\end{dmath*}
+\begin{dmath*}P_{ab}\equiv M_{ab}=2\,R{}_{a\,d_{0}\,b}{}^{d_{0}} + 4\,R{}_{a\,d_{0}\,b}{}^{d_{0}}\,R{}_{d_{1}\,d_{2}}{}^{d_{1}\,d_{2}}\,\alpha\end{dmath*}
+\Needspace{8\baselineskip}\subsection*{R\_plus\_alpha\_times\_RicciSq}
+\begin{dmath*}P^{abcd}=-\frac{g{}^{a\,d}\,g{}^{b\,c}}{2} - \frac{g{}^{a\,d}\,R{}^{b}{}_{d_{0}}{}^{c\,d_{0}}\,\alpha}{2} - \frac{R{}^{a}{}_{d_{0}}{}^{d\,d_{0}}\,g{}^{b\,c}\,\alpha}{2} + \frac{g{}^{a\,c}\,g{}^{b\,d}}{2} + \frac{g{}^{a\,c}\,R{}^{b}{}_{d_{0}}{}^{d\,d_{0}}\,\alpha}{2} + \frac{R{}^{a}{}_{d_{0}}{}^{c\,d_{0}}\,g{}^{b\,d}\,\alpha}{2}\end{dmath*}
+\begin{dmath*}P_{ab}\equiv M_{ab}=2\,\left(R{}_{a\,d_{0}\,b}{}^{d_{0}} + \alpha\,\left(R{}_{a\,d_{0}}{}^{d_{0}\,d_{2}}\,R{}_{b\,d_{1}}{}^{d_{1}}{}_{d_{2}} + R{}_{a}{}^{d_{1}}{}_{b}{}^{d_{2}}\,R{}_{d_{0}\,d_{1}}{}^{d_{0}}{}_{d_{2}}\right)\right)\end{dmath*}
+\Needspace{8\baselineskip}\subsection*{R\_plus\_alpha\_times\_RiemannSq}
+\begin{dmath*}P^{abcd}=-\frac{g{}^{a\,d}\,g{}^{b\,c}}{2} + \frac{g{}^{a\,c}\,g{}^{b\,d}}{2} - \frac{2\,R{}^{a\,d\,b\,c}\,\alpha}{3} + \frac{2\,R{}^{a\,c\,b\,d}\,\alpha}{3} + \frac{4\,R{}^{a\,b\,c\,d}\,\alpha}{3}\end{dmath*}
+\begin{dmath*}P_{ab}\equiv M_{ab}=2\,R{}_{a\,d_{0}\,b}{}^{d_{0}} + 4\,R{}_{a}{}^{d_{0}\,d_{1}\,d_{2}}\,R{}_{b\,d_{0}\,d_{1}\,d_{2}}\,\alpha\end{dmath*}
+\Needspace{8\baselineskip}\subsection*{R\_plus\_alpha\_times\_RicciUU}
+\begin{dmath*}P^{abcd}=-\frac{g{}^{a\,d}\,g{}^{b\,c}}{2} + \frac{g{}^{a\,c}\,g{}^{b\,d}}{2} - \frac{g{}^{a\,d}\,u{}^{b}\,u{}^{c}\,\alpha}{4} - \frac{u{}^{a}\,g{}^{b\,c}\,u{}^{d}\,\alpha}{4} + \frac{g{}^{a\,c}\,u{}^{b}\,u{}^{d}\,\alpha}{4} + \frac{u{}^{a}\,g{}^{b\,d}\,u{}^{c}\,\alpha}{4}\end{dmath*}
+\begin{dmath*}P_{ab}\equiv M_{ab}=-R{}_{a\,d_{0}}{}^{d_{0}\,d_{1}}\,u{}_{b}\,u{}_{d_{1}}\,\alpha - u{}_{a}\,R{}_{b\,d_{0}}{}^{d_{0}\,d_{1}}\,u{}_{d_{1}}\,\alpha + 2\,R{}_{a\,d_{0}\,b}{}^{d_{0}} + R{}_{a}{}^{d_{0}}{}_{b}{}^{d_{1}}\,u{}_{d_{0}}\,u{}_{d_{1}}\,\alpha\end{dmath*}
+\Needspace{8\baselineskip}\subsection*{R\_plus\_alpha\_times\_RX}
+\begin{dmath*}P^{abcd}=-\frac{g{}^{a\,d}\,g{}^{b\,c}\,u{}_{d_{0}}\,u{}^{d_{0}}\,\alpha}{2} - \frac{g{}^{a\,d}\,g{}^{b\,c}}{2} + \frac{g{}^{a\,c}\,g{}^{b\,d}\,u{}_{d_{0}}\,u{}^{d_{0}}\,\alpha}{2} + \frac{g{}^{a\,c}\,g{}^{b\,d}}{2}\end{dmath*}
+\begin{dmath*}P_{ab}\equiv M_{ab}=2\,R{}_{a\,d_{0}\,b}{}^{d_{0}}\,u{}_{d_{1}}\,u{}^{d_{1}}\,\alpha + 2\,R{}_{a\,d_{0}\,b}{}^{d_{0}} + u{}_{a}\,u{}_{b}\,R{}_{d_{0}\,d_{1}}{}^{d_{0}\,d_{1}}\,\alpha\end{dmath*}
+\Needspace{8\baselineskip}\subsection*{case\_07\_R\_plus\_RiemannGrad4}
+\begin{dmath*}P^{abcd}=-\frac{g{}^{a\,d}\,g{}^{b\,c}}{2} + \frac{g{}^{a\,c}\,g{}^{b\,d}}{2}\end{dmath*}
+\begin{dmath*}P_{ab}\equiv M_{ab}=2\,R{}_{a\,d_{0}\,b}{}^{d_{0}}\end{dmath*}
+\Needspace{8\baselineskip}\subsection*{draft4\_case\_0}
+\begin{dmath*}P^{abcd}=-\frac{g{}^{a\,d}\,g{}^{b\,c}}{2} + \frac{g{}^{a\,c}\,g{}^{b\,d}}{2}\end{dmath*}
+\begin{dmath*}P_{ab}\equiv M_{ab}=2\,R{}_{a\,d_{0}\,b}{}^{d_{0}}\end{dmath*}
+\Needspace{8\baselineskip}\subsection*{draft4\_case\_1}
+\begin{dmath*}P^{abcd}=-\frac{g{}^{a\,d}\,g{}^{b\,c}}{2} + \frac{g{}^{a\,c}\,g{}^{b\,d}}{2}\end{dmath*}
+\begin{dmath*}P_{ab}\equiv M_{ab}=-u{}_{a}\,u{}_{b}\,\alpha_{1} + 2\,R{}_{a\,d_{0}\,b}{}^{d_{0}}\end{dmath*}
+\Needspace{8\baselineskip}\subsection*{draft4\_case\_2}
+\begin{dmath*}P^{abcd}=\frac{1}{4}\,\left(-2\,g{}^{a\,d}\,g{}^{b\,c} + 2\,g{}^{a\,c}\,g{}^{b\,d} + \beta_{0}\,{\ell}^{2}\,\left(-3\,g{}^{a\,d}\,u{}^{b}\,u{}^{c} - 3\,u{}^{a}\,g{}^{b\,c}\,u{}^{d} - 2\,g{}^{a\,c}\,g{}^{b\,d}\,u{}_{d_{0}}\,u{}^{d_{0}} + 2\,g{}^{a\,d}\,g{}^{b\,c}\,u{}_{d_{0}}\,u{}^{d_{0}} + 3\,g{}^{a\,c}\,u{}^{b}\,u{}^{d} + 3\,u{}^{a}\,g{}^{b\,d}\,u{}^{c}\right)\right)\end{dmath*}
+\begin{dmath*}P_{ab}\equiv M_{ab}=2\,R{}_{a\,d_{0}\,b}{}^{d_{0}} + \beta_{0}\,{\ell}^{2}\,\left(-u{}_{a}\,u{}_{b}\,R{}_{d_{0}\,d_{1}}{}^{d_{0}\,d_{1}} - 3\,R{}_{a\,d_{0}}{}^{d_{0}\,d_{1}}\,u{}_{b}\,u{}_{d_{1}} - 3\,u{}_{a}\,R{}_{b\,d_{0}}{}^{d_{0}\,d_{1}}\,u{}_{d_{1}} - 2\,R{}_{a\,d_{0}\,b}{}^{d_{0}}\,u{}_{d_{1}}\,u{}^{d_{1}} + 3\,R{}_{a}{}^{d_{0}}{}_{b}{}^{d_{1}}\,u{}_{d_{0}}\,u{}_{d_{1}}\right)\end{dmath*}
+\section*{Con ansatz}
+Se muestran componentes ya proyectadas y una familia representativa verificada por el solver.
+\Needspace{12\baselineskip}\subsection*{R}
+\textbf{Ansatz:} \texttt{draft4\_circular}.\par
+\[\begin{aligned}\left[P^{abcd}\right]^{0011}=\frac{1}{2}\\[2pt]\left[P^{abcd}\right]^{0022}=\frac{1}{2\,{r}^{2}\,f\!\left(r\right)}\\[2pt]\left[P^{abcd}\right]^{0110}=-\frac{1}{2}\\[2pt]\text{se muestran 3 de 12 componentes no nulas}\end{aligned}\]
+\[\begin{aligned}\left[P_{ab}\right]_{00}=\frac{\left(r\,f''\!\left(r\right) + f'\!\left(r\right)\right)\,f\!\left(r\right)}{r}\\[2pt]\left[P_{ab}\right]_{11}=-\frac{\left(r\,f''\!\left(r\right) + f'\!\left(r\right)\right)}{r\,f\!\left(r\right)}\\[2pt]\left[P_{ab}\right]_{22}=-2\,r\,f'\!\left(r\right)\end{aligned}\]
+\noindent\textbf{Solución de las ecuaciones de campo:}\par
+\[\begin{aligned}f\!\left(r\right)=C_{1}\end{aligned}\]
+\Needspace{12\baselineskip}\subsection*{R\_plus\_alpha\_times\_R\_squared}
+\textbf{Ansatz:} \texttt{draft4\_circular}.\par
+\[\begin{aligned}\left[P^{abcd}\right]^{0011}=\frac{\left(r - 2\,\alpha\,\left(2\,f'\!\left(r\right) + r\,f''\!\left(r\right)\right)\right)}{2\,r}\\[2pt]\left[P^{abcd}\right]^{0022}=\frac{\left(r - 2\,\alpha\,\left(2\,f'\!\left(r\right) + r\,f''\!\left(r\right)\right)\right)}{2\,{r}^{3}\,f\!\left(r\right)}\\[2pt]\left[P^{abcd}\right]^{0110}=\frac{\left(-\frac{r}{2} + \alpha\,\left(2\,f'\!\left(r\right) + r\,f''\!\left(r\right)\right)\right)}{r}\\[2pt]\text{se muestran 3 de 12 componentes no nulas}\end{aligned}\]
+\[\begin{aligned}\left[P_{ab}\right]_{00}=-\frac{1}{{r}^{2}}\,\left(-r + 2\,\alpha\,\left(2\,f'\!\left(r\right) + r\,f''\!\left(r\right)\right)\right)\,\left(r\,f''\!\left(r\right) + f'\!\left(r\right)\right)\,f\!\left(r\right)\\[2pt]\left[P_{ab}\right]_{11}=\frac{\left(-r + 2\,\alpha\,\left(2\,f'\!\left(r\right) + r\,f''\!\left(r\right)\right)\right)\,\left(r\,f''\!\left(r\right) + f'\!\left(r\right)\right)}{{r}^{2}\,f\!\left(r\right)}\\[2pt]\left[P_{ab}\right]_{22}=2\,\left(-r + 2\,\alpha\,\left(2\,f'\!\left(r\right) + r\,f''\!\left(r\right)\right)\right)\,f'\!\left(r\right)\end{aligned}\]
+\noindent\textbf{Solución de las ecuaciones de campo:}\par
+\[\begin{aligned}f\!\left(r\right)=C_{1}\end{aligned}\]
+\Needspace{12\baselineskip}\subsection*{R\_plus\_alpha\_times\_RicciSq}
+\textbf{Ansatz:} \texttt{draft4\_circular}.\par
+\[\begin{aligned}\left[P^{abcd}\right]^{0011}=\frac{\left(r - \alpha\,\left(r\,f''\!\left(r\right) + f'\!\left(r\right)\right)\right)}{2\,r}\\[2pt]\left[P^{abcd}\right]^{0022}=\frac{\left(2\,r - \alpha\,\left(3\,f'\!\left(r\right) + r\,f''\!\left(r\right)\right)\right)}{4\,{r}^{3}\,f\!\left(r\right)}\\[2pt]\left[P^{abcd}\right]^{0110}=\frac{\left(-r + \alpha\,\left(r\,f''\!\left(r\right) + f'\!\left(r\right)\right)\right)}{2\,r}\\[2pt]\text{se muestran 3 de 12 componentes no nulas}\end{aligned}\]
+\[\begin{aligned}\left[P_{ab}\right]_{00}=\frac{1}{2\,{r}^{2}}\,f\!\left(r\right)\,\left(\alpha\,\left(-3\,{f'\!\left(r\right)}^{2} - 2\,{r}^{2}\,{f''\!\left(r\right)}^{2} - 3\,r\,f'\!\left(r\right)\,f''\!\left(r\right)\right) + 2\,r\,f'\!\left(r\right) + 2\,f''\!\left(r\right)\,{r}^{2}\right)\\[2pt]\left[P_{ab}\right]_{11}=\frac{1}{{r}^{2}\,f\!\left(r\right)}\,\left(-r\,f'\!\left(r\right) - {r}^{2}\,f''\!\left(r\right) + \frac{3\,\alpha\,{f'\!\left(r\right)}^{2}}{2} + \alpha\,{r}^{2}\,{f''\!\left(r\right)}^{2} + \frac{3\,\alpha\,r\,f'\!\left(r\right)\,f''\!\left(r\right)}{2}\right)\\[2pt]\left[P_{ab}\right]_{22}=\left(-2\,r + 3\,\alpha\,f'\!\left(r\right) + \alpha\,r\,f''\!\left(r\right)\right)\,f'\!\left(r\right)\end{aligned}\]
+\noindent\textbf{Solución de las ecuaciones de campo:}\par
+\[\begin{aligned}f\!\left(r\right)=C_{1}\end{aligned}\]
+\Needspace{12\baselineskip}\subsection*{R\_plus\_alpha\_times\_RiemannSq}
+\textbf{Ansatz:} \texttt{draft4\_circular}.\par
+\[\begin{aligned}\left[P^{abcd}\right]^{0011}=-\alpha\,f''\!\left(r\right) + \frac{1}{2}\\[2pt]\left[P^{abcd}\right]^{0022}=\frac{\left(r - 2\,\alpha\,f'\!\left(r\right)\right)}{2\,{r}^{3}\,f\!\left(r\right)}\\[2pt]\left[P^{abcd}\right]^{0110}=\alpha\,f''\!\left(r\right) - \frac{1}{2}\\[2pt]\text{se muestran 3 de 12 componentes no nulas}\end{aligned}\]
+\[\begin{aligned}\left[P_{ab}\right]_{00}=-\frac{1}{{r}^{2}}\,\left(-r\,\left(r\,f''\!\left(r\right) + f'\!\left(r\right)\right) + 2\,\alpha\,\left({f'\!\left(r\right)}^{2} + {r}^{2}\,{f''\!\left(r\right)}^{2}\right)\right)\,f\!\left(r\right)\\[2pt]\left[P_{ab}\right]_{11}=\frac{1}{{r}^{2}\,f\!\left(r\right)}\,\left(-r\,\left(r\,f''\!\left(r\right) + f'\!\left(r\right)\right) + 2\,\alpha\,\left({f'\!\left(r\right)}^{2} + {r}^{2}\,{f''\!\left(r\right)}^{2}\right)\right)\\[2pt]\left[P_{ab}\right]_{22}=2\,\left(-r + 2\,\alpha\,f'\!\left(r\right)\right)\,f'\!\left(r\right)\end{aligned}\]
+\noindent\textbf{Solución de las ecuaciones de campo:}\par
+\[\begin{aligned}f\!\left(r\right)=C_{1}\end{aligned}\]
+\Needspace{12\baselineskip}\subsection*{R\_plus\_alpha\_times\_RicciUU}
+\textbf{Ansatz:} \texttt{draft4\_circular}.\par
+\[\begin{aligned}\left[P^{abcd}\right]^{0011}=\frac{\alpha\,f\!\left(r\right)\,{\frac{\partial^{1} \Phi}{\partial r^{1}}\!\left(r, \varphi\right)}^{2}}{4} + \frac{1}{2}\\[2pt]\left[P^{abcd}\right]^{0012}=\frac{\alpha\,\frac{\partial^{1} \Phi}{\partial r^{1}}\!\left(r, \varphi\right)\,\frac{\partial^{1} \Phi}{\partial \varphi^{1}}\!\left(r, \varphi\right)}{4\,{r}^{2}}\\[2pt]\left[P^{abcd}\right]^{0021}=\frac{\alpha\,\frac{\partial^{1} \Phi}{\partial r^{1}}\!\left(r, \varphi\right)\,\frac{\partial^{1} \Phi}{\partial \varphi^{1}}\!\left(r, \varphi\right)}{4\,{r}^{2}}\\[2pt]\text{se muestran 3 de 20 componentes no nulas}\end{aligned}\]
+\[\begin{aligned}\left[P_{ab}\right]_{00}=\frac{1}{2\,{r}^{3}}\,\left(\alpha\,\left({\frac{\partial^{1} \Phi}{\partial \varphi^{1}}\!\left(r, \varphi\right)}^{2}\,f'\!\left(r\right) + {r}^{3}\,{\frac{\partial^{1} \Phi}{\partial r^{1}}\!\left(r, \varphi\right)}^{2}\,f''\!\left(r\right)\,f\!\left(r\right)\right) + 2\,{r}^{2}\,\left(r\,f''\!\left(r\right) + f'\!\left(r\right)\right)\right)\,f\!\left(r\right)\\[2pt]\left[P_{ab}\right]_{11}=-\frac{1}{2\,{r}^{3}\,f\!\left(r\right)}\,\left(2\,{r}^{2}\,\left(r\,f''\!\left(r\right) + f'\!\left(r\right)\right) + \alpha\,{\frac{\partial^{1} \Phi}{\partial \varphi^{1}}\!\left(r, \varphi\right)}^{2}\,f'\!\left(r\right) + 2\,\alpha\,{r}^{2}\,{\frac{\partial^{1} \Phi}{\partial r^{1}}\!\left(r, \varphi\right)}^{2}\,\left(r\,f''\!\left(r\right) + f'\!\left(r\right)\right)\,f\!\left(r\right)\right)\\[2pt]\left[P_{ab}\right]_{12}=-\frac{1}{2\,r}\,\alpha\,\left(2\,f'\!\left(r\right) + r\,f''\!\left(r\right)\right)\,\frac{\partial^{1} \Phi}{\partial r^{1}}\!\left(r, \varphi\right)\,\frac{\partial^{1} \Phi}{\partial \varphi^{1}}\!\left(r, \varphi\right)\\[2pt]\text{se muestran 3 de 5 componentes no nulas}\end{aligned}\]
+\noindent\textbf{Solución de las ecuaciones de campo:}\par
+\[\begin{aligned}\alpha=0\\[2pt]f\!\left(r\right)=C_{1}\end{aligned}\]
+\Needspace{12\baselineskip}\subsection*{R\_plus\_alpha\_times\_RX}
+\textbf{Ansatz:} \texttt{draft4\_circular}.\par
+\[\begin{aligned}\left[P^{abcd}\right]^{0011}=\frac{1}{2\,{r}^{2}}\,\left({r}^{2} + \alpha\,\left({\frac{\partial^{1} \Phi}{\partial \varphi^{1}}\!\left(r, \varphi\right)}^{2} + {r}^{2}\,{\frac{\partial^{1} \Phi}{\partial r^{1}}\!\left(r, \varphi\right)}^{2}\,f\!\left(r\right)\right)\right)\\[2pt]\left[P^{abcd}\right]^{0022}=\frac{1}{2\,{r}^{4}\,f\!\left(r\right)}\,\left({r}^{2} + \alpha\,\left({\frac{\partial^{1} \Phi}{\partial \varphi^{1}}\!\left(r, \varphi\right)}^{2} + {r}^{2}\,{\frac{\partial^{1} \Phi}{\partial r^{1}}\!\left(r, \varphi\right)}^{2}\,f\!\left(r\right)\right)\right)\\[2pt]\left[P^{abcd}\right]^{0110}=-\frac{1}{2\,{r}^{2}}\,\left({r}^{2} + \alpha\,\left({\frac{\partial^{1} \Phi}{\partial \varphi^{1}}\!\left(r, \varphi\right)}^{2} + {r}^{2}\,{\frac{\partial^{1} \Phi}{\partial r^{1}}\!\left(r, \varphi\right)}^{2}\,f\!\left(r\right)\right)\right)\\[2pt]\text{se muestran 3 de 12 componentes no nulas}\end{aligned}\]
+\[\begin{aligned}\left[P_{ab}\right]_{00}=\frac{1}{{r}^{3}}\,\left({r}^{2} + \alpha\,\left({\frac{\partial^{1} \Phi}{\partial \varphi^{1}}\!\left(r, \varphi\right)}^{2} + {r}^{2}\,{\frac{\partial^{1} \Phi}{\partial r^{1}}\!\left(r, \varphi\right)}^{2}\,f\!\left(r\right)\right)\right)\,\left(r\,f''\!\left(r\right) + f'\!\left(r\right)\right)\,f\!\left(r\right)\\[2pt]\left[P_{ab}\right]_{11}=-\frac{1}{{r}^{3}\,f\!\left(r\right)}\,\left({r}^{2}\,\left(r\,f''\!\left(r\right) + f'\!\left(r\right)\right) + \alpha\,\left({\frac{\partial^{1} \Phi}{\partial \varphi^{1}}\!\left(r, \varphi\right)}^{2} + {r}^{2}\,{\frac{\partial^{1} \Phi}{\partial r^{1}}\!\left(r, \varphi\right)}^{2}\,f\!\left(r\right)\right)\,\left(r\,f''\!\left(r\right) + f'\!\left(r\right)\right) + \alpha\,{r}^{2}\,{\frac{\partial^{1} \Phi}{\partial r^{1}}\!\left(r, \varphi\right)}^{2}\,\left(2\,f'\!\left(r\right) + r\,f''\!\left(r\right)\right)\,f\!\left(r\right)\right)\\[2pt]\left[P_{ab}\right]_{12}=-\frac{1}{r}\,\alpha\,\left(2\,f'\!\left(r\right) + r\,f''\!\left(r\right)\right)\,\frac{\partial^{1} \Phi}{\partial r^{1}}\!\left(r, \varphi\right)\,\frac{\partial^{1} \Phi}{\partial \varphi^{1}}\!\left(r, \varphi\right)\\[2pt]\text{se muestran 3 de 5 componentes no nulas}\end{aligned}\]
+\noindent\textbf{Solución de las ecuaciones de campo:}\par
+\[\begin{aligned}\alpha=0\\[2pt]f\!\left(r\right)=C_{1}\end{aligned}\]
+\Needspace{12\baselineskip}\subsection*{case\_07\_R\_plus\_RiemannGrad4}
+\textbf{Ansatz:} \texttt{draft4\_circular}.\par
+\[\begin{aligned}\left[P^{abcd}\right]^{0011}=\frac{1}{2}\\[2pt]\left[P^{abcd}\right]^{0022}=\frac{1}{2\,{r}^{2}\,f\!\left(r\right)}\\[2pt]\left[P^{abcd}\right]^{0110}=-\frac{1}{2}\\[2pt]\text{se muestran 3 de 12 componentes no nulas}\end{aligned}\]
+\[\begin{aligned}\left[P_{ab}\right]_{00}=\frac{\left(r\,f''\!\left(r\right) + f'\!\left(r\right)\right)\,f\!\left(r\right)}{r}\\[2pt]\left[P_{ab}\right]_{11}=-\frac{\left(r\,f''\!\left(r\right) + f'\!\left(r\right)\right)}{r\,f\!\left(r\right)}\\[2pt]\left[P_{ab}\right]_{22}=-2\,r\,f'\!\left(r\right)\end{aligned}\]
+\noindent\textbf{Solución de las ecuaciones de campo:}\par
+\[\begin{aligned}f\!\left(r\right)=C_{1}\end{aligned}\]
+\Needspace{12\baselineskip}\subsection*{draft4\_case\_0}
+\textbf{Ansatz:} \texttt{draft4\_circular}.\par
+\[\begin{aligned}\left[P^{abcd}\right]^{0011}=\frac{1}{2}\\[2pt]\left[P^{abcd}\right]^{0022}=\frac{1}{2\,{r}^{2}\,f\!\left(r\right)}\\[2pt]\left[P^{abcd}\right]^{0110}=-\frac{1}{2}\\[2pt]\text{se muestran 3 de 12 componentes no nulas}\end{aligned}\]
+\[\begin{aligned}\left[P_{ab}\right]_{00}=\frac{\left(r\,f''\!\left(r\right) + f'\!\left(r\right)\right)\,f\!\left(r\right)}{r}\\[2pt]\left[P_{ab}\right]_{11}=-\frac{\left(r\,f''\!\left(r\right) + f'\!\left(r\right)\right)}{r\,f\!\left(r\right)}\\[2pt]\left[P_{ab}\right]_{22}=-2\,r\,f'\!\left(r\right)\end{aligned}\]
+\noindent\textbf{Solución de las ecuaciones de campo:}\par
+\[\begin{aligned}f\!\left(r\right)=\frac{\left({r}^{2} + C_{1}\,{\ell}^{2}\right)}{{\ell}^{2}}\end{aligned}\]
+\Needspace{12\baselineskip}\subsection*{draft4\_case\_1}
+\textbf{Ansatz:} \texttt{draft4\_circular}.\par
+\[\begin{aligned}\left[P^{abcd}\right]^{0011}=\frac{1}{2}\\[2pt]\left[P^{abcd}\right]^{0022}=\frac{1}{2\,{r}^{2}\,f\!\left(r\right)}\\[2pt]\left[P^{abcd}\right]^{0110}=-\frac{1}{2}\\[2pt]\text{se muestran 3 de 12 componentes no nulas}\end{aligned}\]
+\[\begin{aligned}\left[P_{ab}\right]_{00}=\frac{\left(r\,f''\!\left(r\right) + f'\!\left(r\right)\right)\,f\!\left(r\right)}{r}\\[2pt]\left[P_{ab}\right]_{11}=-\frac{1}{f\!\left(r\right)\,r}\,\left(f'\!\left(r\right) + f''\!\left(r\right)\,r + \alpha_{1}\,f\!\left(r\right)\,r\,{\frac{\partial^{1} \Phi}{\partial r^{1}}\!\left(r, \varphi\right)}^{2}\right)\\[2pt]\left[P_{ab}\right]_{12}=-\alpha_{1}\,\frac{\partial^{1} \Phi}{\partial r^{1}}\!\left(r, \varphi\right)\,\frac{\partial^{1} \Phi}{\partial \varphi^{1}}\!\left(r, \varphi\right)\\[2pt]\text{se muestran 3 de 5 componentes no nulas}\end{aligned}\]
+\noindent\textbf{Solución de las ecuaciones de campo:}\par
+\[\begin{aligned}f\!\left(r\right)=-\frac{\left(-{r}^{2} + {\ell}^{2}\,\left(-C_{1} + \alpha_{1}\,{q}^{2}\,\mathrm{log}\!\left(r\right)\right)\right)}{{\ell}^{2}}\end{aligned}\]
+\Needspace{12\baselineskip}\subsection*{draft4\_case\_2}
+\textbf{Ansatz:} \texttt{draft4\_circular}.\par
+\[\begin{aligned}\left[P^{abcd}\right]^{0011}=\frac{\beta_{0}\,{\ell}^{2}\,{\frac{\partial^{1} \Phi}{\partial \varphi^{1}}\!\left(r, \varphi\right)}^{2}}{2\,{r}^{2}} - \frac{\beta_{0}\,f\!\left(r\right)\,{\ell}^{2}\,{\frac{\partial^{1} \Phi}{\partial r^{1}}\!\left(r, \varphi\right)}^{2}}{4} - \frac{1}{2}\\[2pt]\left[P^{abcd}\right]^{0012}=-\frac{1}{4\,{r}^{2}}\,3\,\beta_{0}\,{\ell}^{2}\,\frac{\partial^{1} \Phi}{\partial r^{1}}\!\left(r, \varphi\right)\,\frac{\partial^{1} \Phi}{\partial \varphi^{1}}\!\left(r, \varphi\right)\\[2pt]\left[P^{abcd}\right]^{0021}=-\frac{1}{4\,{r}^{2}}\,3\,\beta_{0}\,{\ell}^{2}\,\frac{\partial^{1} \Phi}{\partial r^{1}}\!\left(r, \varphi\right)\,\frac{\partial^{1} \Phi}{\partial \varphi^{1}}\!\left(r, \varphi\right)\\[2pt]\text{se muestran 3 de 20 componentes no nulas}\end{aligned}\]
+\[\begin{aligned}\left[P_{ab}\right]_{00}=\frac{1}{2\,{r}^{3}}\,\left(2\,{r}^{2}\,\left(r\,f''\!\left(r\right) + f'\!\left(r\right)\right) + \beta_{0}\,{\ell}^{2}\,\left(-2\,\left({\frac{\partial^{1} \Phi}{\partial \varphi^{1}}\!\left(r, \varphi\right)}^{2} + {r}^{2}\,{\frac{\partial^{1} \Phi}{\partial r^{1}}\!\left(r, \varphi\right)}^{2}\,f\!\left(r\right)\right)\,\left(r\,f''\!\left(r\right) + f'\!\left(r\right)\right) + 3\,{\frac{\partial^{1} \Phi}{\partial \varphi^{1}}\!\left(r, \varphi\right)}^{2}\,f'\!\left(r\right) + 3\,{r}^{3}\,{\frac{\partial^{1} \Phi}{\partial r^{1}}\!\left(r, \varphi\right)}^{2}\,f''\!\left(r\right)\,f\!\left(r\right)\right)\right)\,f\!\left(r\right)\\[2pt]\left[P_{ab}\right]_{11}=\frac{1}{2\,{r}^{3}\,f\!\left(r\right)}\,\left(-2\,f'\!\left(r\right)\,{r}^{2} - 2\,f''\!\left(r\right)\,{r}^{3} + \beta_{0}\,{\ell}^{2}\,\left(-f'\!\left(r\right)\,{\frac{\partial^{1} \Phi}{\partial \varphi^{1}}\!\left(r, \varphi\right)}^{2} + 2\,r\,f''\!\left(r\right)\,{\frac{\partial^{1} \Phi}{\partial \varphi^{1}}\!\left(r, \varphi\right)}^{2} - 2\,f\!\left(r\right)\,f''\!\left(r\right)\,{r}^{3}\,{\frac{\partial^{1} \Phi}{\partial r^{1}}\!\left(r, \varphi\right)}^{2}\right)\right)\\[2pt]\left[P_{ab}\right]_{12}=-\frac{1}{2\,r}\,\beta_{0}\,{\ell}^{2}\,\left(2\,f'\!\left(r\right) + r\,f''\!\left(r\right)\right)\,\frac{\partial^{1} \Phi}{\partial r^{1}}\!\left(r, \varphi\right)\,\frac{\partial^{1} \Phi}{\partial \varphi^{1}}\!\left(r, \varphi\right)\\[2pt]\text{se muestran 3 de 5 componentes no nulas}\end{aligned}\]
+\noindent\textbf{Solución de las ecuaciones de campo:}\par
+\[\begin{aligned}f\!\left(r\right)=\frac{{r}^{2}\,\left({r}^{2} + C_{1}\,{\ell}^{2}\right)}{{\ell}^{2}\,\left({r}^{2} + \beta_{0}\,{\ell}^{2}\,{q}^{2}\right)}\end{aligned}\]
+\end{document}
