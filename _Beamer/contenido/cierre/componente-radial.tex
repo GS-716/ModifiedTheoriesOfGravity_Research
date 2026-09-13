@@ -1,0 +1,50 @@
+% Apoyo visual del resultado ya deducido para la componente (b,c,d)=(t,t,r).
+% La normalización elimina los parámetros sin asignarles valores numéricos.
+\begin{frame}[label=nav-frame-121]{Lectura radial de la componente calculada}
+\small
+\[
+C(r)\equiv\left|\nabla_aP_\beta^{attr}\right|
+=\frac{\ell^2|\beta_0|p^2}{4r^3},\qquad r>0.
+\]
+\begin{columns}[c,onlytextwidth]
+\begin{column}{.58\textwidth}
+\centering
+\begin{tikzpicture}[x=1.5cm,y=3.3cm,font=\footnotesize]
+  \foreach \yt/\lab in {0/0,0.25/{0{,}25},0.5/{0{,}5},0.75/{0{,}75},1/1}{
+    \draw[black!12] (1,\yt) -- (4.1,\yt);
+    \node[anchor=east] at (.94,\yt) {$\lab$};
+  }
+  \draw[black!65] (1,0) -- (4.15,0);
+  \draw[black!65] (1,0) -- (1,1.05);
+  \foreach \xt in {1,2,3,4}{
+    \draw[black!65] (\xt,0) -- (\xt,-.02);
+    \node[anchor=north] at (\xt,-.03) {$\xt$};
+  }
+  \draw[structure.fg,line width=1.2pt,domain=1:4,samples=121,smooth,variable=\x]
+    plot (\x,{1/(\x*\x*\x)});
+  \fill[structure.fg] (2,.125) circle[radius=1.6pt];
+  \node[anchor=south west,text=structure.fg] at (2.03,.14) {$1/8$};
+  \fill[structure.fg] (4,.015625) circle[radius=1.6pt];
+  \node[anchor=south east,text=structure.fg] at (4,.055) {$1/64$};
+  \node at (2.55,-.19) {$r/r_0$};
+  \node[rotate=90] at (.35,.52) {$C(r)/C(r_0)$};
+\end{tikzpicture}
+\end{column}
+\begin{column}{.39\textwidth}
+Para $\beta_0p\neq0$, elegimos un radio de referencia $r_0>0$:
+\[
+\frac{C(r)}{C(r_0)}=\left(\frac{r_0}{r}\right)^3.
+\]
+Al duplicar el radio, la componente se reduce a $1/8$ de su valor.
+
+\medskip
+A radio finito sigue siendo no nula. Su decaimiento asintótico
+no establece la condición LL.
+\end{column}
+\end{columns}
+\vspace{2mm}
+\footnotesize
+Valor absoluto de la componente calculada en el ansatz, no una norma
+tensorial. Los casos $\beta_0=0$ o $p=0$ anulan la componente y quedan
+fuera de esta normalización.
+\end{frame}

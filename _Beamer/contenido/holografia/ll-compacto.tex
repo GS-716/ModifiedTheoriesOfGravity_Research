@@ -1,0 +1,272 @@
+% Diez frames. Numeración H independiente de las ecuaciones previas.
+\section{Estructura holográfica de la acción LL}
+\setcounter{holografiaSavedEquation}{\value{equation}}
+\begingroup
+\setcounter{equation}{0}
+\renewcommand{\theequation}{H\arabic{equation}}
+\renewcommand{\theHequation}{holografia.\arabic{equation}}
+\MapaHolografia{0}
+\begin{frame}[label=holo-ll-01]{Acción y datos de borde: construcción mecánica}
+
+\footnotesize\CompactDisplaySpacing
+La holografía de §2.7 relaciona \emph{volumen y superficie de la acción}, fuera de las soluciones. Usaremos $\mathscr L=\sqrt{-g}L$, $\mathscr L_{\rm vol}$ y $\mathscr L_{\rm sup}$, sin abreviarlas como $B$ o $S$.
+
+Para $A_q=\int L_q(q,\dot q)\,\dd t$, $p=\partial L_q/\partial\dot q$,
+la identidad $p\delta\dot q=\dd(p\delta q)/\dd t-\dot p\delta q$ da
+\begin{equation}
+\delta A_q=\int(\partial_qL_q-\dot p)\delta q\,\dd t+[p\delta q]_{t_1}^{t_2}.
+\label{eq:holo-mechanical-variation}
+\end{equation}
+Para fijar $C(q,\dot q)$, suponemos inversión local $\dot q=\dot q(q,C)$ y elegimos
+\begin{equation}
+L_C=L_q-\frac{\dd f}{\dd t},\qquad \dot f=f_{,q}\dot q+f_{,\dot q}\ddot q.
+\label{eq:holo-LC}
+\end{equation}
+La ecuación de volumen se conserva. El borde queda
+$[p-(\partial_qf)_C]\delta q-(\partial_C f)_q\delta C$.
+Con $\delta C=0$, se anula para cualquier $\delta q$ si
+\begin{equation}
+f(q,C)=\int^q p(\tilde q,C)\,\dd\tilde q+F(C).
+\label{eq:holo-fC}
+\end{equation}
+{\scriptsize Fuente: \cite{PadmanabhanKothawala2013}, §2.7, (63)--(66). La integral mantiene $C$ fijo. Aquí holografía no significa dualidad AdS/CFT.}
+\end{frame}
+\MapaHolografia{1}
+\begin{frame}[label=holo-ll-02]{Momento fijo, campos y fase de frontera}
+\footnotesize\CompactDisplaySpacing
+Con $C=p$ y $F=0$, $f=qp$. Entonces
+\begin{equation}
+L_p=L_q-\frac{\dd(qp)}{\dd t},\quad
+\delta A_p=\int(\partial_qL_q-\dot p)\delta q\,\dd t-[q\delta p]_{t_1}^{t_2}.
+\label{eq:holo-dqp}
+\end{equation}
+Fijar $p$ no exige fijar $q$. Para $L_q=M\dot q^2/2-U(q)$,
+\[
+L_p=-M\dot q^2/2-U-Mq\ddot q,\qquad
+\partial_qL_p-\tfrac{\dd}{\dd t}\partial_{\dot q}L_p
++\tfrac{\dd^2}{\dd t^2}\partial_{\ddot q}L_p=-U'-M\ddot q=0.
+\]
+Para campos, $\pi_A^i=\partial\mathscr L_q/\partial(\partial_iq^A)$ y
+$\delta\mathscr L_q=\mathcal E_A\delta q^A+\partial_i(\pi_A^i\delta q^A)$ implican
+\begin{equation}
+\mathscr L_p=\mathscr L_q-\partial_i(q^A\pi_A^i),\quad
+\delta\mathscr L_p=\mathcal E_A\delta q^A-\partial_i(q^A\delta\pi_A^i).
+\label{eq:holo-fields}
+\end{equation}
+En una frontera fija basta fijar el flujo normal del momento. El cambio de representación
+\[
+G(p_2,p_1)\propto\int\dd q_2\dd q_1\,
+e^{-ip_2q_2/\hbar}K(q_2,q_1)e^{ip_1q_1/\hbar}
+\]
+cambia la fase de cada historia de $A_q$ a $A_q-[qp]=A_p$.
+La derivada total conserva las ecuaciones, pero cambia los datos y la fase de borde.
+\end{frame}
+\MapaHolografia{2}
+\begin{frame}[label=holo-ll-03]{Separación geométrica: integración por partes}
+\footnotesize\CompactDisplaySpacing
+Sea $Q^{abcd}$ con simetrías de Riemann. Expandir $R=\partial\Gamma-\partial\Gamma+\Gamma\Gamma-\Gamma\Gamma$ y usar la antisimetría en $c,d$ da
+\begin{align*}
+\sqrt{-g}\,QR
+&=2\sqrt{-g}Q_a{}^{bcd}(\partial_c\Gamma^a_{bd}+\Gamma^a_{ce}\Gamma^e_{bd})\\
+&=2\partial_c(\sqrt{-g}Q_a{}^{bcd}\Gamma^a_{bd})
+-2\Gamma^a_{bd}\partial_c(\sqrt{-g}Q_a{}^{bcd})
++2\sqrt{-g}Q_a{}^{bcd}\Gamma^a_{ce}\Gamma^e_{bd}.
+\end{align*}
+Como $\partial_c\sqrt{-g}=\sqrt{-g}\Gamma^e_{ec}$,
+\[
+\frac{\partial_c(\sqrt{-g}Q_a{}^{bcd})}{\sqrt{-g}}
+=\nabla_cQ_a{}^{bcd}+\Gamma^e_{ca}Q_e{}^{bcd}
+-\Gamma^b_{ce}Q_a{}^{ecd}-\Gamma^d_{ce}Q_a{}^{bce}.
+\]
+El último término se anula por antisimetría. El de $\Gamma^e_{ca}$ cancela el producto anterior y el restante da $2Q_a{}^{bcd}\Gamma^a_{de}\Gamma^e_{bc}$. Resulta
+\begin{equation}
+\sqrt{-g}\,QR=\mathscr L_{\rm sup}+\mathscr L_{\rm vol}^{(0)}
+-2\sqrt{-g}\Gamma^a_{bd}\nabla_cQ_a{}^{bcd},
+\label{eq:holo-split-general}
+\end{equation}
+\[
+\mathscr L_{\rm sup}=2\partial_c(\sqrt{-g}Q_a{}^{bcd}\Gamma^a_{bd}),\quad
+\mathscr L_{\rm vol}^{(0)}=2\sqrt{-g}Q_a{}^{bcd}\Gamma^a_{de}\Gamma^e_{bc}.
+\]
+En LL, $\nabla Q=0$ y $\mathscr L_{\rm vol}=\mathscr L_{\rm vol}^{(0)}$.
+Las dos partes no son densidades escalares covariantes por separado.
+\end{frame}
+\begin{frame}[label=holo-ll-04]{Einstein--Hilbert: volumen, superficie e identidad}
+\footnotesize\CompactDisplaySpacing
+Para $Q^{abcd}=\tfrac12(g^{ac}g^{bd}-g^{ad}g^{bc})$, $QR=R$ y $\nabla Q=0$:
+\begin{equation}
+\begin{aligned}
+\mathscr L_{\rm vol}&=\sqrt{-g}g^{ab}(\Gamma^i_{ja}\Gamma^j_{ib}-\Gamma^i_{ab}\Gamma^j_{ij}),\\
+\mathscr L_{\rm sup}&=\partial_i(\sqrt{-g}V^i),\quad
+V^i=g^{ab}\Gamma^i_{ab}-g^{ia}\Gamma^b_{ab}.
+\end{aligned}
+\label{eq:holo-EH-split}
+\end{equation}
+Bajo $g_{ab}\mapsto\lambda g_{ab}$ constante, $\Gamma$ no cambia y
+$\mathscr L_{\rm vol}\mapsto\lambda^w\mathscr L_{\rm vol}$, $w=D/2-1$.
+Con $\pi^{i,ab}=\partial\mathscr L_{\rm vol}/\partial(\partial_i g_{ab})$, Euler y la regla del producto dan
+\[
+w\mathscr L_{\rm vol}=g_{ab}\frac{\delta\mathscr L_{\rm vol}}{\delta g_{ab}}
++\partial_i(g_{ab}\pi^{i,ab}).
+\]
+La divergencia no cambia la ecuación métrica, y $G^a{}_a=-wR$ implica
+\[
+g_{ab}\frac{\delta\mathscr L_{\rm vol}}{\delta g_{ab}}
+=-\sqrt{-g}G^a{}_a=w(\mathscr L_{\rm vol}+\mathscr L_{\rm sup}).
+\]
+Al igualar y cancelar el volumen,
+\begin{equation}
+\boxed{(D/2-1)\mathscr L_{\rm sup}
+=-\partial_i\!\left(g_{ab}\frac{\partial\mathscr L_{\rm vol}}{\partial(\partial_i g_{ab})}\right).}
+\label{eq:holo-EH-identity}
+\end{equation}
+Para $D\ne2$, el volumen determina la superficie. Es la estructura $\dd(qp)$ de (71) del artículo.
+\end{frame}
+\MapaHolografia{3}
+\begin{frame}[label=holo-ll-05]{Einstein--Hilbert: momento y variación de frontera}
+\footnotesize\CompactDisplaySpacing
+Para $D>2$, $f^{ab}=\sqrt{-g}g^{ab}$ y la compatibilidad métrica dan
+\[
+\partial_i f^{ab}=-\Gamma^a_{ic}f^{cb}-\Gamma^b_{ic}f^{ac}+\Gamma^c_{ic}f^{ab}.
+\]
+Sustituyendo en el volumen y agrupando términos,
+\begin{equation}
+\mathscr L_{\rm vol}=\tfrac12N^i_{ab}\partial_i f^{ab},\quad
+N^i_{ab}=-\Gamma^i_{ab}+\tfrac12(\delta_a^i\Gamma^c_{bc}+\delta_b^i\Gamma^c_{ac}).
+\label{eq:holo-N}
+\end{equation}
+La forma cuadrática simétrica da $N^i_{ab}=\partial\mathscr L_{\rm vol}/\partial(\partial_i f^{ab})$.
+Como $f^{ab}N^i_{ab}=-\sqrt{-g}V^i$, resulta
+$\mathscr L_{\rm EH}=\mathscr L_{\rm vol}-\partial_i(f^{ab}N^i_{ab})$.
+\[
+\delta\mathscr L_{\rm vol}=\mathcal E^{(f)}_{ab}\delta f^{ab}+\partial_i(N^i_{ab}\delta f^{ab}).
+\]
+Restar $\partial_i\delta(f^{ab}N^i_{ab})$ cancela $N\delta f$:
+\begin{equation}
+\delta\mathscr L_{\rm EH}=\sqrt{-g}G_{ab}\delta g^{ab}-\partial_i(f^{ab}\delta N^i_{ab}).
+\label{eq:holo-EH-boundary-variation}
+\end{equation}
+\[
+\delta A_{\rm EH}=\int_V\sqrt{-g}G_{ab}\delta g^{ab}\,\dd^Dx
+-\int_{\partial V}\sqrt{|h|}\,n_i g^{ab}\delta N^i_{ab}\,\dd^{D-1}x.
+\]
+Fijar el momento anula el borde. Exigir que $\delta A$ sea igual al borde también fuerza la ecuación de volumen. Fijar momento y fijar métrica son problemas distintos. Esta superficie no se identifica automáticamente con GHY.
+\end{frame}
+\MapaHolografia{4}
+\begin{frame}[label=holo-ll-06]{Lanczos--Lovelock: homogeneidad y Bianchi}
+\footnotesize\CompactDisplaySpacing
+Para cada término LL de orden $m\ge1$, $L_m(g,\lambda R)=\lambda^mL_m(g,R)$.
+Derivar en $\lambda=1$ da
+\begin{equation}
+P_{(m)}^{abcd}R_{abcd}=mL_m,\quad Q_{(m)}^{abcd}=P_{(m)}^{abcd}/m,\quad L_m=Q_{(m)}R.
+\label{eq:holo-Q-P}
+\end{equation}
+El momento contiene $m-1$ curvaturas. La delta generalizada antisimetriza su derivada y produce Bianchi en cada factor:
+\[
+\nabla_aP_{(m)}^{abcd}\ \propto\
+\delta^{\cdots aef\cdots}_{\cdots}\nabla_{[a}R^{ij}{}_{ef]}\,R\cdots R=0.
+\]
+Por eso $\nabla Q=0$ y \eqref{eq:holo-split-general} se reduce a
+\[
+\mathscr L_m=\mathscr L_{{\rm vol},m}+\mathscr L_{{\rm sup},m},\quad
+\mathscr L_{{\rm vol},m}=2\sqrt{-g}Q_{(m)a}{}^{bcd}\Gamma^a_{de}\Gamma^e_{bc}.
+\]
+\begin{block}{Dependencia que debemos conservar}
+En EH, $Q$ depende solo de $g$, y el volumen depende de $g,\partial g$.
+Para $m>1$, $Q$ contiene curvatura y el volumen depende también de $\partial^2g$.
+La variación requiere dos integraciones por partes, aunque las ecuaciones LL finales sean de segundo orden.
+\end{block}
+La condición que eliminó las derivadas superiores elimina ahora el término $\Gamma\nabla Q$ de la separación.
+\end{frame}
+\begin{frame}[label=holo-ll-07]{Segundo gradiente: dos integraciones por partes}
+\footnotesize
+Escribimos $q^A=g_{ab}$, con $A$ un par simétrico. Para las segundas derivadas usamos suma sobre índices ordenados y $M_A^{ij}=M_A^{ji}$.
+\[
+A_A^i=\frac{\partial\mathscr L_{\rm vol}}{\partial q^A_{,i}},\quad
+M_A^{ij}=\frac{\partial\mathscr L_{\rm vol}}{\partial q^A_{,ij}},\quad
+\delta\mathscr L_{\rm vol}=\frac{\partial\mathscr L_{\rm vol}}{\partial q^A}\delta q^A
++A_A^i\partial_i\delta q^A+M_A^{ij}\partial_i\partial_j\delta q^A.
+\]
+Primera integración:
+\[
+M_A^{ij}\partial_i\partial_j\delta q^A
+=\partial_i(M_A^{ij}\partial_j\delta q^A)-(\partial_jM_A^{ij})\partial_i\delta q^A.
+\]
+\begin{equation}
+p_A^i=A_A^i-\partial_jM_A^{ij}
+\equiv\frac{\delta\mathscr L_{\rm vol}}{\delta q^A_{,i}}.
+\label{eq:holo-euler-momentum}
+\end{equation}
+Segunda integración: $p_A^i\partial_i\delta q^A=\partial_i(p_A^i\delta q^A)-(\partial_i p_A^i)\delta q^A$. Así,
+\begin{equation}
+\delta\mathscr L_{\rm vol}=\mathcal E_A\delta q^A
++\partial_i(p_A^i\delta q^A+M_A^{ij}\partial_j\delta q^A),
+\label{eq:holo-second-variation}
+\end{equation}
+\[
+\mathcal E_A=\frac{\partial\mathscr L_{\rm vol}}{\partial q^A}-\partial_i p_A^i,
+\qquad K^i=q^Ap_A^i+q^A_{,j}M_A^{ij}.
+\]
+Para $\delta q^A=\epsilon q^A$, el borde es $\epsilon\partial_iK^i$.
+La derivada euleriana incluye $-\partial_jM_A^{ij}$.
+\end{frame}
+\begin{frame}[label=holo-ll-08]{Homogeneidad y deducción de la identidad LL}
+\hypertarget{holo-ll-09}{}
+\footnotesize\CompactDisplaySpacing
+Para $g_{ab}\mapsto\lambda g_{ab}$ constante, $\sqrt{-g}$ tiene peso $D/2$, $\Gamma$ peso cero y $R^{ab}{}_{cd}$ peso $-1$. Así, $L_m$ y $Q_a{}^{bcd}$ tienen peso $-m$, y ambas densidades tienen peso $w_m=D/2-m$.
+
+La divergencia superficial no cambia la derivada de Euler:
+\[
+\frac{\delta\mathscr L_{{\rm vol},m}}{\delta g_{ab}}=-\sqrt{-g}E_{(m)}^{ab},\quad
+E_{(m)ab}=\Rcal_{(m)ab}-\tfrac12g_{ab}L_m,\quad
+\Rcal_{(m)}{}^a{}_a=mL_m.
+\]
+Por tanto $E_{(m)}{}^a{}_a=-w_mL_m$, y
+\begin{equation}
+g_{ab}\frac{\delta\mathscr L_{{\rm vol},m}}{\delta g_{ab}}
+=w_m\mathscr L_m=w_m(\mathscr L_{{\rm vol},m}+\mathscr L_{{\rm sup},m}).
+\label{eq:holo-trace}
+\end{equation}
+El signo menos viene de variar $g_{ab}$, no $g^{ab}$. Evaluar \eqref{eq:holo-second-variation} en $\delta g_{ab}=\epsilon g_{ab}$ da, sin imponer $E_{ab}=0$,
+\[
+w_m\mathscr L_{{\rm vol},m}=w_m(\mathscr L_{{\rm vol},m}+\mathscr L_{{\rm sup},m})+\partial_iK_m^i.
+\]
+Cancelamos el volumen y sustituimos los momentos de $K_m^i$:
+\begin{equation}
+\boxed{\left(\frac D2-m\right)\mathscr L_{{\rm sup},m}=-\partial_i\!\left[
+g_{ab}\frac{\delta\mathscr L_{{\rm vol},m}}{\delta(\partial_i g_{ab})}
++(\partial_jg_{ab})\frac{\partial\mathscr L_{{\rm vol},m}}{\partial(\partial_i\partial_jg_{ab})}
+\right].}
+\label{eq:holo-LL-identity}
+\end{equation}
+El factor es el peso métrico; los dos términos proceden de las integraciones por partes. Para $D\ne2m$, el volumen reconstruye su superficie. Es (77)--(78) de \cite{PadmanabhanKothawala2013}.
+\end{frame}
+
+\MapaHolografia{5}
+\begin{frame}[label=holo-ll-10]{Resumen LL: identidad, controles y alcance}
+\hypertarget{nav-map-4-6}{}
+\footnotesize\CompactDisplaySpacing
+\textbf{Einstein--Hilbert, $m=1$.} No hay dependencia en $\partial^2g$:
+$M_A^{ij}=0$ y $p_A^i=\partial\mathscr L_{{\rm vol},1}/\partial q^A_{,i}$.
+La identidad LL se reduce a \eqref{eq:holo-EH-identity}.
+\medskip
+
+\textbf{Dimensión crítica, $D=2m$.} Queda $\partial_iK_m^i=0$.
+No puede dividirse por $D/2-m$ ni concluirse $\mathscr L_{{\rm sup},m}=0$.
+El término LL es topológico y su tensor de campo se anula idénticamente.
+\medskip
+
+\textbf{Suma de órdenes.} Para $L=\sum_m c_mL_m$, con coeficientes constantes,
+\[
+\sum_{m\ge1}c_m(D/2-m)\mathscr L_{{\rm sup},m}
+=-\partial_i\sum_{m\ge1}c_mK_m^i.
+\]
+No hay un único peso para la mezcla. El término cosmológico $m=0$ puede asignarse al volumen, con superficie cero.
+\begin{block}{Balance}
+El borde cambia los datos fijados. En LL, $Q=P/m$, Bianchi y homogeneidad establecen la relación volumen--superficie sin usar las soluciones.
+Para el campo escalar revisaremos las hipótesis después de calcular sus momentos y el sector EQT.
+\end{block}
+\global\mapcompletedfooter=6\relax
+\end{frame}
+\setcounter{equation}{\value{holografiaSavedEquation}}
+\endgroup

@@ -1,0 +1,239 @@
+% Deducción propia a partir de la variación ya establecida. No es un teorema del paper LL.
+\section{Estructura holográfica generalizada}
+\SetRoadmapStage{7}
+\setcounter{holografiaSavedEquation}{\value{equation}}
+\begingroup
+\setcounter{equation}{0}
+\renewcommand{\theequation}{G\arabic{equation}}
+\renewcommand{\theHequation}{holografia-gen.\arabic{equation}}
+\MapaHolografiaGen{0}
+\begin{frame}[label=holo-gen-01]{Hipótesis y deducción del defecto de escalamiento}
+\hypertarget{holo-gen-04}{}
+\footnotesize\CompactDisplaySpacing
+Partimos de $L(g,R,\phi,\nabla\phi)$ sin derivadas de $R$, con conexión de Levi--Civita. Suponemos que $\mathscr L=\sqrt{-g}L$ tiene peso $\kappa$ bajo $g_{ab}\mapsto\lambda g_{ab}$ constante, con $\phi$ y sus derivadas coordenadas fijas. Los pesos distintos se tratan por sectores.
+\[
+\delta\mathscr L=\sqrt{-g}(E_{ab}\delta g^{ab}+E_\phi\delta\phi)
++\partial_j(\sqrt{-g}\Theta^j),
+\]
+\begin{equation}
+\Theta^j=2P^{ibjd}\nabla_b\delta g_{di}-2\delta g_{di}\nabla_cP^{ijcd}+\Pi^j\delta\phi.
+\label{eq:hg-boundary}
+\end{equation}
+Elegimos $\delta g_{ab}=\epsilon g_{ab}$ y $\delta\phi=0$: entonces $\delta g^{ab}=-\epsilon g^{ab}$, $\nabla_b\delta g_{di}=0$ y $\Theta^j=-2\epsilon g_{di}\nabla_cP^{ijcd}$. Sustituir y dividir por $\epsilon$ da
+\[
+\kappa\mathscr L=-\sqrt{-g}g^{ab}E_{ab}-2\partial_j(\sqrt{-g}g_{di}\nabla_cP^{ijcd}).
+\]
+Definimos la divergencia residual como
+\begin{equation}
+\boxed{\Delta_{\rm H}\equiv\kappa\mathscr L+\sqrt{-g}g^{ab}E_{ab}
+=-2\partial_j(\sqrt{-g}g_{di}\nabla_cP^{ijcd}).}
+\label{eq:hg-defect}
+\end{equation}
+$\nabla P=0$ implica $\Delta_{\rm H}=0$, no a la inversa. Fijar $\delta\phi=0$ no elimina el término métrico con $\nabla P$. Es una deducción propia fuera de las soluciones, no un teorema atribuido al artículo LL.
+\end{frame}
+\MapaHolografiaGen{1}
+\begin{frame}[label=holo-gen-02]{Separación exacta y orden de las derivadas}
+\footnotesize
+Si un sector $L_R$ es homogéneo de grado $m\ge1$ en curvatura, Euler da
+$P^{abcd}R_{abcd}=mL_R$. Con $Q=P/m$, \eqref{eq:holo-split-general} implica
+\begin{equation}
+\mathscr L_R=\mathscr L_{\rm vol}+\mathscr L_{\rm sup},\qquad
+\mathscr L_{\rm vol}=\mathscr L_{\rm vol}^{(0)}+\mathscr L_{\nabla P},
+\label{eq:hg-split}
+\end{equation}
+\[
+\begin{aligned}
+\mathscr L_{\rm sup}&=\frac2m\partial_c(\sqrt{-g}P_a{}^{bcd}\Gamma^a_{bd}),\\
+\mathscr L_{\rm vol}^{(0)}&=\frac2m\sqrt{-g}P_a{}^{bcd}\Gamma^a_{de}\Gamma^e_{bc},\\
+\mathscr L_{\nabla P}&=-\frac2m\sqrt{-g}\Gamma^a_{bd}\nabla_cP_a{}^{bcd}.
+\end{aligned}
+\]
+\textbf{El volumen incluye la corrección.} Usar solo $\mathscr L_{\rm vol}^{(0)}$ fuera de LL no reconstruye la acción.
+\medskip
+
+Si $P$ depende de $R$, $\nabla P$ puede contener $\partial^3g$.
+La fórmula de segundo gradiente no basta entonces.
+Para $Q_\beta$, lineal en curvatura, $P_\beta=P_\beta(g,u)$ y el volumen contiene hasta $\partial g$ y $\partial^2\phi$, sin $\partial^2g$.
+
+Los términos sin curvatura pueden asignarse al volumen. La descomposición y sus partes dependen de las coordenadas.
+\end{frame}
+\MapaHolografiaGen{2}
+\begin{frame}[label=holo-gen-03]{Operador de escalamiento del volumen}
+\footnotesize
+Con $q^A=g_{ab}$ y manteniendo todos los argumentos escalares fijos, para un volumen de segundo gradiente definimos
+\[
+M_A^{ij}=\frac{\partial\mathscr L_{\rm vol}}{\partial q^A_{,ij}},\qquad
+p_A^i=\frac{\partial\mathscr L_{\rm vol}}{\partial q^A_{,i}}-\partial_jM_A^{ij}.
+\]
+Las dos integraciones por partes de \eqref{eq:holo-second-variation}, con $\delta q^A=\epsilon q^A$, dan
+\begin{equation}
+\mathcal H_g[\mathscr L_{\rm vol}]
+\equiv\partial_i(q^Ap_A^i+q^A_{,j}M_A^{ij})
+=\kappa\mathscr L_{\rm vol}-g_{ab}\frac{\delta\mathscr L_{\rm vol}}{\delta g_{ab}}.
+\label{eq:hg-operator}
+\end{equation}
+Si aparecen terceros gradientes, sea $T_A^{ijk}=\partial\mathscr L_{\rm vol}/\partial q^A_{,ijk}$, simétrico. Una integración adicional produce
+\[
+M_A^{ij}=\frac{\partial\mathscr L_{\rm vol}}{\partial q^A_{,ij}}-\partial_kT_A^{ijk},\quad
+p_A^i=\frac{\partial\mathscr L_{\rm vol}}{\partial q^A_{,i}}-\partial_jM_A^{ij},
+\]
+\[
+\mathcal H_g=\partial_i(q^Ap_A^i+q^A_{,j}M_A^{ij}+q^A_{,jk}T_A^{ijk}).
+\]
+La igualdad de escalamiento de \eqref{eq:hg-operator} se conserva. Para $Q_\beta$, $M=T=0$ en la variación métrica, aunque haya segundos gradientes escalares.
+\end{frame}
+\MapaHolografiaGen{3}
+
+\begin{frame}[label=holo-gen-05]{Identidad volumen--superficie con defecto}
+Para una separación homogénea $\mathscr L=\mathscr L_{\rm vol}+\mathscr L_{\rm sup}$, la superficie es una divergencia y
+\[
+\frac{\delta\mathscr L_{\rm vol}}{\delta g_{ab}}
+=\frac{\delta\mathscr L}{\delta g_{ab}}=-\sqrt{-g}E^{ab}.
+\]
+Por \eqref{eq:hg-operator},
+\begin{align*}
+\mathcal H_g[\mathscr L_{\rm vol}]
+&=\kappa\mathscr L_{\rm vol}+\sqrt{-g}g^{ab}E_{ab}\\
+&=\kappa\mathscr L_{\rm vol}+\Delta_{\rm H}-\kappa\mathscr L\\
+&=-\kappa\mathscr L_{\rm sup}+\Delta_{\rm H}.
+\end{align*}
+Por tanto,
+\begin{equation}
+\boxed{\kappa\mathscr L_{\rm sup}=-\mathcal H_g[\mathscr L_{\rm vol}]+\Delta_{\rm H}.}
+\label{eq:hg-identity}
+\end{equation}
+Para un término LL geométrico, $\kappa=D/2-m$ y $\Delta_{\rm H}=0$: recuperamos \eqref{eq:holo-LL-identity}.
+
+Si $\kappa=0$, queda $\mathcal H_g=\Delta_{\rm H}$ y la identidad no reconstruye la superficie por división.
+\end{frame}
+\MapaHolografiaGen{4}
+\begin{frame}[label=holo-gen-06]{Superficie efectiva: significado y límite}
+Para $\kappa\ne0$ podemos reorganizar \eqref{eq:hg-identity} mediante
+\begin{equation}
+\widetilde{\mathscr L}_{\rm sup}
+=\mathscr L_{\rm sup}-\frac{\Delta_{\rm H}}{\kappa}
+=\mathscr L_{\rm sup}+\frac2\kappa\partial_j(\sqrt{-g}g_{di}\nabla_cP^{ijcd}),
+\label{eq:hg-effective}
+\end{equation}
+\[
+\kappa\widetilde{\mathscr L}_{\rm sup}=-\mathcal H_g[\mathscr L_{\rm vol}].
+\]
+\textbf{Aquí el operador actúa sobre el volumen original.} La pareja
+$\mathscr L_{\rm vol}+\widetilde{\mathscr L}_{\rm sup}$ no suma la acción original, sino $\mathscr L-\Delta_{\rm H}/\kappa$.
+Para conservar la misma densidad debemos definir también
+\[
+\widetilde{\mathscr L}_{\rm vol}=\mathscr L_{\rm vol}+\Delta_{\rm H}/\kappa.
+\]
+Como $\Delta_{\rm H}$ es una divergencia homogénea, su derivada de Euler es cero y $\mathcal H_g[\Delta_{\rm H}/\kappa]=\Delta_{\rm H}$. Luego
+\[
+\kappa\widetilde{\mathscr L}_{\rm sup}
+=-\mathcal H_g[\widetilde{\mathscr L}_{\rm vol}]+\Delta_{\rm H}.
+\]
+La redefinición no elimina el defecto de una separación consistente. Es una reescritura útil, no una prueba de que la teoría sea LL.
+\end{frame}
+\MapaHolografiaGen{5}
+
+\begin{frame}[label=holo-gen-07]{Sector $Q_\beta$: peso y contracción de $P_\beta$}
+\footnotesize\CompactDisplaySpacing
+Para $Q_\beta=\ell^2\beta_0(3R_{ab}u^au^b-RX)$, $u_a=\partial_a\phi$ y $X=u_au^a$, el escalamiento a $\phi$ fijo da
+\[
+u_a\mapsto u_a,\quad u^a\mapsto\lambda^{-1}u^a,\quad
+R_{ab}\mapsto R_{ab},\quad R,X\mapsto\lambda^{-1}(R,X).
+\]
+Así $Q_\beta\mapsto\lambda^{-2}Q_\beta$, aunque es lineal en curvatura:
+\begin{equation}
+\kappa_\beta=D/2-2\qquad (m_\beta=1).
+\label{eq:hg-beta-weight}
+\end{equation}
+La contracción del momento ya calculado se obtiene término a término:
+\[
+\begin{aligned}
+g_{bc}P_\beta^{abcd}
+=\frac{\ell^2\beta_0}{4}\big[&3(u^au^d+u^au^d-Du^au^d-Xg^{ad})\\
+&-2X(g^{ad}-Dg^{ad})\big].
+\end{aligned}
+\]
+Agrupando,
+\begin{equation}
+g_{bc}P_\beta^{abcd}
+=\frac{\ell^2\beta_0}{4}[-3(D-2)u^au^d+(2D-5)Xg^{ad}].
+\label{eq:hg-beta-contraction}
+\end{equation}
+El peso métrico no se obtiene contando solo curvaturas cuando hay gradientes escalares.
+\end{frame}
+\begin{frame}[label=holo-gen-08]{Sector $Q_\beta$: divergencia y superficie efectiva}
+\footnotesize\CompactDisplaySpacing
+Las dos antisimetrías de $P$ permiten escribir
+$g_{di}\nabla_cP^{ijcd}=g_{bc}\nabla_dP^{jbcd}$.
+Por compatibilidad métrica, contraer y derivar conmutan. En $D=3$,
+\[
+C_\beta^a\equiv g_{bc}\nabla_dP_\beta^{abcd}
+=\frac{\ell^2\beta_0}{4}[-3\nabla_d(u^au^d)+\nabla^aX].
+\]
+Al introducirlo en \eqref{eq:hg-defect},
+\begin{equation}
+\Delta_{{\rm H},\beta}
+=\frac{\ell^2\beta_0}{2}\partial_a\!\left\{\sqrt{-g}
+[3\nabla_d(u^au^d)-\nabla^aX]\right\}.
+\label{eq:hg-beta-defect}
+\end{equation}
+Como $\kappa_\beta=-1/2$, \eqref{eq:hg-effective} da
+\begin{equation}
+\widetilde{\mathscr L}_{{\rm sup},\beta}
+=\mathscr L_{{\rm sup},\beta}+\ell^2\beta_0\partial_a\!\left\{\sqrt{-g}
+[3\nabla_d(u^au^d)-\nabla^aX]\right\}.
+\label{eq:hg-beta-effective}
+\end{equation}
+\[
+-\tfrac12\widetilde{\mathscr L}_{{\rm sup},\beta}
+=-\mathcal H_g[\mathscr L_{{\rm vol},\beta}].
+\]
+La fórmula conserva el volumen original, incluida $\mathscr L_{\nabla P}$. En $D=4$, $\kappa_\beta=0$: esta división no está permitida.
+\end{frame}
+\begin{frame}[label=holo-gen-09]{Chequeo sobre el ansatz estático}
+\footnotesize\CompactDisplaySpacing
+Como comprobación, usamos $\dd s^2=-f(r)\dd t^2+\dd r^2/f(r)+r^2\dd\theta^2$ y $u_a=(0,0,p)$.
+Entonces $\sqrt{-g}=r$, $X=p^2/r^2$ y $u^\theta=p/r^2$.
+\[
+\nabla_du^d=0,\quad \Gamma^r_{\theta\theta}=-rf,\quad
+\nabla_d(u^ru^d)=\Gamma^r_{\theta\theta}(u^\theta)^2=-\frac{fp^2}{r^3},\quad
+\nabla^rX=-\frac{2fp^2}{r^3}.
+\]
+Los otros componentes de $C_\beta^a$ se anulan. Por tanto,
+\[
+C_\beta^r=\frac{\ell^2\beta_0fp^2}{4r^3},\qquad
+\Delta_{{\rm H},\beta}=-2\partial_r(rC_\beta^r)
+=-\frac{\ell^2\beta_0p^2}{2}\frac{\dd}{\dd r}\left(\frac f{r^2}\right).
+\]
+La corrección superficial es
+\[
+\widetilde{\mathscr L}_{{\rm sup},\beta}-\mathscr L_{{\rm sup},\beta}
+=-\ell^2\beta_0p^2\left(\frac{f'}{r^2}-\frac{2f}{r^3}\right).
+\]
+Si $f\propto r^2$, el defecto se anula en este ansatz. Sin embargo, la componente calculada en la discusión, $\nabla_aP_\beta^{attr}=\ell^2\beta_0p^2/(4r^3)$, puede ser no nula.
+Es un chequeo sobre una geometría, no una identidad LL ni una imposición de las ecuaciones de campo.
+\end{frame}
+\begin{frame}[label=holo-gen-10]{Resumen: identidad con defecto y frontera}
+\hypertarget{nav-map-7-6}{}
+\footnotesize
+Para cualquier separación $\mathscr L=\mathscr L_{\rm vol}+\partial_aV^a$,
+\[
+\delta\mathscr L_{\rm vol}=\sqrt{-g}(E_{ab}\delta g^{ab}+E_\phi\delta\phi)
++\partial_a\vartheta_{\rm vol}^a
+\]
+implica, con una elección compatible de corrientes,
+\[
+\sqrt{-g}\Theta^a=\vartheta_{\rm vol}^a+\delta V^a
+\quad\text{hasta una corriente de divergencia idénticamente nula}.
+\]
+Por eso $\delta V^a$ no tiene que coincidir por sí sola con $\sqrt{-g}\Theta^a$.
+Si $V^a$ cambia por $2\sqrt{-g}C^a/\kappa$, con $C^a=g_{bc}\nabla_dP^{abcd}$, la frontera de la acción cambia por la variación de esa corrección, salvo compensación en el volumen.
+\begin{block}{Qué queda establecido}
+La homogeneidad produce una identidad con defecto $\Delta_{\rm H}$. El caso $Q_\beta$ tiene peso $D/2-2$ y la corrección explícita anterior.
+La superficie efectiva reorganiza esa identidad, pero no prueba una nueva dualidad ni un principio de borde de tipo LL.
+\end{block}
+Si $\delta\phi\ne0$ debe conservarse $\Pi_\beta^a\delta\phi$. Las condiciones de contorno y los posibles contraterminos requieren un análisis variacional propio.
+\global\mapcompletedfooter=6\relax
+\end{frame}
+\setcounter{equation}{\value{holografiaSavedEquation}}
+\endgroup

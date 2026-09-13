@@ -1,0 +1,12 @@
+% Estilo local de las tablas. No modifica las diapositivas heredadas.
+\makeatletter
+\newcommand{\TablaSetup}{%
+  \small
+  \setlength{\tabcolsep}{5pt}%
+  \renewcommand{\arraystretch}{1.55}%
+  \let\TablaRestore\@arrayparboxrestore
+  \def\@arrayparboxrestore{\TablaRestore\raggedright\let\\\tabularnewline}%
+}
+\makeatother
+\newcommand{\TablaLinea}{\noalign{\vskip1.5mm}\hline\noalign{\vskip1.5mm}}
+\newcommand{\TablaCabecera}[1]{\textcolor{structure.fg}{\textbf{#1}}}

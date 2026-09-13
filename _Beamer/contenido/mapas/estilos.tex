@@ -1,0 +1,10 @@
+% Diagramas nativos TikZ. Las flechas indican la secuencia del argumento.
+\usetikzlibrary{arrows.meta}
+\tikzset{
+  argumento/.style={align=center,font=\small,inner sep=5pt},
+  paso/.style={argumento,draw=structure.fg!65,line width=.6pt,
+    rounded corners=2pt,fill=structure.fg!4},
+  resultado/.style={paso,draw=structure.fg,line width=.9pt,fill=structure.fg!9},
+  enlace/.style={-{Latex[length=2mm]},draw=structure.fg,line width=.8pt},
+  motivo/.style={font=\footnotesize,align=center,fill=white,inner sep=2pt}
+}

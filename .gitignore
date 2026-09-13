@@ -5,3 +5,17 @@ __pycache__/
 
 FieldEquationsSolver/output/*
 !FieldEquationsSolver/output/README.md
+
+# Beamer: versionar fuentes y PDF publicado, no auxiliares ni respaldos locales.
+/_Beamer/.build/
+/_Beamer/.review/
+/_Beamer/backups/
+/_Beamer/archivo/
+/_Beamer/*.aux
+/_Beamer/*.log
+/_Beamer/*.nav
+/_Beamer/*.out
+/_Beamer/*.snm
+/_Beamer/*.toc
+/_Beamer/*.synctex*
+/Beamer_holografia_generalizada_*.zip

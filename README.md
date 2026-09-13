@@ -97,7 +97,7 @@ $\phi(t)$.
 | [FieldEquationsSolver](FieldEquationsSolver/README.md) | Reducción, clasificación y resolución formal opcional de las ecuaciones de campo |
 | [ResearchWorkflow](ResearchWorkflow/README.md) | Notebook integrado y salidas producidas durante el trabajo interactivo |
 | [Papers](Papers/) | Bibliografía y documentos de referencia, incluido el Draft 4 |
-| [Beamer](Beamer/) | Fuentes LaTeX y material de presentación de la investigación |
+| [Beamer](_Beamer/README.md) | Presentación sobre gravedad modificada: fuentes LaTeX, PDF, mapas, resúmenes y navegación |
 
 Para empezar, consulta la [guía del motor](TensorEngine/README.md) y abre el
 [flujo de investigación](ResearchWorkflow/01_modified_gravity_workflow.ipynb).

@@ -1,0 +1,191 @@
+% Mapas de cobertura completa. El argumento indica cuántos bloques
+% se han desarrollado, no el número de la diapositiva.
+\definecolor{mapdone}{RGB}{35,108,74}
+\newcount\mapcompletedfooter
+\newcount\maptotalfooter
+\newcommand{\ProgressMap}[4]{%
+  \global\mapcompletedfooter=#2\relax
+  \global\maptotalfooter=#3\relax
+  \ifnum#2=0\relax
+    \FullProgressMap{#1}{#2}{#3}{#4}%
+  \else\ifnum#2=#3\relax
+    \FullProgressMap{#1}{#2}{#3}{#4}%
+  \fi\fi
+}
+\newcommand{\FullProgressMap}[4]{%
+  \begin{frame}[label=nav-map-\thesection-#2]{#1}
+  \def\MapCompleted{#2}%
+  \def\MapTotal{#3}%
+  \def\MapGap{.10}%
+  \ifnum#2=0\relax\def\MapGap{.05}\fi
+  \centering
+  \ifnum#2=0\relax
+    {\footnotesize\raggedright\textbf{Objetivo.} \SectionPurpose\par}
+    \vspace{.4em}
+  \fi
+  \ifnum#2>0\relax
+  {\footnotesize
+    \textcolor{mapdone}{$\checkmark$\ Completado}\qquad
+    \textcolor{structure.fg}{Azul: siguiente bloque}\qquad
+    Blanco: pendiente\par}
+  \vspace{.3em}
+  \fi
+  \begin{tikzpicture}
+  #4%
+  \end{tikzpicture}
+  \par\vspace{.25em}
+  {\footnotesize\MapCompleted/\MapTotal\ bloques completados.
+    \ifnum\MapCompleted=\MapTotal\relax
+      Recorrido de la sección completado.
+    \else
+      El pie indica los bloques ya completados.
+    \fi\par}
+  \end{frame}
+}
+
+\newcommand{\MapStep}[3]{%
+  \ifnum#1>1\relax
+    \pgfmathtruncatemacro{\MapPrevious}{#1-1}%
+    \path (step\MapPrevious.south) ++(0,-\MapGap) coordinate (MapAnchor);
+  \else
+    \coordinate (MapAnchor) at (0,0);
+  \fi
+  \ifnum#1>\MapCompleted\relax
+    \ifnum#1=\numexpr\MapCompleted+1\relax
+      \def\MapFill{structure.fg!10}%
+      \def\MapStroke{structure.fg}%
+    \else
+      \def\MapFill{white}%
+      \def\MapStroke{black!45}%
+    \fi
+    \def\MapMark{#1.}%
+  \else
+    \def\MapFill{mapdone!15}%
+    \def\MapStroke{mapdone}%
+    \def\MapMark{$\checkmark$\ #1.}%
+  \fi
+  \node[draw=\MapStroke,fill=\MapFill,line width=.7pt,
+    rounded corners=2pt,text width=9.8cm,align=center,anchor=north,
+    inner xsep=5pt,inner ysep=2.5pt,minimum height=.78cm,
+    font=\fontsize{9}{10.5}\selectfont] (step#1) at (MapAnchor)
+    {\textbf{\MapMark\ #2}\\[1pt]#3};
+}
+
+\newcommand{\MapaLie}[1]{%
+\ProgressMap{Mapa de Lie: identidad y casos de control}{#1}{6}{%
+  \MapStep{1}{Herramienta de Lie y cálculo como escalar}
+    {Momentos $P^{ab}$ y $P^{abcd}$; compatibilidad $\nabla_mg_{ab}=0$.}
+  \MapStep{2}{Cálculo por los argumentos y simetrías}
+    {$\mathcal L_\xi g_{ab}$, $\mathcal L_\xi R_{ijkl}$ y simetrías de $P^{ijkl}$ y $R_{ijkl}$.}
+  \MapStep{3}{Contracción de curvatura y segundo cálculo}
+    {$\mathcal R^{ab}=P^{aijk}R^b{}_{ijk}$; agrupación de los términos con $\nabla_a\xi_b$.}
+  \MapStep{4}{Comparación e identidad principal}
+    {$P^{ab}=-2\mathcal R^{ab}$; simetría de $P^{ab}$ y de $\mathcal R^{ab}$.}
+  \MapStep{5}{Control Einstein--Hilbert}
+    {Cálculo de $P^{abcd}_{\mathrm{EH}}$ y contracción $\mathcal R_{ab}=R_{ab}$.}
+  \MapStep{6}{Control cosmológico y balance}
+    {$P_\Lambda^{ab}=0$, $P_\Lambda^{abcd}=0$, $\mathcal R_\Lambda^{ab}=0$; resultados para variar la acción.}
+}}
+
+\newcommand{\MapaVariacion}[1]{%
+\ProgressMap{Mapa de la acción: variación, Bianchi y Noether}{#1}{6}{%
+  \MapStep{1}{Variación de la acción e identidad de Palatini}
+    {$g_{ab}$ a $g^{ab}$, $\delta\sqrt{-g}$ y $\delta L$; $\delta R$ en términos de $\delta\Gamma$.}
+  \MapStep{2}{Integraciones por partes: volumen y frontera}
+    {Dos integraciones; $E_{ab}\delta g^{ab}+\nabla_a\delta v^a$ y condiciones de borde.}
+  \MapStep{3}{Bianchi por covariancia y especialización LL}
+    {$\nabla^aE_{ab}\equiv0$; en LL, $\nabla^a\mathcal R_{ab}=\tfrac12\nabla_bL$.}
+  \MapStep{4}{Controles Einstein--Hilbert y cosmológico}
+    {$E_{ab}^{\mathrm{EH}}=G_{ab}$, $E_{ab}^{\Lambda}=\Lambda g_{ab}$; Bianchi y términos de frontera.}
+  \MapStep{5}{Corriente y potencial de Noether}
+    {Difeomorfismos: $\nabla_aJ^a=0$, $J^a=\nabla_bJ^{ab}$ y conservación \emph{off-shell}.}
+  \MapStep{6}{Controles de Noether y balances}
+    {EH y $\Lambda$: corriente y potencial; vector de \mbox{Killing} y balances.}
+}}
+
+\newcommand{\MapaOrden}[1]{%
+\ProgressMap{Mapa del segundo orden: diagnóstico y condición LL}{#1}{3}{%
+  \MapStep{1}{Origen posible de las derivadas de cuarto orden}
+    {$R\sim\partial^2g+(\partial g)^2$; si $P$ depende de $R$, $\nabla\nabla P$ puede contener $\partial^4g$.}
+  \MapStep{2}{Condición de divergencia nula}
+    {$\nabla_aP^{abcd}=0$: anulación de la doble divergencia.\\Tensor de campo y acoplamiento a materia.}
+  \MapStep{3}{Resultado de Lanczos--Lovelock}
+    {$L=\sum_m c_mL_m$; forma general con la delta generalizada\\y productos de curvaturas.}
+}}
+
+\newcommand{\MapaHolografia}[1]{%
+\ProgressMap{Mapa de la holografía: acción, volumen y superficie}{#1}{6}{%
+  \MapStep{1}{Mecánica y elección de datos de borde}
+    {$L_C=L_q-\dd f/\dd t$; construcción de $f(q,C)$ y caso $C=p$.}
+  \MapStep{2}{Campos y estructura $\dd(qp)$}
+    {$\mathscr L_p=\mathscr L_q-\partial_i(q^A\pi_A^i)$; fase de borde.}
+  \MapStep{3}{Separación de Einstein--Hilbert}
+    {$QR$, integración por partes y $\Gamma\nabla Q$; identidad holográfica EH.}
+  \MapStep{4}{Momento gravitacional y variación de frontera}
+    {$f^{ab}=\sqrt{-g}g^{ab}$, $N^i_{ab}$ y condiciones de borde con momento fijo.}
+  \MapStep{5}{Identidad holográfica LL y su deducción}
+    {$Q=P/m$ y Bianchi; dos integraciones por partes.\\Homogeneidad y factor $D/2-m$.}
+  \MapStep{6}{Controles y alcance del resultado}
+    {$m=1$; dimensión crítica $D=2m$; suma de órdenes y balance.}
+}}
+
+\newcommand{\MapaEscalar}[1]{%
+\ProgressMap{Mapa de la extensión escalar: dinámica y simetrías}{#1}{6}{%
+  \MapStep{1}{Momentos y separación de las variaciones}
+    {$P^{abcd}$, $P_{ab}$, $\Pi^a$, $F_\phi$; integración por partes del aporte escalar.}
+  \MapStep{2}{Identidad algebraica y variación completa}
+    {Relación entre $\mathcal R_{ab}$, $P_{ab}$ y $\Pi_a u_b$; $E_{ab}$, $E_\phi$ y $\Theta^a$.}
+  \MapStep{3}{Bianchi con campo escalar}
+    {$2\nabla^aE_{ab}+E_\phi\nabla_b\phi\equiv0$; identidad sin imponer las ecuaciones.}
+  \MapStep{4}{Noether generalizado y cancelación escalar}
+    {Construcción de $\mathcal J^a$; cancelaciones explícitas; potencial $\mathcal J^{ab}$.}
+  \MapStep{5}{Comparación con el caso puramente geométrico}
+    {Límite sin escalar; simplificación LL y término con $\nabla P$ en el potencial.}
+  \MapStep{6}{Desplazamiento y ecuaciones de campo}
+    {Bianchi en momentos; $F_\phi=0$, $E_{ab}=E_\phi=0$ y $\nabla_a\Pi^a=0$.}
+}}
+
+\newcommand{\MapaEQT}[1]{%
+\ProgressMap{Mapa EQT: sectores, momentos y ecuaciones}{#1}{6}{%
+  \MapStep{1}{Separación de sectores y término cinético}
+    {$L=L_0+Q_\beta$; momentos cinéticos, variación e integración por partes.}
+  \MapStep{2}{Reconstrucción de $L_0$}
+    {EH, constante cosmológica y cinético: $E^{(0)}_{ab}$, $E^{(0)}_\phi$ y frontera.}
+  \MapStep{3}{Acoplamiento $Q_\beta$: curvatura y métrica}
+    {$P_\beta^{abcd}$ por simetrías; dos grupos de variación métrica para $P^{(\beta)}_{ab}$.}
+  \MapStep{4}{Momentos escalares del acoplamiento}
+    {Variación respecto de $u_a$; cálculo de $\Pi_\beta^a$ y $F_\phi^{(\beta)}=0$.}
+  \MapStep{5}{Contracciones, ecuaciones y frontera de $Q_\beta$}
+    {$\mathcal R^{(\beta)}_{(ab)}$, $-2\nabla\nabla P_\beta$; $\delta I_{Q_\beta}$, $E^{(\beta)}_{ab}$, $E^{(\beta)}_\phi$ y $\Theta^a_{(\beta)}$.}
+  \MapStep{6}{Chequeo de Bianchi y teoría completa}
+    {$2\nabla^aE_{ab}+E_\phi u_b=0$; suma de ecuaciones y fronteras de ambos sectores.}
+}}
+
+
+\newcommand{\MapaHolografiaGen}[1]{%
+\ProgressMap{Mapa de holografía generalizada}{#1}{6}{%
+  \MapStep{1}{Variación, homogeneidad y defecto}
+    {$\phi$ fijo, peso $\kappa$; deducción de $\Delta_{\rm H}$ desde $\Theta^a$.}
+  \MapStep{2}{Separación exacta de la acción}
+    {$Q=P/m$; volumen completo con $\Gamma\nabla P$ y orden de derivadas.}
+  \MapStep{3}{Operador de escalamiento}
+    {Integraciones por partes; momentos de segundo y tercer gradiente.}
+  \MapStep{4}{Identidad volumen--superficie}
+    {$\kappa\mathscr L_{\rm sup}=-\mathcal H_g[\mathscr L_{\rm vol}]+\Delta_{\rm H}$; límite LL y $\kappa=0$.}
+  \MapStep{5}{Superficie efectiva y acción original}
+    {$-\Delta_{\rm H}/\kappa$; compensación en volumen y alcance de la reescritura.}
+  \MapStep{6}{Control $Q_\beta$ y balance variacional}
+    {Peso y contracción; corrección en $D=3$, ansatz y frontera completa.}
+}}
+
+\newcommand{\MapaDiscusion}[1]{%
+\ProgressMap{Mapa del contraste con Lanczos--Lovelock}{#1}{4}{%
+  \MapStep{1}{Identificación del sector relevante}
+    {$\nabla_aP^{abcd}=\nabla_aP_\beta^{abcd}$; recuperación del momento ya calculado.}
+  \MapStep{2}{Divergencia general y simplificación}
+    {Derivadas de $u_a$ y $X$; simetría de $\nabla_a u_b$; expresión general de $\nabla P_\beta$.}
+  \MapStep{3}{Evaluación sobre el ansatz y elección de componente}
+    {$u_a=(0,0,p)$, $X=p^2/r^2$; componente $(b,c,d)=(t,t,r)$.}
+  \MapStep{4}{Resultado no nulo, casos límite y balance}
+    {$\nabla_aP_\beta^{attr}=\ell^2\beta_0p^2/(4r^3)$; cancelación de $f(r)$, $\beta_0=0$, $p=0$ y límite asintótico.}
+}}

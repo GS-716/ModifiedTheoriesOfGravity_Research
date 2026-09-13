@@ -8,18 +8,25 @@
 
 % Limpieza visual habitual en Beamer
 \setbeamertemplate{navigation symbols}{}
+\setbeamertemplate{section in toc shaded}[default][55]
 
 \usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
 \usepackage[spanish,es-noquoting]{babel}
 \usepackage{amsmath,amssymb,mathtools,bm}
+\usepackage{mathrsfs}
 \usepackage{physics}
 \usepackage{tikz}
+% FASE 2: diagramas editables de orientación.
+\input{contenido/mapas/estilos.tex}
+\input{contenido/mapas/mapas-progreso.tex}
+\input{contenido/mapas/progreso-compacto.tex}
+\input{contenido/tablas/estilos.tex}
 \usepackage{bm}
 
 
-\title[Lanczos-Lovelock]{Lagrangianos desde curvatura y métrica}
-\subtitle{Sección 2.1: desarrollo paso a paso}
+\title[Gravedad modificada]{Teorías de gravedad modificada}
+\subtitle{Variación, simetrías y estructura holográfica:\\de Lanczos--Lovelock al acoplamiento escalar EQT}
 \author[Guillermo Jordán A.]{Guillermo Jordán A.}
 \institute[PUCP]{Pontificia Universidad Católica del Perú}
 \date{\today}
@@ -29,17 +36,36 @@
 \renewcommand{\dd}{\mathrm{d}}
 \newcommand{\Eab}{E_{ab}}
 \newcommand{\Eq}[1]{\eqref{#1}}
+\newcounter{holografiaSavedEquation}
+
+% Espaciado local para diapositivas densas: conserva el tamaño del texto.
+\newcommand{\CompactDisplaySpacing}{%
+  \setlength{\abovedisplayskip}{2pt plus 1pt minus 1pt}%
+  \setlength{\belowdisplayskip}{2pt plus 1pt minus 1pt}%
+  \setlength{\abovedisplayshortskip}{0pt plus 1pt}%
+  \setlength{\belowdisplayshortskip}{1pt plus 1pt}%
+}
 
 % ================================================================
 % ROADMAP DE LA DEDUCCIÓN
+\newcommand{\DenseDisplaySpacing}{%
+\setlength{\abovedisplayskip}{1pt}%
+\setlength{\belowdisplayskip}{1pt}%
+\setlength{\abovedisplayshortskip}{0pt}%
+\setlength{\belowdisplayshortskip}{0pt}%
+\setlength{\jot}{1pt}%
+}
 % ================================================================
 
 % Etapas globales:
 % 1 = Identidad principal
 % 2 = Variación de la acción
-% 3 = Diagnóstico de derivadas superiores
-% 4 = Condición de segundo orden
-% 5 = Deducción completada
+% 3 = Condición de segundo orden
+% 4 = Estructura holográfica LL
+% 5 = Generalización con campo escalar
+% 6 = Estudio de casos
+% 7 = Estructura holográfica generalizada
+% 8 = Discusión de resultados
 % 0 = Ocultar roadmap
 
 \newcount\roadmapstage
@@ -98,128 +124,97 @@
 
     \end{beamercolorbox}
 
-    \vspace{.5em}
+    \vspace{.25em}
 }
 
 %------------------------------------------------
 % Caja de cada etapa
 
 \newcommand{\RoadmapBox}[2]{%
-
-    % Etapa terminada
     \ifnum#1<\roadmapstage
-
-        \begin{beamercolorbox}[
-            wd=.235\paperwidth,
-            ht=2.5ex,
-            dp=.8ex,
-            center
-        ]{roadmap done}
-
-        \tiny\bfseries
-        $\checkmark$\; #1\enspace #2
-
-        \end{beamercolorbox}
-
-    % Etapa actual
+      \def\RoadmapColor{roadmap done}%
     \else\ifnum#1=\roadmapstage
-
-        \begin{beamercolorbox}[
-            wd=.235\paperwidth,
-            ht=2.5ex,
-            dp=.8ex,
-            center
-        ]{roadmap current}
-
-        \tiny\bfseries
-        #1\enspace #2
-
-        \end{beamercolorbox}
-
-    % Etapa pendiente
+      \def\RoadmapColor{roadmap current}%
     \else
-
-        \begin{beamercolorbox}[
-            wd=.235\paperwidth,
-            ht=2.5ex,
-            dp=.8ex,
-            center
-        ]{roadmap pending}
-
-        \tiny\bfseries
-        #1\enspace #2
-
-        \end{beamercolorbox}
-
+      \def\RoadmapColor{roadmap pending}%
     \fi\fi
+    \begin{beamercolorbox}[wd=.092\paperwidth,ht=2.5ex,dp=.8ex,center]{\RoadmapColor}%
+      \tiny\bfseries\hyperlink{nav-map-#1-0}{#2}%
+      \ifnum#1=\roadmapstage\relax
+        \ifnum\maptotalfooter>0\relax
+          \enspace\the\mapcompletedfooter/\the\maptotalfooter
+        \fi
+      \fi
+    \end{beamercolorbox}%
 }
 
 %------------------------------------------------
 % Footer completo
 
 \setbeamertemplate{footline}{%
-
-    \ifnum\roadmapstage>0
-
-        \leavevmode
-
-        \hbox{%
-
-            \RoadmapBox{1}{Derivadas de Lie}%
-
-            \RoadmapBox{2}{Variación de la acción}%
-
-            \RoadmapBox{3}{Condición de 2° orden}%
-
-            \RoadmapBox{4}{Generalización}%
-
-            \RoadmapBox{5}{Casos}%
-
-            \RoadmapBox{6}{Discusión}%
-
-            \begin{beamercolorbox}[
-                wd=.06\paperwidth,
-                ht=2.5ex,
-                dp=.8ex,
-                center
-            ]{roadmap page}
-
-            \tiny
-            \insertframenumber
-
-            \end{beamercolorbox}%
-        }
-
-    \fi
+      \MiniProgress\leavevmode%
+      \hbox to \paperwidth{%
+      \ifnum\roadmapstage>0
+        \RoadmapBox{1}{Lie}%
+        \RoadmapBox{2}{Acc.}%
+        \RoadmapBox{3}{Ord.}%
+        \RoadmapBox{4}{HLL}%
+        \RoadmapBox{5}{Esc.}%
+        \RoadmapBox{6}{EQT}%
+        \RoadmapBox{7}{HGen}%
+        \RoadmapBox{8}{Disc.}%
+      \else
+        \hbox to .736\paperwidth{\hfil}%
+      \fi
+        \begin{beamercolorbox}[wd=.130\paperwidth,ht=2.5ex,dp=.8ex,center]{roadmap page}%
+          \hyperlink{nav-content}{\tiny Contenido}%
+        \end{beamercolorbox}%
+        \begin{beamercolorbox}[wd=.118\paperwidth,ht=2.5ex,dp=.8ex,center]{roadmap page}%
+          \tiny\insertframenumber/\inserttotalframenumber%
+        \end{beamercolorbox}%
+      \hfil}%
 }
 
 
 
 
-% Tabla de contenidos automática al inicio de cada sección
+% Orientación editorial: cada sección explicita su objetivo.
+\newcommand{\SectionPurpose}{%
+  \ifcase\value{section}\relax
+  \or Comparar dos cálculos de la derivada de Lie para relacionar los momentos del lagrangiano.
+  \or Separar ecuaciones de campo y frontera, y obtener las identidades de Bianchi y Noether.
+  \or Identificar el origen de las derivadas superiores y la condición que elimina ese término.
+  \or Deducir la relación entre volumen y superficie de la acción LL mediante variación y homogeneidad.
+  \or Incorporar el campo escalar y distinguir qué resultados se reutilizan y cuáles se amplían.
+  \or Calcular las contribuciones de cada sector y reunir las ecuaciones de la teoría EQT.
+  \or Deducir la identidad de escalamiento con defecto y precisar el alcance de la superficie efectiva.
+  \or Evaluar la divergencia del momento de curvatura y contrastarla con la condición LL.
+  \fi
+}
+
+% Tabla de contenidos automática al inicio de cada sección.
+% La etapa se actualiza ANTES de dibujar la diapositiva de entrada.
 \AtBeginSection[]
 {
-  \begin{frame}
-    \frametitle{Contenido}
-    \tableofcontents[currentsection]
-  \end{frame}
+  \SetRoadmapStage{\value{section}}
+  \global\mapcompletedfooter=0\relax
+  \global\maptotalfooter=0\relax
 }
 
 \begin{document}
 
 %================================================
-\frame{\titlepage}
+\begin{frame}[label=nav-cover]
+\titlepage
+\end{frame}
 
 %================================================
-\begin{frame}
-\frametitle{Contenido}
-\tableofcontents
-\end{frame}
+\input{contenido/navegacion/contenido.tex}
 
 %================================================
 \SetRoadmapStage{1}
 
-\begin{frame}
+\begin{frame}[label=nav-frame-001]
 \frametitle{Introducción}
 \small
 
@@ -250,36 +245,42 @@ donde $P^{abcd}\equiv \pdv{L}{R_{abcd}}$.
 \end{frame}
 
 %================================================
-\begin{frame}
-\frametitle{Estrategia general}
-\small
-
-Seguiremos el orden de la deducción:
-
+\begin{frame}[label=nav-frame-002]{Estrategia y alcance del recorrido}
+\footnotesize\CompactDisplaySpacing
 \begin{enumerate}
-    \item Usar que $L$ es un escalar.
-    \item Calcular $\Lie_\xi L$ de dos maneras.
-    \item Comparar ambas expresiones.
-    \item Obtener la identidad
-    \[
-    P^{ab}=-2\Rcal^{ab}.
-    \]
-    \item Variar la acción.
-    \item Aislar el tensor de campo $E_{ab}$.
-    \item Ver de dónde aparece el término peligroso
-    \[
-    -2\nabla^m\nabla^nP_{amnb}.
-    \]
-    \item Imponer la condición de segundo orden.
+\item \textbf{Identidad principal.} Usamos que $L$ es un escalar, calculamos
+$\Lie_\xi L$ de dos maneras y las comparamos para obtener
+\[P^{ab}=-2\Rcal^{ab}.\]
+\item \textbf{Variación y simetrías.} Variamos la acción, aislamos $E_{ab}$ y el borde, y deducimos Bianchi y Noether.
+\item \textbf{Segundo orden e holografía LL.} Identificamos el término
+\[-2\nabla^m\nabla^nP_{amnb},\]
+imponemos la condición LL y deducimos la relación volumen--superficie.
+\item \textbf{Extensión escalar y EQT.} Calculamos los momentos, ecuaciones y frontera de cada sector, y examinamos la identidad holográfica con defecto.
+\item \textbf{Contraste final.} Evaluamos la divergencia de $P$ sobre el ansatz y comprobamos si se satisface la condición LL.
 \end{enumerate}
-
 \end{frame}
 
 %================================================
+% BEGIN EDITORIAL
+
+% END EDITORIAL
+
+\begin{frame}[label=nav-notation]{Convenciones de notación para todo el recorrido}
+\small
+\begin{description}
+\item[$L$ y $\mathscr L$] $L$ es el lagrangiano escalar; $\mathscr L=\sqrt{-g}L$ es su densidad. Los subíndices $\mathrm{vol}$ y $\mathrm{sup}$ distinguen las partes de la acción.
+\item[$\ell$] Escala de longitud fija del modelo EQT (la letra $L$ usada antes para esa escala). No es el lagrangiano.
+\item[$\xi^a$] Generador de difeomorfismos; $\Lie_\xi$ es la derivada de Lie. $\epsilon$ es el parámetro infinitesimal de escalamiento.
+\item[$\phi$, $u_a$, $X$] Campo escalar, $u_a=\nabla_a\phi$ y $X=u_au^a$.
+\item[$P$, $\Pi$, $p$] $P^{abcd}$: momento de curvatura; $P^{ab}$ y $P_{ab}$: derivadas respecto de $g_{ab}$ y $g^{ab}$, respectivamente, no simples índices bajados. $\Pi^a$: momento escalar. El momento mecánico $p$ y la constante $p$ del ansatz se definen en sus contextos.
+\end{description}
+\end{frame}
+
 \section{Derivada de Lie e identidad principal (LL)}
+\MapaLie{0}
 
 %================================================
-\begin{frame}
+\begin{frame}[label=nav-frame-004]
 \frametitle{Derivada de Lie de un tensor general}
 
 \RoadmapCue{
@@ -294,32 +295,32 @@ Para un tensor general
 T^{a_1\cdots a_r}{}_{b_1\cdots b_s},
 \]
 
-la derivada de Lie respecto a un campo vectorial $X^m$ es
+la derivada de Lie respecto a un campo vectorial $\xi^m$ es
 
 \[
-(\Lie_XT)^{a_1\cdots a_r}{}_{b_1\cdots b_s}
+(\Lie_\xi T)^{a_1\cdots a_r}{}_{b_1\cdots b_s}
 =
-X^m\nabla_mT^{a_1\cdots a_r}{}_{b_1\cdots b_s}
+\xi^m\nabla_mT^{a_1\cdots a_r}{}_{b_1\cdots b_s}
 \]
 
 \[
 -\sum_{i=1}^{r}
 T^{a_1\cdots m\cdots a_r}{}_{b_1\cdots b_s}
-\nabla_mX^{a_i}
+\nabla_m\xi^{a_i}
 +
 \sum_{j=1}^{s}
 T^{a_1\cdots a_r}{}_{b_1\cdots m\cdots b_s}
-\nabla_{b_j}X^m.
+\nabla_{b_j}\xi^m.
 \]
 
 \begin{block}{Idea}
-La derivada de Lie mide cómo cambia un tensor al arrastrarlo a lo largo del flujo generado por $X^m$.
+La derivada de Lie mide cómo cambia un tensor al arrastrarlo a lo largo del flujo generado por $\xi^m$.
 \end{block}
 
 \end{frame}
 
 %================================================
-\begin{frame}
+\begin{frame}[label=nav-frame-005]
 \frametitle{Primer cálculo de $\Lie_\xi L$: usando que $L$ es escalar}
 \RoadmapCue{
 Calcular $\Lie_\xi L$ usando únicamente que $L$ es un escalar
@@ -356,8 +357,8 @@ Entonces, \[\nabla_mL=P^{ab}\nabla_mg_{ab}+P^{abcd}\nabla_mR_{abcd}\]
 \end{frame}
 
 %================================================
-\begin{frame}
-\frametitle{Uso de la conexión de Levi-Civita}
+\begin{frame}[label=nav-frame-006]
+\frametitle{Primer cálculo: compatibilidad métrica}
 \small
 
 En relatividad general usamos la conexión de Levi-Civita, que es compatible con la métrica: $\nabla_mg_{ab}=0$. Por eso, $\nabla_mL=P^{abcd}\nabla_mR_{abcd}$.\\
@@ -390,8 +391,10 @@ Ahora variamos $L$ y, por regla de la cadena, una variación general se escribe 
 \end{frame}
 
 %================================================
-\begin{frame}
+\MapaLie{1}
+\begin{frame}[label=nav-frame-007]
 \frametitle{Segundo cálculo de $\mathcal L_\xi L$: variando sus argumentos}
+\linespread{.96}\selectfont\CompactDisplaySpacing
 \RoadmapCue{
 Calcular la misma cantidad variando los argumentos
 $g_{ab}$ y $R_{abcd}$
@@ -420,13 +423,13 @@ Su variación será:
 \[
 \delta f(x) = f(x+\epsilon\xi) - f(x) = \epsilon \xi^a \partial_a f + O(\epsilon^2) \approx \epsilon \xi^a \partial_a f
 \]
-Pero sabemos que $\mathcal{L}_\xi f = \xi^a \partial_a f$. Por lo tanto, para escalares, 
+Pero sabemos que $\mathcal{L}_\xi f = \xi^a \partial_a f$. Por lo tanto, para escalares,
 \[ \delta f(x) = \mathcal{L}_\xi f \]
 
 \end{frame}
 
 %================================================
-\begin{frame}
+\begin{frame}[label=nav-frame-008]
 \frametitle{Por qué aparece la derivada de Lie}
 \small
 
@@ -487,7 +490,7 @@ Bajando el índice llegamos a,
 \end{frame}
 
 %================================================
-\begin{frame}
+\begin{frame}[label=nav-frame-009]
 \frametitle{Derivada de Lie del tensor de Riemann}
 \small
 
@@ -534,9 +537,10 @@ La parte métrica es $P^{ab}(\nabla_a\xi_b+\nabla_b\xi_a)$ que separamos como $P
 \end{frame}
 
 %================================================
-\begin{frame}
-\frametitle{Simplificación del término métrico}
+\begin{frame}[label=nav-frame-010]
+\frametitle{Segundo cálculo: contribución métrica}
 \small
+\linespread{.94}\selectfont\DenseDisplaySpacing
 
 En el segundo término intercambiamos índices mudos: $a\leftrightarrow b$. Entonces $P^{ab}\nabla_b\xi_a
 =P^{ba}\nabla_a\xi_b$. \newline
@@ -573,12 +577,13 @@ El primer término ya coincide con el que apareció cuando tratamos a $L$ como e
 
 \end{frame}
 
-\begin{frame}{¿Por qué \(P^{ijkl}\) hereda las simetrías de \(R_{ijkl}\)?}
+\begin{frame}[label=nav-frame-011]{Simetrías de \(P^{ijkl}\): primer par de índices}
 \RoadmapCue{
 Justificar las simetrías necesarias para simplificar
 el término de curvatura
 }
 \small
+\linespread{.94}\selectfont\DenseDisplaySpacing
 Definimos \(P^{ijkl}\) mediante $\delta L=P^{ijkl}\delta R_{ijkl}$. Pero \(R_{ijkl}\) no varía libremente. Como
 \[
 R_{ijkl}=-R_{jikl},\qquad
@@ -611,7 +616,7 @@ Por tanto, $X=0$. Así, $P^{ijkl}\delta R_{ijkl} = P^{[ij]kl}\delta R_{ijkl}$.
 
 \end{frame}
 
-\begin{frame}{¿Por qué \(P^{ijkl}\) hereda las simetrías de \(R_{ijkl}\)?}
+\begin{frame}[label=nav-frame-012]{Simetrías de \(P^{ijkl}\): segundo par e intercambio}
 
 El mismo argumento se aplica al segundo par. Como $\delta R_{ijkl}=-\delta R_{ijlk}$, solo contribuye la parte antisimétrica de \(P^{ijkl}\) en \(k,l\). Entonces
 \[
@@ -636,7 +641,7 @@ Es decir, \(P^{ijkl}\) puede tomarse con las mismas simetrías algebraicas que \
 \end{frame}
 
 %================================================
-\begin{frame}
+\begin{frame}[label=nav-frame-013]
 \frametitle{Por qué los cuatro términos son iguales}
 \small
 
@@ -660,12 +665,13 @@ Con estas simetrías e intercambiando índices mudos, los cuatro términos con $
 
 Por tanto, \[\boxed{P^{ijkl}\mathcal L_\xi R_{ijkl} = P^{ijkl}\xi^m\nabla_mR_{ijkl}+4P^{ijkl}R_{mjkl}\nabla_i\xi^m}\]
 
-Antes de continuar, mostraremos el porqué se heredan dichas simetrías algebraicas entre $R_{ijkl}$ y $P^{ijkl}$.
+Las dos diapositivas anteriores justifican las simetrías algebraicas entre $R_{ijkl}$ y $P^{ijkl}$ que acabamos de utilizar.
 
 \end{frame}
 
 %================================================
-\begin{frame}
+\MapaLie{2}
+\begin{frame}[label=nav-frame-014]
 \frametitle{Aparición de $\mathcal R^{ab}$}
 \small
 
@@ -675,7 +681,7 @@ Antes de continuar, mostraremos el porqué se heredan dichas simetrías algebrai
 
 Definimos el tensor
 
-\begin{equation} 
+\begin{equation}
 \boxed{\mathcal R^{ab} \equiv P^{aijk}R^b{}_{ijk}}
 \label{eq:def-Rcal}
 \end{equation}
@@ -689,7 +695,7 @@ Ahora, el término $P^{ijkl}R_{mjkl}\nabla_i\xi^m$ de puede escribirse, renombra
 Entonces,
 
 \begin{equation}\boxed{
-P^{ijkl}\mathcal L_\xi R_{ijkl} = 
+P^{ijkl}\mathcal L_\xi R_{ijkl} =
 P^{ijkl}\xi^m\nabla_mR_{ijkl}+4\mathcal R^{ab}\nabla_a\xi_b}
 \label{eq:contraccion-P-lie-riemann}
 \end{equation}
@@ -697,7 +703,7 @@ P^{ijkl}\xi^m\nabla_mR_{ijkl}+4\mathcal R^{ab}\nabla_a\xi_b}
 \end{frame}
 
 %================================================
-\begin{frame}
+\begin{frame}[label=nav-frame-015]
 \frametitle{Resultado del segundo cálculo}
 \small
 
@@ -712,6 +718,7 @@ P^{ijkl}\xi^m\nabla_mR_{ijkl}
 +
 4\mathcal R^{ab}\nabla_a\xi_b.
 \]
+
 
 Agrupamos los términos con $\nabla_a\xi_b$:
 
@@ -736,6 +743,7 @@ P^{ijkl}\xi^m\nabla_mR_{ijkl}
 \label{eq:lie-L-segundo-calculo}
 \end{equation}
 
+
 Ahora recordemos que en \Eq{eq:lie-L-primer-calculo}, obtuvimos
 
 \[
@@ -748,7 +756,8 @@ Igualamos \Eq{eq:lie-L-primer-calculo} y \Eq{eq:lie-L-segundo-calculo}.
 \end{frame}
 
 %================================================
-\begin{frame}
+\MapaLie{3}
+\begin{frame}[label=nav-frame-016]
 \frametitle{Comparación con el cálculo escalar}
 \RoadmapCue{
 Comparar las dos expresiones obtenidas para la misma cantidad
@@ -771,6 +780,7 @@ P^{ab}=-2\mathcal R^{ab}
 \label{eq:identidad-P-Rcal}
 \end{equation}
 
+
 Ahora, notemos que como la métrica es simétrica,
 \[
 g_{ab}=g_{ba}
@@ -782,6 +792,7 @@ Descomponemos
 \[
 P^{ab}=P^{(ab)}+P^{[ab]}.
 \]
+
 
 La parte antisimétrica no contribuye:
 \[
@@ -801,8 +812,8 @@ X=P^{[ba]}\delta g_{ba}
 
 
 %================================================
-\begin{frame}
-\frametitle{Consecuencia importante}
+\begin{frame}[label=nav-frame-017]
+\frametitle{Consecuencia: simetría de \(\mathcal R^{ab}\)}
 
 Por tanto, $X=0 \quad \Rightarrow \quad P^{ab}\delta g_{ab}=P^{(ab)}\delta g_{ab}$.
 
@@ -830,7 +841,8 @@ Ahora aplicaremos la teoría vista hasta acá para el caso más elemental de Hil
 \end{frame}
 
 %================================================
-\begin{frame}
+\MapaLie{4}
+\begin{frame}[label=nav-frame-018]
 \frametitle{Caso Einstein--Hilbert: cálculo de \(P^{abcd}\)}
 \scriptsize
 
@@ -854,12 +866,12 @@ Entonces, para \(L=R\) uno esperaría \(g^{ac}g^{bd}\), pero aplicamos la expres
 \[
 P^{abcd}_{EH}
 = \frac{\partial L}{\partial R} \times
-\frac{\partial R}{\partial R_{abcd}} = \frac{\partial R}{\partial R_{abcd}} = \frac{\partial (g^{ac}g^{bd}R_{abcd})}{\partial R_{abcd}} = \frac{1}{2}\frac{\partial \left( g^{ac}g^{bd}R_{abcd} + g^{ad}g^{bc}R_{abdc} \right)}{\partial R_{abcd}} 
+\frac{\partial R}{\partial R_{abcd}} = \frac{\partial R}{\partial R_{abcd}} = \frac{\partial (g^{ac}g^{bd}R_{abcd})}{\partial R_{abcd}} = \frac{1}{2}\frac{\partial \left( g^{ac}g^{bd}R_{abcd} + g^{ad}g^{bc}R_{abdc} \right)}{\partial R_{abcd}}
 \]
 
 Aplicando la antisimetría del tensor de Riemann:
 \[
-R_{abcd}=-R_{abdc} \qquad \longrightarrow \qquad P^{abcd}_{EH} = \frac{1}{2}\frac{\partial \left( g^{ac}g^{bd}R_{abcd} - g^{ad}g^{bc}R_{abcd} \right)}{\partial R_{abcd}} 
+R_{abcd}=-R_{abdc} \qquad \longrightarrow \qquad P^{abcd}_{EH} = \frac{1}{2}\frac{\partial \left( g^{ac}g^{bd}R_{abcd} - g^{ad}g^{bc}R_{abcd} \right)}{\partial R_{abcd}}
 \]
 
 Que finalmente nos da:
@@ -878,7 +890,7 @@ P^{abcd}_{EH}=P^{cdab}_{EH}.
 \end{frame}
 
 %================================================
-\begin{frame}
+\begin{frame}[label=nav-frame-019]
 \frametitle{Cálculo de \(\mathcal R_{ab}\) para Einstein--Hilbert}
 
 El tensor de Ricci generalizado se define como $\mathcal R_{ab}\equiv P_a{}^{ijk}R_{bijk}$. \newline
@@ -920,9 +932,10 @@ R_{bijk}=
 \end{frame}
 
 %================================================
-\begin{frame}
+\begin{frame}[label=nav-frame-020]
 \frametitle{Por qué \(\mathcal R_{ab}=R_{ab}\)}
 \scriptsize
+\linespread{.96}\selectfont\CompactDisplaySpacing
 
 Tenemos
 \[
@@ -943,6 +956,7 @@ g^{ik}R_{biak}
 =R_{ab}
 \]
 
+
 Segundo término: $g^{ij}R_{bija}$ \newline
 
 Usando antisimetría en el primer par, $R_{bija}=-R_{ibja}$. Entonces,
@@ -958,6 +972,7 @@ Como el tensor de Ricci es simétrico, $R_{ba}=R_{ab}$. Así,
 \[
 g^{ij}R_{bija}=-R_{ab}.
 \]
+
 
 Finalmente,
 \[
@@ -976,9 +991,11 @@ Finalmente,
 
 
 %================================================
-\begin{frame}
+\MapaLie{5}
+\begin{frame}[label=nav-frame-021]
 \frametitle{Constante cosmológica: momentos y tensor $\mathcal{R}_{ab}$}
 \small
+\linespread{.96}\selectfont\CompactDisplaySpacing
 
 Para el término de constante cosmológica,
 
@@ -1031,8 +1048,14 @@ P_{\Lambda}^{abcd}=0,
 
 
 %================================================
-\begin{frame}
-\frametitle{Resumen de la sección}
+\input{contenido/tablas/referencia-momentos.tex}
+
+
+
+%================================================
+\MapaLie{6}
+\begin{frame}[label=nav-frame-023]
+\frametitle{Resumen: identidad principal y caso Einstein--Hilbert}
 
 \RoadmapCue{
 Hemos obtenido las identidades fundamentales que utilizaremos
@@ -1072,18 +1095,17 @@ g^{ac}g^{bd} - g^{ad}g^{bc}
 \mathcal R_{ab}=R_{ab}
 \]
 
-Estas identidades muestran que el formalismo reproduce exactamente la Relatividad General en el caso más simple y establecen la base para variar una acción gravitacional completamente general.
+Para $L=-2\Lambda$, $P^{ab}=P^{abcd}=\mathcal R^{ab}=0$. Estas identidades muestran que el formalismo reproduce exactamente la Relatividad General en el caso más simple y establecen la base para variar una acción gravitacional completamente general.
 
 \end{frame}
-
-
-%================================================
 \section{Variación de la acción (LL)}
 \SetRoadmapStage{2}
+\MapaVariacion{0}
 %================================================
-\begin{frame}
+\begin{frame}[label=nav-frame-024]
 \frametitle{Variación de la acción}
 \small
+\linespread{.94}\selectfont\DenseDisplaySpacing
 
 Ahora variamos
 
@@ -1131,7 +1153,7 @@ Por tanto,
 
 \end{frame}
 
-\begin{frame}{Cambio de variable: \(g_{ab}\) a \(g^{ab}\)}
+\begin{frame}[label=nav-frame-025]{Cambio de variable: \(g_{ab}\) a \(g^{ab}\)}
 
 Antes de seguir, conviene desarrollar las expresiones que ya teníamos, pero con la version contravariante de la métrica.
 
@@ -1164,7 +1186,7 @@ Pero $\mathcal{R}_{cd}=g_{ac}g_{bd}\mathcal{R}^{ab}$, por lo que $\delta_g L=2\m
 \end{frame}
 
 %================================================
-\begin{frame}
+\begin{frame}[label=nav-frame-026]
 \frametitle{Variación del lagrangiano}
 \small
 
@@ -1179,7 +1201,7 @@ Notemos que en $\delta \sqrt{-g}$ aparece $\delta g^{ab}$, por lo que es mucho m
 +
 \underbrace{P^{abcd}\delta R_{abcd}}_{\delta L_R}\]
 
-Usando la identidad \Eq{eq:derivada-L-metrica-contravariante} podemos llegar a que 
+Usando la identidad \Eq{eq:derivada-L-metrica-contravariante} podemos llegar a que
 
 \[
 \delta L
@@ -1205,8 +1227,8 @@ Luego reemplazamos esto en \Eq{eq:variacion-raiz-g-L} y llegamos a
 \end{frame}
 
 %================================================
-\begin{frame}
-\frametitle{El término problemático}
+\begin{frame}[label=nav-frame-027]
+\frametitle{Variación de curvatura: separación métrica}
 \scriptsize
 \RoadmapCue{
 \[
@@ -1262,9 +1284,10 @@ P^{abcd}\delta R_{abcd} = -\Rcal_{ab}\delta g^{ab} + P^{abcd}g_{ae}\delta R^e{}_
 \end{frame}
 
 %================================================
-\begin{frame}
+\begin{frame}[label=nav-frame-028]
 \frametitle{Aplicación de la identidad de Palatini}
 \scriptsize
+\CompactDisplaySpacing
 \RoadmapCue{
 \[
 \delta(\sqrt{-g}L)
@@ -1289,6 +1312,7 @@ La variación del tensor de Riemann, por la identidad de Palatini, se escribe co
 }
 \]
 
+
 Además,
 
 \[
@@ -1308,6 +1332,7 @@ Además,
 $\delta R$ contiene derivadas de $\delta \Gamma$, y $\delta\Gamma$ contiene derivadas de $\delta g$. Por eso aparecerán términos de borde al integrar por partes.
 \end{block}
 
+
 Del segundo término de la expresión \Eq{eq:variacion-riemann-Rcal} tenemos $P^{abcd}g_{ae}\delta R^e{}_{bcd}$.\newline
 
 Usando la identidad de Palatini:
@@ -1326,7 +1351,7 @@ P^{abcd}g_{ae}
 \end{frame}
 
 %================================================
-\begin{frame}
+\begin{frame}[label=nav-frame-029]
 \frametitle{Reemplazo de \(\delta\Gamma\) en \(P^{abcd}\delta R_{abcd}\)}
 \scriptsize
 
@@ -1357,6 +1382,7 @@ P^{abcd}g_{ae}\delta R^{e}{}_{bcd}
 =
 2P^{abcd}g_{ae}\nabla_c\delta\Gamma^{e}{}_{db}.
 \]
+
 
 Ahora usamos
 \[
@@ -1398,6 +1424,7 @@ P^{ibcd}
 \end{aligned}
 \]
 
+
 Usando las simetrías de \(P^{abcd}\), la simetría
 \(\delta g_{ab}=\delta g_{ba}\), y renombrando índices mudos, esta combinación se reduce a
 \begin{equation}
@@ -1412,8 +1439,9 @@ P^{abcd}g_{ae}\delta R^{e}{}_{bcd}
 \end{frame}
 
 %================================================
-\begin{frame}
-\frametitle{Término con \(\delta g_{di}\)}
+\MapaVariacion{1}
+\begin{frame}[label=nav-frame-030]
+\frametitle{Integración por partes: traslado de las derivadas}
 \scriptsize
 \RoadmapCue{
 \[
@@ -1440,6 +1468,7 @@ Reescribimos el término a la derecha respecto a \(\nabla_j\):
 \end{aligned}
 \]
 
+
 En el segundo término renombramos índices mudos para escribir
 \[
 (\nabla_jP^{ibjd})\nabla_b\delta g_{di}
@@ -1453,6 +1482,7 @@ Entonces
 =
 -2(\nabla_cP^{ijcd})\nabla_j\delta g_{di}.
 \]
+
 
 Integramos nuevamente por partes, ahora respecto a \(\nabla_j\):
 \[
@@ -1477,7 +1507,7 @@ Renombrando índices mudos en el último término,
 \end{frame}
 
 
-\begin{frame}{Término con \(\delta g_{di}\)}
+\begin{frame}[label=nav-frame-031]{Integración por partes: volumen y frontera}
 \scriptsize
 \RoadmapCue{
 \[
@@ -1512,6 +1542,7 @@ Por tanto,
 \end{aligned}
 \]
 
+
 Definimos
 \begin{equation}
 \boxed{
@@ -1532,6 +1563,7 @@ Así,
 +
 \nabla_j\delta v^j
 \]
+
 
 Finalmente, usando lo anterior y que $\delta g_{di}=-g_{da}g_{ib}\delta g^{ab}$, en \Eq{eq:doble-derivada-variacion-metrica} se obtiene
 \begin{equation}
@@ -1559,9 +1591,10 @@ P^{abcd}\delta R_{abcd}
 \end{frame}
 
 %================================================
-\begin{frame}
+\begin{frame}[label=nav-frame-032]
 \frametitle{Término de borde}
 \small
+\CompactDisplaySpacing
 
 El término de borde tiene la forma
 
@@ -1598,9 +1631,10 @@ Por eso en gravedad se necesitan términos de borde adecuados, igual que en Eins
 \end{frame}
 
 %================================================
-\begin{frame}
-\frametitle{Sustitución en la variación total}
+\begin{frame}[label=nav-frame-033]
+\frametitle{Resultado variacional: tensor de campo y frontera}
 \small
+\linespread{.94}\selectfont\DenseDisplaySpacing
 
 Teníamos
 
@@ -1615,7 +1649,7 @@ P^{abcd}\delta R_{abcd}
 \right]
 \]
 
-Usamos la relación \Eq{eq:variacion-riemann-completa}, reordenamos y llegamos a 
+Usamos la relación \Eq{eq:variacion-riemann-completa}, reordenamos y llegamos a
 
 \[
 \delta(\sqrt{-g}L)
@@ -1660,18 +1694,19 @@ E_{ab}
 
 
 %================================================
-\begin{frame}
+\MapaVariacion{2}
+\begin{frame}[label=nav-frame-034]
 	\frametitle{Identidad de Bianchi desde la covariancia}
 	\small
-	
+
 	Para la teoría considerada por Padmanabhan,
-	
+
 	\[
 	L=L(g^{ab},R_{abcd}),
 	\]
-	
+
 	la variación de la acción puede escribirse como
-	
+
 	\[
 	\delta A
 	=
@@ -1682,10 +1717,10 @@ E_{ab}
 	\nabla_a\Theta^a
 	\right).
 	\]
-	
+
 	Consideremos ahora una variación producida por un
 	difeomorfismo infinitesimal generado por $\xi^a$:
-	
+
 	\[
 	\delta_\xi g^{ab}
 	=
@@ -1693,25 +1728,25 @@ E_{ab}
 	\nabla^a\xi^b+\nabla^b\xi^a
 	\right)
 	\]
-	
-	Como $E_{ab}=E_{ba}$, entonces 
-	
+
+	Como $E_{ab}=E_{ba}$, entonces
+
 	\[
 	E_{ab}\delta_{\xi}g^{ab}=-2E_{ab}\nabla^b\xi^a.
 	\]
-	
-	
-	
+
+
+
 \end{frame}
 
 %================================================
-\begin{frame}
+\begin{frame}[label=nav-frame-035]
 	\frametitle{Identidad de Bianchi generalizada de Padmanabhan}
 	\small
-	
+
 	Tomando $\xi^a$ con soporte compacto, los términos de
 	frontera no contribuyen. Entonces,
-	
+
 	\begin{align*}
 		0
 		&=
@@ -1722,9 +1757,9 @@ E_{ab}
 		\int_V d^Dx\,\sqrt{-g}\,
 		E_{ab}\nabla^a\xi^b
 	\end{align*}
-	
+
 	Integramos por partes:
-	
+
 	\[
 	-2E_{ab}\nabla^a\xi^b
 	=
@@ -1732,37 +1767,37 @@ E_{ab}
 	+
 	2(\nabla^aE_{ab})\xi^b.
 	\]
-	
+
 	El primer término es nuevamente una divergencia. Por tanto,
-	
+
 	\[
 	0
 	=
 	2\int_V d^Dx\,\sqrt{-g}\,
 	(\nabla^aE_{ab})\xi^b.
 	\]
-	
+
 	Como $\xi^b(x)$ es arbitrario,
-	
+
 	\begin{equation}
 		\boxed{
 			\nabla^aE_{ab}\equiv0
 		}
 		\label{eq:Bianchi-Padmanabhan}
 	\end{equation}
-	
+
 	Esta es la identidad de Bianchi generalizada asociada
 	a la invariancia bajo difeomorfismos.
-	
+
 \end{frame}
 
 %================================================
-\begin{frame}
+\begin{frame}[label=nav-frame-036]
 	\frametitle{Forma de la identidad en Lanczos--Lovelock}
 	\small
-	
+
 	Para un lagrangiano general $L(g,R)$,
-	
+
 	\[
 	E_{ab}
 	=
@@ -1770,18 +1805,18 @@ E_{ab}
 	-\frac12g_{ab}L
 	-2\nabla^m\nabla^nP_{amnb},
 	\]
-	
+
 	donde $\mathcal{R}_{ab} \equiv P_a{}^{cde}R_{bcde}$. En Lanczos--Lovelock se cumple además $\nabla_aP^{abcd}=0$, por lo que
-	
+
 	\[
 	E_{ab}
 	=
 	\mathcal{R}_{ab}
 	-\frac12g_{ab}L.
 	\]
-	
+
 	Entonces, usando \Eq{eq:Bianchi-Padmanabhan},
-	
+
 	\[
 	0
 	=
@@ -1790,9 +1825,9 @@ E_{ab}
 	\nabla^a\mathcal{R}_{ab}
 	-\frac12\nabla_bL,
 	\]
-	
+
 	y obtenemos
-	
+
 	\begin{equation}
 		\boxed{
 			\nabla^a\mathcal{R}_{ab}
@@ -1801,14 +1836,19 @@ E_{ab}
 		}
 		\label{eq:Bianchi-LL-Rcal}
 	\end{equation}
-	
+
 \end{frame}
 
 
 
 
+
+
+
+
 %================================================
-\begin{frame}
+\MapaVariacion{3}
+\begin{frame}[label=nav-frame-037]
 \frametitle{Caso Einstein--Hilbert: Recuperación del tensor de Einstein}
 
 Recordemos que previamente habíamos encontrado que $\mathcal R_{ab}=R_{ab}$ para el caso de HE.
@@ -1846,11 +1886,11 @@ Es decir, para $L=R$  y $I_{HE}$ en la generalización de Lanczos-Lovelock recup
 \end{frame}
 
 %================================================
-\begin{frame}
+\begin{frame}[label=nav-frame-038]
 \frametitle{Término de frontera para Einstein--Hilbert}
 \footnotesize
 
-La expresión general $\delta v^j = 2P^{ibjd}\nabla_b\delta g_{di} - 2\delta g_{di}\nabla_cP^{ijcd}$ se reduce a 
+La expresión general $\delta v^j = 2P^{ibjd}\nabla_b\delta g_{di} - 2\delta g_{di}\nabla_cP^{ijcd}$ se reduce a
 
 \[
 \delta v_{\mathrm{EH}}^{j}
@@ -1922,7 +1962,7 @@ g_{ab}\nabla^j\delta g^{ab}
 
 
 %================================================
-\begin{frame}
+\begin{frame}[label=nav-frame-039]
 \frametitle{Constante cosmológica: ecuaciones y frontera}
 \small
 
@@ -1976,15 +2016,491 @@ pero no genera ningún término de frontera.
 
 
 %================================================
-\begin{frame}
-\frametitle{Resumen de la sección}
+\input{contenido/tablas/referencia-variacion.tex}
+\MapaVariacion{4}
+\subsection{Corriente y potencial de Noether}
 
-\RoadmapCue{
-Hemos aislado la contribución dinámica y el término de borde
-que aparecen en $\delta I$.
-}
+% BEGIN EDITORIAL
+\begin{frame}[label=nav-frame-041]{Enlace: de la variación a la corriente de Noether}
+\small
+\begin{block}{Resultados disponibles}
+Ya tenemos el tensor de campo, el término de frontera y la identidad
+de Bianchi generalizada. Los casos Einstein--Hilbert y cosmológico
+han permitido comprobar esas expresiones.
+\end{block}
 
-\scriptsize
+\medskip
+Ahora evaluaremos la misma variación bajo un difeomorfismo.
+La identidad de Bianchi permitirá reunir sus términos en una
+corriente conservada.
+
+\medskip
+Después comprobaremos que esa corriente es la divergencia de un
+potencial antisimétrico y volveremos a los dos casos de referencia.
+\end{frame}
+% END EDITORIAL
+
+%================================================
+\begin{frame}[label=nav-frame-042]
+	\frametitle{Difeomorfismos y corriente de Noether}
+\linespread{.96}\selectfont\CompactDisplaySpacing
+	\small
+
+	Partimos de la variación general ya obtenida para
+
+	\[
+	L=L(g^{ab},R_{abcd}),
+	\qquad \longrightarrow \qquad
+	\delta(\sqrt{-g}L)
+	=
+	\sqrt{-g}
+	\left(
+	E_{ab}\delta g^{ab}
+	+
+	\nabla_a\delta v^a
+	\right)
+	\]
+
+	Para el difeomorfismo infinitesimal
+	\(x^a\rightarrow x^a+\xi^a\), siguiendo las
+	convenciones de Padmanabhan,
+
+	\[
+	\delta_\xi g^{ab}
+	=
+	\nabla^a\xi^b+\nabla^b\xi^a,
+	\qquad
+	\delta_\xi(\sqrt{-g}L)
+	=
+	-\sqrt{-g}\nabla_a(L\xi^a).
+	\]
+
+	Sustituyendo y usando \(E_{ab}=E_{ba} \quad\rightarrow\quad \delta_\xi g^{ab} = 2\nabla_a\xi_b\),
+
+	\[
+	-\nabla_a(L\xi^a)
+	=
+	2E^{ab}\nabla_a\xi_b
+	+
+	\nabla_a\delta_\xi v^a.
+	\]
+
+	La identidad de Bianchi generalizada, $\nabla_aE^{ab}\equiv0$, permite escribir
+
+	\[
+	E^{ab}\nabla_a\xi_b
+	=
+	\nabla_a(E^{ab}\xi_b)
+	\]
+
+	Por tanto,
+
+	\begin{equation}
+		\boxed{
+			\nabla_aJ^a=0,
+			\qquad
+			J^a
+			\equiv
+			2E^{ab}\xi_b
+			+
+			L\xi^a
+			+
+			\delta_\xi v^a.
+		}
+		\label{eq:noether-current-pad}
+	\end{equation}
+
+	La conservación es \emph{off-shell}: no se ha impuesto
+	\(E_{ab}=0\).
+
+\end{frame}
+
+
+%================================================
+\begin{frame}[label=nav-frame-043]
+	\frametitle{Término de frontera bajo un difeomorfismo}
+	\scriptsize
+
+	Para \(L(g,R)\) habíamos obtenido
+
+	\[
+	\delta v^a
+	=
+	2P^{ibad}\nabla_b\delta g_{di}
+	-
+	2\delta g_{di}\nabla_cP^{iacd},
+	\qquad
+	P^{abcd}\equiv\frac{\partial L}{\partial R_{abcd}}.
+	\]
+
+	Como $\delta_\xi g_{di} = -\left(\nabla_d\xi_i+\nabla_i\xi_d\right)$, resulta
+
+	\[
+	\begin{aligned}
+		\delta_\xi v^a
+		=-2P^{ibad}
+		\left(
+		\nabla_b\nabla_d\xi_i
+		+
+		\nabla_b\nabla_i\xi_d
+		\right)+
+		2\left(
+		\nabla_d\xi_i+\nabla_i\xi_d
+		\right)
+		\nabla_cP^{iacd}
+	\end{aligned}
+	\]
+
+	Separamos los términos según contengan
+	\(\nabla\nabla\xi\) o \(\nabla P\). Usando las simetrías
+	tipo Riemann de \(P^{abcd}\) y
+
+	\[
+	[\nabla_b,\nabla_c]\xi_d
+	=
+	-R^{e}{}_{dbc}\xi_e,
+	\]
+
+	el primer grupo se reduce a
+
+	\[
+	-2P^{ibad}
+	\left(
+	\nabla_b\nabla_d\xi_i+\nabla_b\nabla_i\xi_d
+	\right)
+	=
+	2P^{abcd}\nabla_b\nabla_c\xi_d
+	-
+	2\Rcal^a{}_{d}\xi^d.
+	\]
+
+	Por otra parte,
+
+	\[
+	2(\nabla_d\xi_i+\nabla_i\xi_d)\nabla_cP^{iacd}
+	=
+	-2\nabla_b
+	\left(
+	P^{adbc}+P^{acbd}
+	\right)\nabla_c\xi_d.
+	\]
+
+	Así,
+
+	\begin{equation}
+		\boxed{
+			\delta_\xi v^a
+			=
+			2P^{abcd}\nabla_b\nabla_c\xi_d
+			-
+			2\Rcal^a{}_d\xi^d
+			-
+			2\nabla_b(P^{adbc}+P^{acbd})\nabla_c\xi_d.
+		}
+		\label{eq:delta-v-noether-pad}
+	\end{equation}
+
+\end{frame}
+
+
+%================================================
+\begin{frame}[label=nav-frame-044]
+	\frametitle{Corriente de Noether explícita}
+	\small
+
+	Recordemos que
+
+	\[
+	E_{ab}
+	=
+	\Rcal_{ab}
+	-\frac12g_{ab}L
+	-2\nabla^m\nabla^nP_{amnb}.
+	\]
+
+
+	Por tanto,
+
+	\[
+	2E^{ab}\xi_b+L\xi^a
+	=
+	2\Rcal^a{}_d\xi^d
+	-
+	4\xi_d\nabla_b\nabla_cP^{abcd},
+	\]
+
+	pues los términos proporcionales a \(L\xi^a\) se cancelan.
+
+
+	Sustituyendo además \Eq{eq:delta-v-noether-pad} en
+	\Eq{eq:noether-current-pad}, también se cancelan los
+	términos \(2\Rcal^a{}_d\xi^d\). Se obtiene entonces
+
+	\begin{equation}
+		\boxed{
+			\begin{aligned}
+				J^a
+				={}&
+				-2\nabla_b
+				\left(
+				P^{adbc}+P^{acbd}
+				\right)\nabla_c\xi_d
+				\\
+				&+
+				2P^{abcd}\nabla_b\nabla_c\xi_d
+				-
+				4\xi_d\nabla_b\nabla_cP^{abcd}.
+			\end{aligned}
+		}
+		\label{eq:noether-current-explicit-pad}
+	\end{equation}
+
+	Esta es la forma explícita de la corriente para una teoría
+	general difeomorfo-invariante \(L(g,R)\).
+
+\end{frame}
+
+
+%================================================
+\begin{frame}[label=nav-frame-045]
+\frametitle{Potencial de Noether: verificación de su divergencia}
+	\scriptsize
+
+	Buscamos un tensor antisimétrico \(J^{ab}=-J^{ba}\) tal que $	J^a=\nabla_bJ^{ab}$. Consideremos
+
+	\[
+	J^{ab}
+	\equiv
+	2P^{abcd}\nabla_c\xi_d
+	-
+	4\xi_d\nabla_cP^{abcd}.
+	\]
+
+
+	Tomando su divergencia,
+
+	\[
+	\begin{aligned}
+		\nabla_bJ^{ab}
+		=
+		2(\nabla_bP^{abcd})\nabla_c\xi_d
+		+
+		2P^{abcd}\nabla_b\nabla_c\xi_d
+		-
+		4(\nabla_b\xi_d)\nabla_cP^{abcd}
+		-
+		4\xi_d\nabla_b\nabla_cP^{abcd}
+	\end{aligned}
+	\]
+
+
+	En el tercer término intercambiamos los índices mudos
+	\(b\leftrightarrow c\). Además, la identidad cíclica implica
+
+	\[
+	P^{abcd}+P^{acdb}+P^{adbc}=0
+	\qquad \longrightarrow \qquad
+	P^{abcd}
+	=
+	P^{acbd}-P^{adbc}
+	\]
+
+	Entonces,
+
+	\[
+	\begin{aligned}
+		2(\nabla_bP^{abcd})\nabla_c\xi_d
+		-
+		4(\nabla_b\xi_d)\nabla_cP^{abcd}
+		=
+		-2\nabla_b
+		\left(
+		P^{adbc}+P^{acbd}
+		\right)\nabla_c\xi_d
+	\end{aligned}
+	\]
+
+	Así se recupera exactamente
+	\Eq{eq:noether-current-explicit-pad}. Por tanto,
+
+	\begin{equation}
+		\boxed{
+			J^{ab}
+			=
+			2P^{abcd}\nabla_c\xi_d
+			-
+			4\xi_d\nabla_cP^{abcd},
+			\qquad
+			J^a=\nabla_bJ^{ab}.
+		}
+		\label{eq:noether-potential-pad}
+	\end{equation}
+
+	La antisimetría \(J^{ab}=-J^{ba}\) sigue directamente de
+	\(P^{abcd}=-P^{bacd}\).
+
+\end{frame}
+
+
+
+
+%================================================
+\MapaVariacion{5}
+\begin{frame}[label=nav-frame-046]
+	\frametitle{Einstein--Hilbert: corriente y potencial de Noether}
+\linespread{.96}\selectfont\CompactDisplaySpacing
+	\scriptsize
+
+	Para \(L_{\mathrm{EH}}=R\) ya obtuvimos
+
+	\[
+	P_{\mathrm{EH}}^{abcd}
+	=
+	\frac12
+	\left(
+	g^{ac}g^{bd}-g^{ad}g^{bc}
+	\right),
+	\qquad
+	\nabla_cP_{\mathrm{EH}}^{abcd}=0,
+	\]
+
+	así como $E_{ab}^{(\mathrm{EH})}=G_{ab}, \mathcal R_{ab}^{(\mathrm{EH})}=R_{ab}$. El potencial general de Noether,
+
+	\[
+	J^{ab}
+	=
+	2P^{abcd}\nabla_c\xi_d
+	-
+	4\xi_d\nabla_cP^{abcd},
+	\]
+
+	se reduce entonces a
+
+	\begin{align*}
+		J_{\mathrm{EH}}^{ab}
+		=
+		\left(
+		g^{ac}g^{bd}-g^{ad}g^{bc}
+		\right)\nabla_c\xi_d
+		=
+		\nabla^a\xi^b-\nabla^b\xi^a
+		=
+		2\nabla^{[a}\xi^{b]}.
+	\end{align*}
+
+	Por tanto,
+
+	\[
+	\boxed{
+		J_{\mathrm{EH}}^{ab}
+		=
+		\nabla^a\xi^b-\nabla^b\xi^a
+	}
+	\]
+
+	y la corriente conservada es
+
+	\begin{align*}
+		J_{\mathrm{EH}}^a
+		=
+		\nabla_bJ_{\mathrm{EH}}^{ab}
+		=
+		2P_{\mathrm{EH}}^{abcd}
+		\nabla_b\nabla_c\xi_d
+		=
+		\nabla_b\nabla^a\xi^b-\Box\xi^a,
+		\qquad
+		\nabla_aJ_{\mathrm{EH}}^a=0.
+	\end{align*}
+
+	Para un vector de Killing,
+	\(\mathcal L_\xi g_{ab}=0\) y
+	\(\delta_\xi v^a=0\). Luego,
+
+	\[
+	\boxed{
+		J_{\mathrm{EH}}^a
+		=
+		2\mathcal R^a{}_b\xi^b
+		=
+		2R^a{}_b\xi^b.
+	}
+	\]
+
+\end{frame}
+
+%================================================
+\begin{frame}[label=nav-frame-047]
+	\frametitle{Constante cosmológica: corriente y potencial de Noether}
+	\small
+
+	Para $L_\Lambda=-2\Lambda$ ya encontramos
+
+	\[
+	P_\Lambda^{abcd}=0,
+	\qquad
+	\mathcal R_{ab}^{(\Lambda)}=0,
+	\qquad
+	E_{ab}^{(\Lambda)}=\Lambda g_{ab},
+	\qquad
+	\delta_\xi v_\Lambda^a=0.
+	\]
+
+	El potencial general,
+
+	\[
+	J^{ab}
+	=
+	2P^{abcd}\nabla_c\xi_d
+	-
+	4\xi_d\nabla_cP^{abcd},
+	\]
+
+	se anula identicamente: $J_\Lambda^{ab}=0$. La misma conclusión se obtiene directamente para la corriente. Usando $J^a = 2E^{ab}\xi_b + L\xi^a + \delta_\xi v^a$, tenemos
+
+	\begin{align*}
+		J_\Lambda^a
+		= 2\Lambda g^{ab}\xi_b
+		- 2\Lambda\xi^a
+		+ 0 = 2\Lambda\xi^a-2\Lambda\xi^a + 0
+	\end{align*}
+
+	Por tanto,
+
+	\[
+	\boxed{
+		J_\Lambda^a=0,
+		\qquad
+		J_\Lambda^{ab}=0.
+	}
+	\]
+
+	La constante cosmológica modifica las ecuaciones de campo, $E_{ab}^{(\Lambda)}=\Lambda g_{ab}$, pero, al no depender de \(R_{abcd}\), no introduce un potencial de Noether independiente ni una contribución neta a la corriente difeomórfica.
+
+\end{frame}
+
+
+
+
+%================================================
+\input{contenido/tablas/referencia-noether.tex}
+
+
+
+
+%================================================
+% BEGIN EDITORIAL
+
+% END EDITORIAL
+
+\MapaVariacion{6}
+\begin{frame}[label=nav-frame-049]
+\frametitle{Resumen: ecuación métrica y término de frontera}
+
+\linespread{.96}\selectfont\CompactDisplaySpacing
+
+
+\scriptsize\DenseDisplaySpacing
 
 La variación de la acción toma la forma
 
@@ -2047,18 +2563,24 @@ g_{ab}\nabla^j\delta g^{ab}
 \nabla_a\delta g^{aj}
 \]
 
+\par\medskip
+\textbf{Simetrías.} $\nabla^aE_{ab}\equiv0$ (Bianchi). Por Noether,
+$J^a=\nabla_bJ^{ab}$ y $J^{ab}=2P^{abcd}\nabla_c\xi_d-4\xi_d\nabla_cP^{abcd}$.
+La conservación vale fuera de las soluciones; EH y $\Lambda$ controlan los signos.
 \end{frame}
-
-
-
-%================================================
 \section{Condición de segundo orden}
 
 \SetRoadmapStage{3}
+\MapaOrden{0}
 %================================================
-\begin{frame}
-\frametitle{Por qué aparece el problema de cuarto orden}
-\small
+\begin{frame}[label=nav-frame-051]
+\frametitle{Cuarto orden y condición de divergencia nula de \(P\)}
+\footnotesize
+\linespread{.96}\selectfont\CompactDisplaySpacing
+\CompactDisplaySpacing
+\begin{columns}[T,onlytextwidth]
+\begin{column}{.48\textwidth}
+\textbf{Origen de las derivadas superiores}\par\vspace{2pt}
 
 Recordemos que
 
@@ -2094,12 +2616,12 @@ Por tanto, el término
 
 puede introducir derivadas de cuarto orden de la métrica.
 
-\end{frame}
+\end{column}
+\begin{column}{.48\textwidth}
+\textbf{Condición de segundo orden}\par\vspace{2pt}
 
 %================================================
-\begin{frame}
-\frametitle{Condición clave}
-\small
+% El primer hito y el segundo se presentan ahora en una misma diapositiva.
 
 Para evitar derivadas mayores que segundo orden, imponemos
 
@@ -2139,11 +2661,18 @@ Con materia,
 }
 \]
 
+\end{column}
+\end{columns}
 \end{frame}
 
 %================================================
-\begin{frame}
-\frametitle{Resultado conceptual}
+\MapaOrden{2}
+
+
+%================================================
+\MapaOrden{3}
+\begin{frame}[label=nav-frame-052]
+\frametitle{Resumen: condición de Lanczos--Lovelock}
 \small
 
 La pregunta inicial era:
@@ -2172,16 +2701,18 @@ R^{c_1d_1}{}_{a_1b_1} \cdots R^{c_md_m}{}_{a_mb_m}
 \]
 
 \end{frame}
+\input{contenido/holografia/ll-compacto.tex}
 
-%================================================
 \section{Generalización con campo escalar}
-\SetRoadmapStage{4}
+\SetRoadmapStage{5}
+\MapaEscalar{0}
 %================================================
 
-\begin{frame}
+\begin{frame}[label=nav-frame-072]
 
 \frametitle{Generalización del lagrangiano}
 \scriptsize
+\linespread{.96}\selectfont\CompactDisplaySpacing
 
 Hasta ahora hemos trabajado con un lagrangiano de tipo Lanczos--Lovelock puro, $L=L(g^{ab},R_{abcd})$. Ahora generalizamos a
 
@@ -2206,13 +2737,13 @@ P^{abcd}
 \left(
 \frac{\partial L}{\partial R_{abcd}}
 \right)_{g^{mn},\phi,\nabla\phi}, \qquad
-P_{ab} 
+P_{ab}
 \equiv
 \left(
 \frac{\partial L}{\partial g^{ab}}
 \right)_{R_{ijkl},\phi,\nabla\phi},
 \\[1mm]
-J^a
+\Pi^a
 &\equiv
 \left(
 \frac{\partial L}{\partial(\nabla_a\phi)}
@@ -2234,9 +2765,10 @@ Como ahora derivamos respecto de la métrica contravariante
 
 
 %================================================
-\begin{frame}
+\input{contenido/tablas/diccionario-momentos.tex}
+\begin{frame}[label=nav-frame-074]
 \frametitle{Variación del lagrangiano generalizado}
-\small
+\footnotesize
 
 Con las definiciones anteriores,
 
@@ -2250,7 +2782,7 @@ P^{abcd}\delta R_{abcd}
 +
 F_\phi\,\delta\phi
 +
-J^a\delta(\nabla_a\phi)
+\Pi^a\delta(\nabla_a\phi)
 }
 \label{eq:variacion-L-generalizado}
 \end{equation}
@@ -2270,7 +2802,7 @@ Por tanto, $\delta(\sqrt{-g}L) = \sqrt{-g}\,\delta L + L\,\delta\sqrt{-g}$ con $
 &P_{ab}\delta g^{ab}
 +P^{abcd}\delta R_{abcd}
 +F_\phi\delta\phi
-+J^a\delta(\nabla_a\phi) -\frac12g_{ab}L\,\delta g^{ab}
++\Pi^a\delta(\nabla_a\phi) -\frac12g_{ab}L\,\delta g^{ab}
 \Big]
 \end{aligned}
 \]
@@ -2292,7 +2824,7 @@ P_{ab}-\frac12g_{ab}L
 +
 F_\phi\delta\phi
 +
-J^a\nabla_a\delta\phi
+\Pi^a\nabla_a\delta\phi
 \right]
 \label{eq:variacion-densidad-generalizada}
 \end{equation}
@@ -2301,8 +2833,8 @@ J^a\nabla_a\delta\phi
 
 
 %================================================
-\begin{frame}
-\frametitle{Separación de las variaciones}
+\begin{frame}[label=nav-frame-075]
+\frametitle{Variaciones: resultado gravitacional y aporte escalar}
 \scriptsize
 
 Para el sector gravitacional reutilizamos el resultado ya obtenido:
@@ -2321,25 +2853,25 @@ P^{abcd}\delta R_{abcd}
 \end{equation}
 
 donde \(\delta v^a\) es el término de frontera definido previamente
-en \Eq{eq:def-delta-v}. Ahora estudiamos $J^a\nabla_a(\delta\phi)$. Aplicando la regla del producto,
+en \Eq{eq:def-delta-v}. Ahora estudiamos $\Pi^a\nabla_a(\delta\phi)$. Aplicando la regla del producto,
 
 \[
-\nabla_a(J^a\delta\phi)
+\nabla_a(\Pi^a\delta\phi)
 =
-(\nabla_aJ^a)\delta\phi
+(\nabla_a\Pi^a)\delta\phi
 +
-J^a\nabla_a(\delta\phi).
+\Pi^a\nabla_a(\delta\phi).
 \]
 
 Por tanto,
 
 \begin{equation}
 \boxed{
-J^a\nabla_a(\delta\phi)
+\Pi^a\nabla_a(\delta\phi)
 =
-\nabla_a(J^a\delta\phi)
+\nabla_a(\Pi^a\delta\phi)
 -
-(\nabla_aJ^a)\delta\phi.
+(\nabla_a\Pi^a)\delta\phi.
 }
 \label{eq:integracion-partes-escalar}
 \end{equation}
@@ -2348,39 +2880,40 @@ Así, dentro de la acción,
 
 \[
 \int_V\dd^Dx\,\sqrt{-g}\,
-J^a\nabla_a(\delta\phi)
+\Pi^a\nabla_a(\delta\phi)
 =
 \int_V\dd^Dx\,\sqrt{-g}
 \left[
--(\nabla_aJ^a)\delta\phi
+-(\nabla_a\Pi^a)\delta\phi
 +
-\nabla_a(J^a\delta\phi)
+\nabla_a(\Pi^a\delta\phi)
 \right]
 \]
 
 \begin{block}{Estructura}
 El primer término contribuye a la ecuación de campo de \(\phi\),
-mientras que $\nabla_a(J^a\delta\phi)$ es una nueva contribución de frontera.
+mientras que $\nabla_a(\Pi^a\delta\phi)$ es una nueva contribución de frontera.
 \end{block}
 
 \end{frame}
 
 
 %================================================
-\begin{frame}
+\MapaEscalar{1}
+\begin{frame}[label=nav-frame-076]
 	\frametitle{Identidad generalizada para \(\Rcal_{ab}\)}
 	\small
-	
+
 	Para una teoría general
-	
+
 	\[
 	L=L(g^{ab},R_{abcd},\phi,u_a),
 	\qquad
 	u_a\equiv\nabla_a\phi,
 	\]
-	
+
 	la variación del lagrangiano tiene la forma
-	
+
 	\[
 	\delta L
 	=
@@ -2388,12 +2921,13 @@ mientras que $\nabla_a(J^a\delta\phi)$ es una nueva contribución de frontera.
 	+
 	P^{abcd}\,\delta R_{abcd}
 	+
-	J^a\,\delta u_a
+	\Pi^a\,\delta u_a
 	+
 	F_\phi\,\delta\phi.
 	\]
-	
-	Bajo un difeomorfismo generado por \(\xi^a\), $\delta_\xi g^{ab} = -2\nabla^{(a}\xi^{b)}$, mientras que, como \(u_a\) es un covector,	
+
+
+	Bajo un difeomorfismo generado por \(\xi^a\), $\delta_\xi g^{ab} = -2\nabla^{(a}\xi^{b)}$, mientras que, como \(u_a\) es un covector,
 	\[
 	\delta_\xi u_a
 	=
@@ -2401,32 +2935,33 @@ mientras que $\nabla_a(J^a\delta\phi)$ es una nueva contribución de frontera.
 	+
 	u_c\nabla_a\xi^c.
 	\]
-	
+
+
 	Usando además las simetrías de \(P^{abcd}\), los términos
-	proporcionales a \(\nabla_a\xi_b\) conducen a	
+	proporcionales a \(\nabla_a\xi_b\) conducen a
 	\[
 	-2P^{ab}
 	+
 	4\Rcal^{ab}
 	+
-	J^a u^b
+	\Pi^a u^b
 	=
 	0,
-	\]	
+	\]
 	donde $\Rcal_{ab} \equiv P_a{}^{cde}R_{bcde}$. Por tanto,
-	
+
 	\begin{equation}
 		\boxed{
-			\Rcal_{ab} = \frac12 P_{ab} - \frac14 J_a u_b			
+			\Rcal_{ab} = \frac12 P_{ab} - \frac14 \Pi_a u_b
 		}
 		\label{eq:identidad-Rcal-general}
 	\end{equation}
-	
+
 \end{frame}
 
 
 %================================================
-\begin{frame}
+\begin{frame}[label=nav-frame-077]
 \frametitle{Variación completa de la acción}
 \scriptsize
 
@@ -2455,12 +2990,13 @@ P_{ab}-\frac12g_{ab}L
 +
 F_\phi\delta\phi
 -
-(\nabla_aJ^a)\delta\phi
+(\nabla_a\Pi^a)\delta\phi
 +
-\nabla_a(J^a\delta\phi)
+\nabla_a(\Pi^a\delta\phi)
 \Big].
 \end{aligned}
 \]
+
 
 con $\delta v^a = 2P^{ibjd}\nabla_b\delta g_{di} - 2\delta g_{di}\nabla_cP^{ijcd}$. Agrupando las variaciones independientes, definimos
 
@@ -2478,17 +3014,18 @@ P_{ab}
 \boxed{
 E_\phi
 =
-F_\phi-\nabla_aJ^a
+F_\phi-\nabla_a\Pi^a
 }
 \label{eq:Ephi-generalizado}
 \\[1mm]
 \boxed{
 \Theta^a
 =
-\delta v^a+J^a\delta\phi
+\delta v^a+\Pi^a\delta\phi
 }
 \label{eq:theta-generalizado}
 \end{align}
+
 
 De modo que
 
@@ -2512,11 +3049,11 @@ E_\phi\delta\phi
 
 
 %================================================
-\begin{frame}
+\begin{frame}[label=nav-frame-078]
 	\frametitle{Ecuación métrica como extensión de $L(g,R)$}
 	\small
-	
-	Para $L=L(g^{ab},R_{abcd},\phi,u_a), u_a=\nabla_a\phi$, la identidad algebraica asociada al carácter escalar de $L$ se generaliza a $P_{ab}=2\Rcal_{ab}+ \frac12 J_{a}u_{b}$. Por tanto,	
+
+	Para $L=L(g^{ab},R_{abcd},\phi,u_a), u_a=\nabla_a\phi$, la identidad algebraica asociada al carácter escalar de $L$ se generaliza a $P_{ab}=2\Rcal_{ab}+ \frac12 \Pi_{a}u_{b}$. Por tanto,
 	\begin{align*}
 		E_{ab}
 		&=
@@ -2531,25 +3068,25 @@ E_\phi\delta\phi
 			-\frac12g_{ab}L
 			-2\nabla^m\nabla^nP_{amnb}
 			+
-			\frac12J_{a}u_{b}
+			\frac12\Pi_{a}u_{b}
 		}
 	\end{align*}
-	
+
 	Así, la estructura queda separada como
-	
+
 	\[
 	\boxed{
 		E_{ab}^{(g,R,\phi,\nabla\phi)}
 		=
 		E_{ab}^{(g,R)}
 		+
-		\frac12J_{a}u_{b}
+		\frac12\Pi_{a}u_{b}
 	},
 	\]
-	
+
 	entendiendo que $L$, $P^{abcd}$ y $\Rcal_{ab}$ son ahora
 	los correspondientes a la teoría completa. Al apagar el sector escalar, $\phi\to0, u_a=\nabla_a\phi\to0$, se recupera inmediatamente
-	
+
 	\[
 		E_{ab}^{(g,R)}
 		=
@@ -2557,23 +3094,25 @@ E_\phi\delta\phi
 		-\frac12g_{ab}L
 		-2\nabla^m\nabla^nP_{amnb}
 	\]
-	
+
 \end{frame}
 
 
 %================================================
-\begin{frame}
-	\frametitle{Identidad de Bianchi en la teoría generalizada}
+\input{contenido/tablas/comparacion-variacion.tex}
+\MapaEscalar{2}
+\begin{frame}[label=nav-frame-080]
+	\frametitle{Bianchi con escalar: variación por difeomorfismos}
 	\small
-	
+
 	Consideremos ahora nuestra extensión
-	
+
 	\[
 	L=L(g^{ab},R_{abcd},\phi,\nabla_a\phi).
 	\]
-	
+
 	La variación completa tiene la forma
-	
+
 	\[
 	\delta A
 	=
@@ -2586,17 +3125,17 @@ E_\phi\delta\phi
 	\nabla_a\Theta^a
 	\right].
 	\]
-	
+
 	Bajo un difeomorfismo generado por $\xi^a$, $\delta_\xi g^{ab} = -2\nabla^{a}\xi^{b}$, mientras que, por ser $\phi$ un escalar,
-	
+
 	\[
 	\delta_\xi\phi
 	=
 	\xi^a\nabla_a\phi.
 	\]
-	
+
 	Definiendo $u_a\equiv\nabla_a\phi$, la parte de volumen de la variación queda
-	
+
 	\[
 	0
 	=
@@ -2610,12 +3149,14 @@ E_\phi\delta\phi
 	\end{frame}
 
 %================================================
-\begin{frame}
-	\frametitle{Identidad de Bianchi en la teoría generalizada}
+\begin{frame}[label=nav-frame-081]
+	\frametitle{Bianchi con escalar: identidad fuera de las soluciones}
+\linespread{.96}\selectfont\CompactDisplaySpacing
 	\small
-	
+	\CompactDisplaySpacing
+
 	Integramos por partes el término métrico:
-	
+
 	\[
 	-2E_{ab}\nabla^a\xi^b
 	=
@@ -2623,9 +3164,9 @@ E_\phi\delta\phi
 	+
 	2(\nabla^aE_{ab})\xi^b.
 	\]
-	
+
 	Descartando la divergencia total por contribuir a la frontera,
-	
+
 	\[
 	0
 	=
@@ -2636,9 +3177,10 @@ E_\phi\delta\phi
 	E_\phi u_b
 	\right]\xi^b.
 	\]
-	
+
+
 	Como $\xi^b$ es arbitrario,
-	
+
 	\begin{equation}
 		\boxed{
 			2\nabla^aE_{ab}
@@ -2648,88 +3190,453 @@ E_\phi\delta\phi
 		}
 		\label{eq:Bianchi-generalizada-escalar}
 	\end{equation}
-	
+
+
 	Esta identidad es \emph{off-shell}: no hemos impuesto todavía
-	
+
 	\[
 	E_{ab}=0,
 	\qquad
 	E_\phi=0.
 	\]
-	
+
 	Si la ecuación escalar se satisface,
-	
+
 	\[
 	E_\phi=0
 	\quad\Longrightarrow\quad
 	\nabla^aE_{ab}=0.
 	\]
-	
+
 	Para una teoría sin campo escalar se recupera inmediatamente
 	la identidad de Padmanabhan.
-	
+
 \end{frame}
 
+
+
+
 %================================================
-\begin{frame}
+\MapaEscalar{3}
+\subsection{Corriente de Noether en la teoría generalizada}
+
+%================================================
+\begin{frame}[label=nav-frame-082]
+	\frametitle{Corriente de Noether en \(L(g,R,\phi,\nabla\phi)\)}
+\linespread{.96}\selectfont\CompactDisplaySpacing
+	\small
+	\CompactDisplaySpacing
+
+	Consideremos ahora
+
+	\[
+	L=L(g^{ab},R_{abcd},\phi,u_a),
+	\qquad
+	u_a\equiv\nabla_a\phi,
+	\]
+
+	y definamos, para evitar confusión con la corriente de Noether,
+
+	\[
+	\Pi^a
+	\equiv
+	\frac{\partial L}{\partial u_a}.
+	\]
+
+	La variación generalizada ya obtenida es
+
+	\[
+	\delta(\sqrt{-g}L)
+	=
+	\sqrt{-g}
+	\left[
+	E_{ab}\delta g^{ab}
+	+
+	E_\phi\delta\phi
+	+
+	\nabla_a\Theta^a
+	\right],
+	\]
+
+	con $\Theta^a = \delta v^a+\Pi^a\delta\phi$.
+
+	Bajo \(x^a\rightarrow x^a+\xi^a\), $\delta_\xi g^{ab}
+	= 2\nabla^{(a}\xi^{b)}, \delta_\xi\phi = -\xi^a u_a$, y, puesto que \(L\) sigue siendo un escalar,
+
+	\[
+	\delta_\xi(\sqrt{-g}L)
+	=
+	-\sqrt{-g}\nabla_a(L\xi^a).
+	\]
+
+	Por tanto,
+
+	\[
+	-\nabla_a(L\xi^a)
+	=
+	2E^{ab}\nabla_a\xi_b
+	-
+	E_\phi\xi^bu_b
+	+
+	\nabla_a\Theta_\xi^a
+	\]
+
+\end{frame}
+
+
+%================================================
+\begin{frame}[label=nav-frame-083]
+	\frametitle{Bianchi generalizada y corriente conservada}
+	\small
+
+	La identidad de Bianchi de la teoría generalizada es
+
+	\[
+	\boxed{
+		2\nabla_aE^{ab}
+		+
+		E_\phi u^b
+		\equiv0.
+	}
+	\]
+
+	Aplicando Leibniz,
+
+	\[
+	\begin{aligned}
+		2E^{ab}\nabla_a\xi_b
+		=
+		2\nabla_a(E^{ab}\xi_b)
+		-
+		2(\nabla_aE^{ab})\xi_b
+		=
+		2\nabla_a(E^{ab}\xi_b)
+		+
+		E_\phi u^b\xi_b
+	\end{aligned}
+	\]
+
+	El último término cancela exactamente $-E_\phi\xi^bu_b$	proveniente de la transformación del escalar. Entonces,
+
+	\[
+	\nabla_a
+	\left[
+	2E^{ab}\xi_b
+	+
+	L\xi^a
+	+
+	\Theta_\xi^a
+	\right]
+	=0.
+	\]
+
+	Definimos así la corriente de Noether generalizada,
+
+	\begin{equation}
+		\boxed{
+			\mathcal J^a
+			\equiv
+			2E^{ab}\xi_b
+			+
+			L\xi^a
+			+
+			\Theta_\xi^a,
+			\qquad
+			\nabla_a\mathcal J^a=0.
+		}
+		\label{eq:noether-current-generalizada}
+	\end{equation}
+
+	La estructura es exactamente análoga a la de Padmanabhan;
+	la diferencia está contenida en \(E_{ab}\), \(E_\phi\) y
+	\(\Theta^a\).
+
+\end{frame}
+
+
+%================================================
+\begin{frame}[label=nav-frame-084]
+	\frametitle{Cancelación explícita del sector escalar}
+	\scriptsize
+
+	En nuestro formalismo habíamos obtenido
+
+	\[
+	E_{ab}
+	=
+	\Rcal_{ab}
+	-\frac12g_{ab}L
+	-2\nabla^m\nabla^nP_{amnb}
+	+
+	\frac12\Pi_a u_b,
+	\]
+
+	mientras que
+
+	\[
+	\Theta_\xi^a
+	=
+	\delta_\xi v^a
+	+
+	\Pi^a\delta_\xi\phi
+	=
+	\delta_\xi v^a
+	-
+	\Pi^a(\xi^bu_b).
+	\]
+
+
+	Sustituyendo ambos resultados en
+	\Eq{eq:noether-current-generalizada},
+
+	\[
+	\begin{aligned}
+		\mathcal J^a
+		=
+		2\Rcal^a{}_b\xi^b
+		-
+		L\xi^a
+		-
+		4\xi_d\nabla_b\nabla_cP^{abcd}
+		+
+		\Pi^a(\xi^bu_b)
+		+
+		L\xi^a
+		+
+		\delta_\xi v^a
+		-
+		\Pi^a(\xi^bu_b).
+	\end{aligned}
+	\]
+
+
+	Se producen dos cancelaciones independientes:
+
+	\[
+	-L\xi^a+L\xi^a=0,
+	\]
+
+	\[
+	\Pi^a(\xi^bu_b)-\Pi^a(\xi^bu_b)=0.
+	\]
+
+	Por tanto,
+
+	\begin{equation}
+		\boxed{
+			\mathcal J^a
+			=
+			2\Rcal^a{}_b\xi^b
+			-
+			4\xi_d\nabla_b\nabla_cP^{abcd}
+			+
+			\delta_\xi v^a.
+		}
+		\label{eq:noether-generalizada-reducida}
+	\end{equation}
+
+	Este es exactamente el mismo punto intermedio que en la teoría
+	\(L(g,R)\): el escalar no añade un término independiente al
+	potencial de Noether.
+
+\end{frame}
+
+
+%================================================
+\begin{frame}[label=nav-frame-085]
+	\frametitle{Potencial de Noether generalizado}
+\linespread{.96}\selectfont\CompactDisplaySpacing
+	\small
+
+	Como \Eq{eq:noether-generalizada-reducida} tiene la misma
+	estructura que en \(L(g,R)\), la reducción algebraica del término
+	\(\delta_\xi v^a\) es idéntica. Se obtiene
+
+	\[
+	\boxed{
+		\begin{aligned}
+			\mathcal J^a
+			={}&
+			-2\nabla_b
+			\left(
+			P^{adbc}+P^{acbd}
+			\right)\nabla_c\xi_d
+			\\
+			&+
+			2P^{abcd}\nabla_b\nabla_c\xi_d
+			-
+			4\xi_d\nabla_b\nabla_cP^{abcd}.
+		\end{aligned}
+	}
+	\]
+
+	Por tanto,
+
+	\begin{equation}
+		\boxed{
+			\mathcal J^{ab}
+			=
+			2P^{abcd}\nabla_c\xi_d
+			-
+			4\xi_d\nabla_cP^{abcd},
+			\qquad
+			\mathcal J^a=\nabla_b\mathcal J^{ab}.
+		}
+		\label{eq:noether-potential-generalizado}
+	\end{equation}
+
+	La forma tensorial coincide con la de Padmanabhan, pero ahora
+
+	\[
+	\boxed{
+		P^{abcd}
+		=
+		P^{abcd}(g,R,\phi,\nabla\phi)
+		=
+		\frac{\partial L}
+		{\partial R_{abcd}}.
+	}
+	\]
+
+	Por ello, en general,
+
+	\[
+	\nabla_cP^{abcd}
+	\neq0,
+	\]
+
+	y el segundo término del potencial ya no puede descartarse.
+
+\end{frame}
+
+
+%================================================
+\MapaEscalar{4}
+\begin{frame}[label=nav-frame-086]
+	\frametitle{Comparación con el formalismo de Padmanabhan}
+	\small
+\linespread{.94}\selectfont\DenseDisplaySpacing
+
+	La estructura final de ambas teorías es paralela:
+
+	\[
+	\begin{array}{c|c}
+		L(g,R)
+		&
+		L(g,R,\phi,\nabla\phi)
+		\\[1mm]
+		\hline
+		\\[0.5mm]
+		\nabla_aE^{ab}\equiv0
+		&
+		2\nabla_aE^{ab}+E_\phi\nabla^b\phi\equiv0
+		\\[2mm]
+		J^a=
+		2E^{ab}\xi_b+L\xi^a+\delta_\xi v^a
+		&
+		\mathcal J^a=
+		2E^{ab}\xi_b+L\xi^a+\Theta_\xi^a
+	\end{array}
+	\]
+
+	\begin{equation*}
+		J^{ab}
+		\ \longleftrightarrow\
+		\mathcal J^{ab}
+		=
+		2P^{abcd}\nabla_c\xi_d
+		-
+		4\xi_d\nabla_cP^{abcd}
+	\end{equation*}
+
+	La diferencia física queda concentrada en el contenido de
+	\(P^{abcd}\) y, por tanto, en su divergencia. Si $\phi\rightarrow0$, $\nabla_a\phi\rightarrow0$, entonces $E_\phi\rightarrow0$, $\Theta_\xi^a\rightarrow\delta_\xi v^a$, y se recupera inmediatamente el formalismo de \(L(g,R)\). Finalmente,
+
+	\[
+	\boxed{
+		\nabla_cP^{abcd}=0
+		\quad\Longrightarrow\quad
+		J^{ab}=2P^{abcd}\nabla_c\xi_d
+	}
+	\]
+
+	es la simplificación especial de Lanczos--Lovelock. En nuestra
+	teoría generalizada, donde \(\nabla P\neq0\) en general, debe
+	mantenerse el término
+
+	\[
+	\boxed{
+		-4\xi_d\nabla_cP^{abcd}
+	}
+	\]
+
+\end{frame}
+
+
+
+
+
+%================================================
+\MapaEscalar{5}
+\begin{frame}[label=nav-frame-087]
 	\frametitle{Forma útil para teorías con simetría de desplazamiento}
 	\small
-	
+
 	En los términos que hemos estudiado no existe dependencia
 	explícita en $\phi$. Por tanto,
-	
+
 	\[
 	F_\phi\equiv\frac{\partial L}{\partial\phi}=0.
 	\]
-	
+
 	Si definimos el momento escalar
-	
+
 	\[
-	J^a\equiv
+	\Pi^a\equiv
 	\frac{\partial L}{\partial(\nabla_a\phi)},
 	\]
-	
+
 	la ecuación escalar es
-	
+
 	\[
 	E_\phi
 	=
-	-\nabla_aJ^a.
+	-\nabla_a\Pi^a.
 	\]
-	
+
 	Así, \Eq{eq:Bianchi-generalizada-escalar} puede escribirse como
-	
+
 	\begin{equation}
 		\boxed{
 			2\nabla^aE_{ab}
 			-
-			(\nabla_aJ^a)u_b
+			(\nabla_a\Pi^a)u_b
 			\equiv0.
 		}
 		\label{eq:Bianchi-J}
 	\end{equation}
-	
+
 	Esta forma será especialmente útil para los sectores
-	$\mathcal{L}_0$ y $Q_\beta$.
-	
+	$L_0$ y $Q_\beta$.
+
 \end{frame}
 
 %================================================
-\begin{frame}
+\begin{frame}[label=nav-frame-088]
 	\frametitle{Identidad de Bianchi en términos de los momentos}
 	\small
-	
+
 	Partimos de
-	
+
 	\[
 	2\nabla^aE_{ab}
 	+
 	E_\phi\nabla_b\phi
 	\equiv0,
 	\]
-	
+
 	con
-	
+
 	\[
 	E_{ab}
 	=
@@ -2738,11 +3645,11 @@ E_\phi\delta\phi
 	-\Rcal_{ab}
 	-2\nabla^m\nabla^nP_{amnb},
 	\qquad
-	E_\phi=F_\phi-\nabla_aJ^a.
+	E_\phi=F_\phi-\nabla_a\Pi^a.
 	\]
-	
+
 	Sustituyendo y usando $\nabla^ag_{ab}=0$,
-	
+
 	\begin{equation}
 	\boxed{
 		2\nabla^aP_{ab}
@@ -2750,14 +3657,14 @@ E_\phi\delta\phi
 		-2\nabla^a\Rcal_{ab}
 		-4\nabla^a\nabla^m\nabla^nP_{amnb}
 		+
-		\left(F_\phi-\nabla_aJ^a\right)u_b
+		\left(F_\phi-\nabla_a\Pi^a\right)u_b
 		\equiv0
 		\label{Eq:BianchiGeneralizado}
 	}
 	\end{equation}
-	
+
 	Para simetría de desplazamiento, $F_\phi=0$:
-	
+
 	\[
 	\boxed{
 		2\nabla^aP_{ab}
@@ -2765,22 +3672,24 @@ E_\phi\delta\phi
 		-2\nabla^a\Rcal_{ab}
 		-4\nabla^a\nabla^m\nabla^nP_{amnb}
 		-
-		(\nabla_aJ^a)u_b
+		(\nabla_a\Pi^a)u_b
 		\equiv0
 	}
 	\]
-	
+
 \end{frame}
 
 
 %================================================
-\begin{frame}
+\begin{frame}[label=nav-frame-089]
 	\frametitle{Ecuaciones de campo}
+\linespread{.96}\selectfont\CompactDisplaySpacing
 	\scriptsize
-	
+	\CompactDisplaySpacing
+
 	Ignorando o cancelando adecuadamente los términos de frontera,
 	la condición \(\delta S=0\) para variaciones arbitrarias implica
-	
+
 	\[
 	\boxed{
 		E_{ab}=0,
@@ -2788,9 +3697,9 @@ E_\phi\delta\phi
 		E_\phi=0.
 	}
 	\]
-	
+
 	Por tanto, la ecuación métrica es
-	
+
 	\begin{equation}
 		\boxed{
 			P_{ab}
@@ -2802,10 +3711,10 @@ E_\phi\delta\phi
 		}
 		\label{eq:campo-metrico-generalizado}
 	\end{equation}
-	
+
 	Mientras que para el campo escalar,
 	\begin{align}
-		F_\phi-\nabla_aJ^a&=0 \qquad \longrightarrow \qquad
+		F_\phi-\nabla_a\Pi^a&=0 \qquad \longrightarrow \qquad
 		\boxed{
 			\frac{\partial L}{\partial\phi}
 			-
@@ -2817,33 +3726,56 @@ E_\phi\delta\phi
 			=0}
 		\label{eq:euler-lagrange-escalar}
 	\end{align}
-	
+
 	Esta es precisamente la ecuación de Euler--Lagrange covariante
 	para el campo escalar.
-	
+
 	\begin{block}{Caso sin dependencia explícita en \(\phi\)}
 		Si $L=L(g^{ab},R_{abcd},\nabla_a\phi)$, entonces \(F_\phi=0\) y la ecuación escalar se reduce a
 		\[
-		\boxed{\nabla_aJ^a=0.}
+		\boxed{\nabla_a\Pi^a=0.}
 		\]
 		Esto refleja la simetría de desplazamiento
 		\(\phi\rightarrow\phi+\text{cte}\).
 	\end{block}
-	
+
 \end{frame}
 
 
 %================================================
+% BEGIN EDITORIAL
+
+% END EDITORIAL
+
+
+
+\MapaEscalar{6}
+\begin{frame}[label=nav-frame-090]{Resumen escalar: dinámica, Bianchi y Noether}
+\footnotesize\CompactDisplaySpacing
+Los momentos $P^{abcd}=\partial L/\partial R_{abcd}$, $P_{ab}=\partial L/\partial g^{ab}$, $\Pi^a=\partial L/\partial u_a$ y $F_\phi=\partial L/\partial\phi$ separan los argumentos independientes, con $u_a=\nabla_a\phi$.
+\[
+E_{ab}=P_{ab}-\tfrac12g_{ab}L-\Rcal_{ab}-2\nabla^m\nabla^nP_{amnb},\qquad
+E_\phi=F_\phi-\nabla_a\Pi^a.
+\]
+La acción es estacionaria cuando $E_{ab}=E_\phi=0$, con frontera tratada adecuadamente. La identidad algebraica generaliza la geométrica:
+\[
+P_{ab}=2\Rcal_{ab}+\tfrac12\Pi_a u_b,\qquad
+2\nabla^aE_{ab}+E_\phi u_b\equiv0.
+\]
+El segundo resultado es Bianchi fuera de las soluciones. Noether conserva el potencial con el momento de la teoría completa:
+\[
+\mathcal J^{ab}=2P^{abcd}\nabla_c\xi_d-4\xi_d\nabla_cP^{abcd},\qquad
+\mathcal J^a=\nabla_b\mathcal J^{ab}.
+\]
+La frontera es $\Theta^a=\delta v^a+\Pi^a\delta\phi$: no se descarta su aporte escalar. Si hay simetría de desplazamiento, $F_\phi=0$ y la ecuación escalar es $\nabla_a\Pi^a=0$.
+\end{frame}
 \section{Estudio de casos}
-\SetRoadmapStage{5}
-\subsection{Gauss - Bonet}
-\begin{frame}{Gauss - Bonet}
-    
-\end{frame}
+\SetRoadmapStage{6}
 
-\subsection{Lagrangiano especial}
+\subsection{Lagrangiano EQT}
+\MapaEQT{0}
 %================================================
-\begin{frame}
+\begin{frame}[label=nav-frame-091]
 \frametitle{Acción concreta: separación de los sectores}
 \small
 
@@ -2855,25 +3787,25 @@ I_{\mathrm{EQT}}
 =
 \frac{1}{16\pi G}
 \int \dd^3x\,\sqrt{-g}\,
-\left(\mathcal{L}_0+Q_\beta\right)
+\left(L_0+Q_\beta\right)
 }
 \]
 
 con
 
 \[
-\mathcal{L}_0 = R+\frac{2}{L^2} -\alpha_1(\nabla\phi)^2,
+L_0 = R+\frac{2}{\ell^2} -\alpha_1(\nabla\phi)^2,
 \qquad
-Q_\beta = L^2\beta_0
+Q_\beta = \ell^2\beta_0
 \left[
 3R_{ab}\nabla^a\phi\nabla^b\phi - (\nabla\phi)^2R
 \right]
 \]
 
-Por ahora trabajaremos únicamente con \(\mathcal{L}_0\). Los sectores $R$ y $\frac{2}{L^2}$ ya fueron desarrollados anteriormente, por lo que resta estudiar
+Por ahora trabajaremos únicamente con \(L_0\). Los sectores $R$ y $\frac{2}{\ell^2}$ ya fueron desarrollados anteriormente, por lo que resta estudiar
 
 \[
-\mathcal{L}_{\mathrm{cin}}
+L_{\mathrm{cin}}
 = -\alpha_1(\nabla\phi)^2
 \]
 
@@ -2881,7 +3813,7 @@ Definimos $u_a\equiv\nabla_a\phi$, $u^a=g^{ab}u_b$, de manera que
 
 \[
 \boxed{
-\mathcal{L}_{\mathrm{cin}}
+L_{\mathrm{cin}}
 =
 -\alpha_1g^{ab}u_a u_b
 }
@@ -2890,16 +3822,20 @@ Definimos $u_a\equiv\nabla_a\phi$, $u^a=g^{ab}u_b$, de manera que
 \end{frame}
 
 
+
+
+
 %================================================
-\begin{frame}
-\frametitle{Momentos de \(\mathcal{L}_{\mathrm{cin}}\)}
+\begin{frame}[label=nav-frame-092]
+\frametitle{Sector cinético: momentos de curvatura y métrica}
 \small
+\linespread{.96}\selectfont\CompactDisplaySpacing
 
 Como no existe dependencia en el tensor de Riemann,
 
 \[
 \boxed{
-P_{\mathrm{cin}}^{abcd} = \frac{\partial \mathcal{L}_{\mathrm{cin}}}
+P_{\mathrm{cin}}^{abcd} = \frac{\partial L_{\mathrm{cin}}}
 {\partial R_{abcd}}
 = 0
 }
@@ -2919,13 +3855,13 @@ Para el momento métrico,
 \[
 P^{\mathrm{cin}}_{ab}
 =
-\frac{\partial \mathcal{L}_{\mathrm{cin}}}{\partial g^{ab}},
+\frac{\partial L_{\mathrm{cin}}}{\partial g^{ab}},
 \]
 
 tenemos
 
 \[
-\delta_g \mathcal{L}_{\mathrm{cin}}
+\delta_g L_{\mathrm{cin}}
 =
 -\alpha_1u_a u_b\,\delta g^{ab},
 \]
@@ -2942,22 +3878,23 @@ P^{\mathrm{cin}}_{ab} = -\alpha_1u_a u_b.
 
 
 %================================================
-\begin{frame}
-\frametitle{Momentos escalares de \(\mathcal{L}_{\mathrm{cin}}\)}
+\begin{frame}[label=nav-frame-093]
+\frametitle{Momentos escalares de \(L_{\mathrm{cin}}\)}
 \small
+\linespread{.94}\selectfont\DenseDisplaySpacing
 
 Para el momento asociado a \(\nabla_a\phi\),
 
 \[
-J^a_{\mathrm{cin}}
+\Pi^a_{\mathrm{cin}}
 =
-\frac{\partial \mathcal{L}_{\mathrm{cin}}}{\partial u_a}
+\frac{\partial L_{\mathrm{cin}}}{\partial u_a}
 \]
 
 Variando respecto de \(u_a\) y teniendo en cuenta la simetría de $g^{ab}$,
 
 \begin{align*}
-\delta_u \mathcal{L}_{\mathrm{cin}}
+\delta_u L_{\mathrm{cin}}
 &=
 -\alpha_1 g^{ab}
 \left(
@@ -2971,19 +3908,19 @@ u_a\,\delta u_b
 Por tanto,
 
 \[
-J^a_{\mathrm{cin}}
+\Pi^a_{\mathrm{cin}}
 =
 -2\alpha_1u^a
 =
 -2\alpha_1\nabla^a\phi
 \]
 
-Además, \(\mathcal{L}_{\mathrm{cin}}\) no depende explícitamente de \(\phi\), por lo que
+Además, \(L_{\mathrm{cin}}\) no depende explícitamente de \(\phi\), por lo que
 
 \[
 F_\phi^{\mathrm{cin}}
 =
-\frac{\partial \mathcal{L}_{\mathrm{cin}}}{\partial\phi}
+\frac{\partial L_{\mathrm{cin}}}{\partial\phi}
 = 0
 \]
 
@@ -2995,7 +3932,7 @@ P_{\mathrm{cin}}^{abcd}=0,
 \qquad
 P^{\mathrm{cin}}_{ab}=-\alpha_1u_a u_b,
 \qquad
-J^a_{\mathrm{cin}}=-2\alpha_1u^a,
+\Pi^a_{\mathrm{cin}}=-2\alpha_1u^a,
 \qquad
 F_\phi^{\mathrm{cin}}=0
 }
@@ -3005,26 +3942,27 @@ F_\phi^{\mathrm{cin}}=0
 
 
 %================================================
-\begin{frame}
-\frametitle{Variación directa de \(\mathcal{L}_{\mathrm{cin}}\)}
+\begin{frame}[label=nav-frame-094]
+\frametitle{Variación directa de \(L_{\mathrm{cin}}\)}
 \small
+\linespread{.94}\selectfont\DenseDisplaySpacing
 
 Por tanto,
 
 \[
 \boxed{
-\delta \mathcal{L}_{\mathrm{cin}}
+\delta L_{\mathrm{cin}}
 =
 P^{\mathrm{cin}}_{ab}\delta g^{ab}
 +
-J^a_{\mathrm{cin}}\delta u_a.
+\Pi^a_{\mathrm{cin}}\delta u_a.
 }
 \]
 
 Como $u_a=\nabla_a\phi$ y \(\phi\) es un escalar, $\delta u_a = \delta(\nabla_a\phi) = \nabla_a(\delta\phi)$. Luego,
 
 \[
-\delta \mathcal{L}_{\mathrm{cin}}
+\delta L_{\mathrm{cin}}
 =
 -\alpha_1u_a u_b\,\delta g^{ab}
 -
@@ -3032,36 +3970,38 @@ Como $u_a=\nabla_a\phi$ y \(\phi\) es un escalar, $\delta u_a = \delta(\nabla_a\
 \]
 
 
+
 Ahora,
 
 \[
-\delta(\sqrt{-g}\,\mathcal{L}_{\mathrm{cin}})
+\delta(\sqrt{-g}\,L_{\mathrm{cin}})
 =
-\sqrt{-g}\,\delta \mathcal{L}_{\mathrm{cin}}
+\sqrt{-g}\,\delta L_{\mathrm{cin}}
 +
-\mathcal{L}_{\mathrm{cin}}\delta\sqrt{-g}.
+L_{\mathrm{cin}}\delta\sqrt{-g}.
 \]
 
 Usando $\delta\sqrt{-g} = -\frac12\sqrt{-g}\, g_{ab}\delta g^{ab}$, obtenemos
 
 \begin{align*}
-\delta(\sqrt{-g}\,\mathcal{L}_{\mathrm{cin}})
+\delta(\sqrt{-g}\,L_{\mathrm{cin}})
 =
 \sqrt{-g}\Bigg[
 &
 \left(
 P^{\mathrm{cin}}_{ab}
--\frac12g_{ab}\mathcal{L}_{\mathrm{cin}}
+-\frac12g_{ab}L_{\mathrm{cin}}
 \right)\delta g^{ab}
 +
-J^a_{\mathrm{cin}}\delta u_a
+\Pi^a_{\mathrm{cin}}\delta u_a
 \Bigg]
 \end{align*}
+
 
 Sustituyendo los momentos,
 
 \[
-\delta(\sqrt{-g}\,\mathcal{L}_{\mathrm{cin}})
+\delta(\sqrt{-g}\,L_{\mathrm{cin}})
 =
 \sqrt{-g}
 \left[
@@ -3079,9 +4019,10 @@ Sustituyendo los momentos,
 
 
 %================================================
-\begin{frame}
+\begin{frame}[label=nav-frame-095]
 \frametitle{Integración por partes del término escalar}
 \small
+\linespread{.94}\selectfont\DenseDisplaySpacing
 
 Para el último término usamos $\nabla_a(u^a\delta\phi) = (\nabla_a u^a)\delta\phi + u^a\nabla_a\delta\phi$. Por tanto,
 
@@ -3093,10 +4034,11 @@ u^a\nabla_a\delta\phi
 (\nabla_a u^a)\delta\phi.
 \]
 
+
 Entonces,
 
 \begin{align*}
-\delta(\sqrt{-g}\,\mathcal{L}_{\mathrm{cin}})
+\delta(\sqrt{-g}\,L_{\mathrm{cin}})
 =
 \sqrt{-g}\Bigg[
 &
@@ -3113,6 +4055,7 @@ Entonces,
 2\alpha_1\nabla_a(u^a\delta\phi)
 \Bigg]
 \end{align*}
+
 
 Identificamos así
 
@@ -3138,16 +4081,17 @@ y el término de frontera
 
 
 %================================================
-\begin{frame}
-\frametitle{Reconstrucción del sector \(\mathcal{L}_0\)}
+\MapaEQT{1}
+\begin{frame}[label=nav-frame-096]
+\frametitle{Reconstrucción del sector \(L_0\)}
 \small
 
 Recordemos
 
 \[
-\mathcal{L}_0
+L_0
 =
-R+\frac{2}{L^2}-\alpha_1(\nabla\phi)^2.
+R+\frac{2}{\ell^2}-\alpha_1(\nabla\phi)^2.
 \]
 
 Como los sectores EH y cosmológico ya son conocidos,
@@ -3157,7 +4101,7 @@ E^{\mathrm{EH}}_{ab}=G_{ab},
 \qquad
 E^\Lambda_{ab}
 =
--\frac{1}{L^2}g_{ab},
+-\frac{1}{\ell^2}g_{ab},
 \]
 
 Por tanto, definimos
@@ -3194,8 +4138,8 @@ pues $\delta v^a_\Lambda=0$.
 
 
 %================================================
-\begin{frame}
-\frametitle{Resultado final para \(\mathcal{L}_0\)}
+\begin{frame}[label=nav-frame-097]
+\frametitle{Resultado final para \(L_0\)}
 \small
 
 Reemplazando las contribuciones,
@@ -3205,7 +4149,7 @@ Reemplazando las contribuciones,
 E^{(0)}_{ab}
 =
 G_{ab}
--\frac{1}{L^2}g_{ab}
+-\frac{1}{\ell^2}g_{ab}
 -\alpha_1\nabla_a\phi\nabla_b\phi
 +
 \frac{\alpha_1}{2}
@@ -3246,7 +4190,7 @@ Así,
 
 \[
 \boxed{
-\delta I_{\mathcal{L}_0}
+\delta I_{L_0}
 =
 \frac{1}{16\pi G}
 \int\dd^3x\,\sqrt{-g}
@@ -3264,9 +4208,11 @@ E^{(0)}_\phi\delta\phi
 
 
 %================================================
-\begin{frame}
+\MapaEQT{2}
+\begin{frame}[label=nav-frame-098]
 \frametitle{Sector de acoplamiento \(Q_\beta\)}
 \small
+\CompactDisplaySpacing
 
 Consideramos ahora
 
@@ -3274,7 +4220,7 @@ Consideramos ahora
 \boxed{
 Q_\beta
 =
-L^2\beta_0
+\ell^2\beta_0
 \left[
 3R_{ab}\nabla^a\phi\nabla^b\phi
 -
@@ -3306,7 +4252,7 @@ Por tanto,
 \begin{align*}
 Q_\beta
 &=
-L^2\beta_0
+\ell^2\beta_0
 \left[
 3g^{ac}g^{bm}g^{dn}
 -
@@ -3315,7 +4261,7 @@ g^{ac}g^{bd}g^{mn}
 R_{abcd}u_m u_n
 \\[1mm]
 &=
-L^2\beta_0
+\ell^2\beta_0
 \left[
 3g^{ac}u^bu^d
 -
@@ -3330,7 +4276,7 @@ P_\beta^{abcd},
 \qquad
 P^{(\beta)}_{ab},
 \qquad
-J_\beta^a,
+\Pi_\beta^a,
 \qquad
 F_\phi^{(\beta)}.
 \]
@@ -3339,16 +4285,19 @@ F_\phi^{(\beta)}.
 
 
 %================================================
-\begin{frame}
+\input{contenido/tablas/qbeta-objetivos.tex}
+\begin{frame}[label=nav-frame-100]
 \frametitle{Momento de curvatura \(P_\beta^{abcd}\)}
 \small
+\linespread{.96}\selectfont\CompactDisplaySpacing
+\CompactDisplaySpacing
 
 De la forma anterior,
 
 \[
 P_\beta^{abcd}\delta R_{abcd}
 =
-L^2\beta_0
+\ell^2\beta_0
 \left[
 3g^{ac}u^bu^d
 -
@@ -3357,10 +4306,11 @@ Xg^{ac}g^{bd}
 \delta R_{abcd}.
 \]
 
+
 Como \(\delta R_{abcd}\) es anstisimétrico en los pares $(a, b)$ y $(c, d)$,
 debemos proyectar cada coeficiente sobre esas mismas simetrías.
 
-Para el primer término, aplicando 
+Para el primer término, aplicando
 
 \[
 g^{ac}u^bu^d\,\delta R_{abcd}
@@ -3388,6 +4338,7 @@ g^{ad}g^{bc}
 \right)\delta R_{abcd}.
 \]
 
+
 Por tanto,
 
 \begin{equation}
@@ -3395,7 +4346,7 @@ Por tanto,
 \begin{aligned}
 P_\beta^{abcd}
 =
-\frac{L^2\beta_0}{4}
+\frac{\ell^2\beta_0}{4}
 \Big[
 &3\big(
 g^{ac}u^bu^d
@@ -3420,16 +4371,17 @@ g^{ad}g^{bc}
 
 
 %================================================
-\begin{frame}
+\begin{frame}[label=nav-frame-101]
 \frametitle{Momento métrico \(P^{(\beta)}_{ab}\)}
 \small
+\linespread{.96}\selectfont\CompactDisplaySpacing
 
 Partimos de la expresión completamente desarrollada
 
 \[
 Q_\beta
 =
-L^2\beta_0
+\ell^2\beta_0
 \left[
 3g^{ac}g^{bm}g^{dn}
 -
@@ -3453,7 +4405,7 @@ Así,
 \begin{aligned}
 \delta_g Q_\beta
 =
-L^2\beta_0
+\ell^2\beta_0
 \Big\{
 3\Big[
 &\delta g^{ac}g^{bm}g^{dn}
@@ -3482,8 +4434,8 @@ A_{pq}\delta g^{pq} = A_{(pq)}\delta g^{pq}
 \end{frame}
 
 %================================================
-\begin{frame}
-\frametitle{Variación métrica: primer grupo}
+\begin{frame}[label=nav-frame-102]
+\frametitle{Momento métrico: grupo proporcional a \(3\)}
 \scriptsize
 
 Consideremos primero los tres términos multiplicados por \(3\).
@@ -3496,6 +4448,7 @@ R_{abcd}u_m u_n
 &=
 u^bu^dR_{abcd}\,\delta g^{ac} = u^iu^jR_{piqj}\,\delta g^{pq}
 \end{align*}
+
 
 Para el segundo usamos \(g^{ac}R_{abcd}=R_{bd}\):
 
@@ -3529,6 +4482,7 @@ u_p u^iR_{qi}
 \delta g^{pq}.
 \end{align*}
 
+
 Por tanto, los tres términos juntos dan
 
 \begin{equation}
@@ -3560,8 +4514,8 @@ u_p u^iR_{qi}
 \end{frame}
 
 %================================================
-\begin{frame}
-\frametitle{Variación métrica: segundo grupo}
+\begin{frame}[label=nav-frame-103]
+\frametitle{Momento métrico: grupo con signo negativo}
 \scriptsize
 
 Ahora estudiamos
@@ -3576,6 +4530,7 @@ g^{ac}g^{bd}\delta g^{mn}
 \Big)
 R_{abcd}u_m u_n
 \]
+
 
 Para el primer término,
 
@@ -3608,6 +4563,7 @@ R\,u_m u_n\,\delta g^{mn}
 R\,u_pu_q\,\delta g^{pq}
 \end{align*}
 
+
 Por tanto,
 
 \begin{equation}
@@ -3637,9 +4593,10 @@ R\,u_pu_q
 \end{frame}
 
 %================================================
-\begin{frame}
+\begin{frame}[label=nav-frame-104]
 \frametitle{Momento métrico \(P^{(\beta)}_{ab}\): resultado}
 \small
+\linespread{.96}\selectfont\CompactDisplaySpacing
 
 Sustituyendo \Eq{eq:Pbeta-grupo-positivo} y
 \Eq{eq:Pbeta-grupo-negativo},
@@ -3648,7 +4605,7 @@ Sustituyendo \Eq{eq:Pbeta-grupo-positivo} y
 \begin{aligned}
 \delta_g Q_\beta
 =
-L^2\beta_0
+\ell^2\beta_0
 \Big\{
 &3\left[
 u^iu^jR_{piqj}
@@ -3684,7 +4641,7 @@ obtenemos
 \begin{aligned}
 P^{(\beta)}_{pq}
 =
-L^2\beta_0
+\ell^2\beta_0
 \Big[
 &3u^iu^jR_{piqj}
 +3u_q u^iR_{pi}
@@ -3704,7 +4661,7 @@ Finalmente, renombrando \(p,q\rightarrow a,b\),
 \boxed{
 P^{(\beta)}_{ab}
 =
-L^2\beta_0
+\ell^2\beta_0
 \left[
 3R_{acbd}u^cu^d
 +
@@ -3722,14 +4679,17 @@ Ru_a u_b
 
 
 %================================================
-\begin{frame}
-\frametitle{Momento escalar \(J_\beta^a\)}
+\input{contenido/tablas/qbeta-geometricos.tex}
+\MapaEQT{3}
+\begin{frame}[label=nav-frame-106]
+\frametitle{Momento escalar \(\Pi_\beta^a\)}
 \small
+\linespread{.94}\selectfont\DenseDisplaySpacing
 
 Para
 
 \[
-J_\beta^a
+\Pi_\beta^a
 =
 \frac{\partial Q_\beta}{\partial u_a},
 \qquad
@@ -3741,7 +4701,7 @@ partimos de
 \[
 Q_\beta
 =
-L^2\beta_0
+\ell^2\beta_0
 \left(
 3R_{ab}u^a u^b
 -
@@ -3754,7 +4714,7 @@ Al variar únicamente respecto de \(u_a\),
 \begin{align*}
 \delta_u Q_\beta
 =
-L^2\beta_0
+\ell^2\beta_0
 \Big[
 &3R_{bd}
 \left(
@@ -3786,7 +4746,7 @@ Por tanto,
 \begin{align*}
 \delta_u Q_\beta
 =
-L^2\beta_0
+\ell^2\beta_0
 \Big[
 &3R_{bd}
 \left(
@@ -3806,9 +4766,10 @@ u^m\delta u_m
 \end{frame}
 
 %================================================
-\begin{frame}
-\frametitle{Momento escalar \(J_\beta^a\): resultado}
+\begin{frame}[label=nav-frame-107]
+\frametitle{Momento escalar \(\Pi_\beta^a\): resultado}
 \scriptsize
+\CompactDisplaySpacing
 
 Reescribimos todos los términos en función de la misma
 variación \(\delta u_m\):
@@ -3816,7 +4777,7 @@ variación \(\delta u_m\):
 \begin{align*}
 \delta_u Q_\beta
 =
-L^2\beta_0
+\ell^2\beta_0
 \Big[
 &3R_{bd}g^{bm}u^d
 +
@@ -3827,6 +4788,7 @@ R\,g^{mn}u_n
 Ru^m
 \Big]\delta u_m
 \end{align*}
+
 
 Ahora, $g^{mn}u_n=u^m$, y, usando la simetría del tensor de Ricci, $R_{bd}=R_{db}$, tenemos
 
@@ -3851,7 +4813,7 @@ Por tanto, ambos términos son iguales y
 \begin{align*}
 \delta_u Q_\beta
 &=
-L^2\beta_0
+\ell^2\beta_0
 \left[
 6R^m{}_b u^b
 -
@@ -3859,13 +4821,14 @@ L^2\beta_0
 \right]\delta u_m
 \end{align*}
 
-Comparando con $\delta_u Q_\beta = J_\beta^m\delta u_m$, obtenemos
+
+Comparando con $\delta_u Q_\beta = \Pi_\beta^m\delta u_m$, obtenemos
 
 \begin{equation}
 \boxed{
-J_\beta^a
+\Pi_\beta^a
 =
-L^2\beta_0
+\ell^2\beta_0
 \left(
 6R^a{}_b\nabla^b\phi
 -
@@ -3888,16 +4851,19 @@ F_\phi^{(\beta)} = 0
 
 
 %================================================
-\begin{frame}
+\input{contenido/tablas/qbeta-escalares.tex}
+\MapaEQT{4}
+\begin{frame}[label=nav-frame-109]
 	\frametitle{Contracción \(\Rcal^{(\beta)}_{(ab)}\)}
 	\scriptsize
-	
+	\CompactDisplaySpacing
+
 	Para \(Q_\beta\), ya obtuvimos
-	
+
 	\[
 	P^{(\beta)}_{ab}
 	=
-	L^2\beta_0
+	\ell^2\beta_0
 	\left[
 	3R_{acbd}u^cu^d
 	+
@@ -3908,28 +4874,29 @@ F_\phi^{(\beta)} = 0
 	Ru_au_b
 	\right],
 	\]
-	
+
 	y
-	
+
 	\[
-	J^{(\beta)}_a
+	\Pi^{(\beta)}_a
 	=
-	L^2\beta_0
+	\ell^2\beta_0
 	\left(
 	6R_{ac}u^c
 	-
 	2Ru_a
 	\right).
 	\]
-	
-	Usamos ahora directamente la identidad \Eq{eq:identidad-Rcal-general}: $\Rcal^{(\beta)}_{(ab)} = \frac12P^{(\beta)}_{ab} - \frac14J^{(\beta)}_{(a}u_{b)}$.
-	
+
+
+	Usamos ahora directamente la identidad \Eq{eq:identidad-Rcal-general}: $\Rcal^{(\beta)}_{(ab)} = \frac12P^{(\beta)}_{ab} - \frac14\Pi^{(\beta)}_{(a}u_{b)}$.
+
 	El primer término es
-	
+
 	\begin{align*}
 		\frac12P^{(\beta)}_{ab}
 		=
-		L^2\beta_0
+		\ell^2\beta_0
 		\Big[
 		&
 		\frac32R_{acbd}u^cu^d
@@ -3939,27 +4906,28 @@ F_\phi^{(\beta)} = 0
 		-\frac12Ru_au_b
 		\Big]
 	\end{align*}
-	
+
 	Mientras que
-	
+
 	\[
-	\frac14J^{(\beta)}_{(a}u_{b)}
+	\frac14\Pi^{(\beta)}_{(a}u_{b)}
 	=
-	L^2\beta_0
+	\ell^2\beta_0
 	\left[
 	\frac32u_{(a}R_{b)c}u^c
 	-
 	\frac12Ru_au_b
 	\right]
 	\]
-	
+
+
 	Restando, los términos \(Ru_au_b\) se cancelan y obtenemos
-	
+
 	\begin{equation}
 		\boxed{
 			\Rcal^{(\beta)}_{(ab)}
 			=
-			L^2\beta_0
+			\ell^2\beta_0
 			\left[
 			\frac32R_{acbd}u^cu^d
 			+
@@ -3970,16 +4938,16 @@ F_\phi^{(\beta)} = 0
 		}
 		\label{eq:Rcalbeta-sim}
 	\end{equation}
-	
+
 	Es exactamente el resultado obtenido mediante
 	la contracción directa
 	\(P^{(\beta)}_a{}^{cde}R_{bcde}\), solo que este método es mucho más tedioso de hacer.
-	
+
 \end{frame}
 
 
 %================================================
-\begin{frame}
+\begin{frame}[label=nav-frame-110]
 \frametitle{Término \(-2\nabla\nabla P_\beta\)}
 \scriptsize
 
@@ -3999,7 +4967,7 @@ Después de bajar los índices correspondientes y usar
 -2\nabla_m\nabla_n
 P^{(\beta)}_{(a}{}^{mn}{}_{b)}
 =
-L^2\beta_0\Bigg\{
+\ell^2\beta_0\Bigg\{
 -\frac34\Big[
 &
 \nabla_m\nabla_a(u^m u_b)
@@ -4038,7 +5006,7 @@ X=(\nabla\phi)^2,
 \end{frame}
 
 %================================================
-\begin{frame}
+\begin{frame}[label=nav-frame-111]
 \frametitle{Variación de la acción \(I_{Q_\beta}\)}
 \small
 
@@ -4079,7 +5047,7 @@ P^{(\beta)}_{ab}
 -\frac12g_{ab}Q_\beta
 \right)\delta g^{ab}
 +
-J_\beta^a\nabla_a\delta\phi
+\Pi_\beta^a\nabla_a\delta\phi
 \Big].
 \end{aligned}
 \]
@@ -4087,17 +5055,17 @@ J_\beta^a\nabla_a\delta\phi
 Para el sector escalar,
 
 \[
-J_\beta^a\nabla_a\delta\phi
+\Pi_\beta^a\nabla_a\delta\phi
 =
--(\nabla_aJ_\beta^a)\delta\phi
+-(\nabla_a\Pi_\beta^a)\delta\phi
 +
-\nabla_a(J_\beta^a\delta\phi).
+\nabla_a(\Pi_\beta^a\delta\phi).
 \]
 
 \end{frame}
 
 %================================================
-\begin{frame}
+\begin{frame}[label=nav-frame-112]
 \frametitle{Ecuaciones asociadas a \(Q_\beta\)}
 \small
 
@@ -4117,6 +5085,7 @@ P^{(\beta)}_{(a}{}^{mn}{}_{b)}
 \nabla_a\delta v^a_{P,\beta},
 \]
 
+
 la variación adopta la forma
 
 \[
@@ -4134,6 +5103,7 @@ E^{(\beta)}_\phi\delta\phi
 \right].
 }
 \]
+
 
 donde
 
@@ -4156,9 +5126,9 @@ y
 \boxed{
 E^{(\beta)}_\phi
 =
--\nabla_aJ_\beta^a
+-\nabla_a\Pi_\beta^a
 =
--2L^2\beta_0
+-2\ell^2\beta_0
 \nabla_a
 \left(
 3R^a{}_b\nabla^b\phi
@@ -4172,7 +5142,7 @@ R\nabla^a\phi
 \end{frame}
 
 %================================================
-\begin{frame}
+\begin{frame}[label=nav-frame-113]
 \frametitle{Término de frontera de \(Q_\beta\)}
 \small
 
@@ -4183,7 +5153,7 @@ La contribución de frontera queda
 =
 \delta v^j_{P,\beta}
 +
-J_\beta^j\delta\phi,
+\Pi_\beta^j\delta\phi,
 \]
 
 con
@@ -4208,7 +5178,7 @@ Por tanto,
 2\delta g_{di}\nabla_cP_\beta^{ijcd}
 \\
 &+
-2L^2\beta_0
+2\ell^2\beta_0
 \left(
 3R^j{}_b\nabla^b\phi
 -
@@ -4230,59 +5200,61 @@ de frontera.
 
 
 %================================================
-\begin{frame}
-	\frametitle{Chequeo de Bianchi para $\mathcal{L}_0+Q_\beta$}
+\MapaEQT{5}
+\begin{frame}[label=nav-frame-114]
+	\frametitle{Chequeo de Bianchi para $L_0+Q_\beta$}
+\linespread{.94}\selectfont\DenseDisplaySpacing
 	\small
-	
+
 	Para
-	
+
 	\[
 	L
 	=
-	R+\frac{2}{L^2}
+	R+\frac{2}{\ell^2}
 	-\alpha_1 X
 	+
-	L^2\beta_0
+	\ell^2\beta_0
 	\left(
 	3R_{ab}u^au^b-RX
 	\right),
 	\qquad
 	u_a=\nabla_a\phi,
 	\]
-	
+
 	la identidad generalizada exige $2\nabla^aE_{ab}+E_\phi u_b=0$.	Usando los resultados obtenidos para cada sector,
-	
+
 	\begin{align*}
 		2\nabla^aE_{ab}
 		={}&
 		\underbrace{2\nabla^aG_{ab}}_{0}
-		- \underbrace{\frac{2}{L^2}\nabla^ag_{ab}}_{0}
+		- \underbrace{\frac{2}{\ell^2}\nabla^ag_{ab}}_{0}
 		- 2\alpha_1(\Box\phi)\,u_b
-		+ L^2\beta_0 \nabla_a \left(6R^a{}_c u^c-2Ru^a\right)u_b
+		+ \ell^2\beta_0 \nabla_a \left(6R^a{}_c u^c-2Ru^a\right)u_b
 	\end{align*}
-	
+
 	mientras que la ecuación escalar es
-	
+
 	\[
 	E_\phi
 	=
 	2\alpha_1\Box\phi
 	-
-	L^2\beta_0
+	\ell^2\beta_0
 	\nabla_a
 	\left(
 	6R^a{}_c u^c-2Ru^a
 	\right).
 	\]
-	
+
 	Por tanto,
-	
+
 	\begin{align*}
 		2\nabla^aE_{ab}+E_\phi u_b
 		={}&
 		-2\alpha_1(\Box\phi)u_b
 		+
-		L^2\beta_0
+		\ell^2\beta_0
 		\nabla_a
 		\left(
 		6R^a{}_c u^c-2Ru^a
@@ -4291,14 +5263,14 @@ de frontera.
 		&+
 		2\alpha_1(\Box\phi)u_b
 		-
-		L^2\beta_0
+		\ell^2\beta_0
 		\nabla_a
 		\left(
 		6R^a{}_c u^c-2Ru^a
 		\right)u_b
 		=0
 	\end{align*}
-	
+
 \end{frame}
 
 
@@ -4306,16 +5278,23 @@ de frontera.
 
 
 %================================================
-\begin{frame}
-\frametitle{Ecuaciones de campo de la teoría completa}
-\small
 
-La densidad lagrangiana total es
+
+
+
+%================================================
+\MapaEQT{6}
+\begin{frame}[label=nav-frame-115]
+\frametitle{Resumen EQT: ecuaciones de la teoría completa}
+\small
+\linespread{.94}\selectfont\DenseDisplaySpacing
+
+El lagrangiano escalar total es
 
 \[
-\mathcal{L}
+L
 =
-\mathcal{L}_0+Q_\beta.
+L_0+Q_\beta.
 \]
 
 Por linealidad de la variación,
@@ -4359,31 +5338,33 @@ E^{(0)}_\phi+E^{(\beta)}_\phi=0
 \]
 
 \end{frame}
-
-
-
 %================================================
+\input{contenido/holografia/generalizada.tex}
+
 \section{Discusión de resultados}
-\SetRoadmapStage{5}
+\SetRoadmapStage{8}
+\MapaDiscusion{0}
 %================================================
 %================================================
-\begin{frame}
+\begin{frame}[label=nav-frame-116]
 	\frametitle{Condición de Lanczos--Lovelock: $\nabla_a P^{abcd}$}
+\linespread{.96}\selectfont\CompactDisplaySpacing
 	\small
-	
+	\CompactDisplaySpacing
+
 	En Lanczos--Lovelock se cumple la condición estructural $\nabla_a P^{abcd}=0$. Para nuestro modelo,
-	
+
 	\[
-	\mathcal L
+	L
 	=
-	R+\frac{2}{L^2}
+	R+\frac{2}{\ell^2}
 	-\alpha_1(\nabla\phi)^2
 	+
 	Q_\beta,
 	\]
-	
+
 	ni la constante cosmológica ni el término cinético contribuyen a \(P^{abcd}\), pues no dependen explícitamente de \(R_{abcd}\): $P_{\Lambda}^{abcd}=0, P_{\mathrm{cin}}^{abcd}=0$. Además, $\nabla_a P_{\mathrm{EH}}^{abcd}=0$ por compatibilidad métrica, \(\nabla_a g^{bc}=0\). Por tanto,
-	
+
 	\[
 	\boxed{
 		\nabla_aP^{abcd}
@@ -4391,14 +5372,14 @@ E^{(0)}_\phi+E^{(\beta)}_\phi=0
 		\nabla_aP_\beta^{abcd}
 	}
 	\]
-	
+
 	Partimos entonces del tensor ya obtenido:
-	
+
 	\begin{equation*}
 		\begin{aligned}
 			P_\beta^{abcd}
 			=
-			\frac{L^2\beta_0}{4}
+			\frac{\ell^2\beta_0}{4}
 			\Big[
 			&3\big(
 			g^{ac}u^bu^d
@@ -4417,28 +5398,29 @@ E^{(0)}_\phi+E^{(\beta)}_\phi=0
 		\end{aligned}
 	\end{equation*}
 	con
-	
+
 	\[
 	u_a=\nabla_a\phi,
 	\qquad
 	X=u^a u_a.
 	\]
-	
+
 \end{frame}
 
 
 %================================================
-\begin{frame}
+\MapaDiscusion{1}
+\begin{frame}[label=nav-frame-117]
 	\frametitle{Divergencia de $P_\beta^{abcd}$}
 	\small
-	
+
 	Como \(\nabla_a g^{bc}=0\), la derivada covariante actúa únicamente
 	sobre \(u^a\) y \(X\):
-	
+
 	\begin{align*}
 		\nabla_aP_\beta^{abcd}
 		=
-		\frac{L^2\beta_0}{4}
+		\frac{\ell^2\beta_0}{4}
 		\Bigg\{
 		3\Big[
 		&
@@ -4463,17 +5445,17 @@ E^{(0)}_\phi+E^{(\beta)}_\phi=0
 		\right)
 		\Bigg\}.
 	\end{align*}
-	
+
 	Como \(u_a=\nabla_a\phi\),
-	
+
 	\[
 	\nabla_a u_b=\nabla_b u_a,
 	\qquad
 	\nabla_a u^a=\Box\phi,
 	\]
-	
+
 	y
-	
+
 	\[
 	\nabla^dX
 	=
@@ -4481,26 +5463,26 @@ E^{(0)}_\phi+E^{(\beta)}_\phi=0
 	=
 	2u^a\nabla_a u^d.
 	\]
-	
-	Además, 
+
+	Además,
 	$u^b\nabla^c u^d-u^b\nabla^d u^c=0$.
-	
+
 \end{frame}
 
 
 %================================================
-\begin{frame}
+\begin{frame}[label=nav-frame-118]
 	\frametitle{Expresión general para $\nabla_aP_\beta^{abcd}$}
 	\small
-	
+
 	Usando las identidades anteriores, la divergencia se reduce a
-	
+
 	\[
 	\boxed{
 		\begin{aligned}
 			\nabla_aP_\beta^{abcd}
 			=
-			\frac{L^2\beta_0}{4}
+			\frac{\ell^2\beta_0}{4}
 			\Bigg\{
 			3\Big[
 			&
@@ -4527,9 +5509,9 @@ E^{(0)}_\phi+E^{(\beta)}_\phi=0
 		\end{aligned}
 	}
 	\]
-	
+
 	Por tanto, para nuestro lagrangiano completo,
-	
+
 	\[
 	\boxed{
 		\nabla_aP^{abcd}
@@ -4537,23 +5519,25 @@ E^{(0)}_\phi+E^{(\beta)}_\phi=0
 		\nabla_aP_\beta^{abcd}
 	}.
 	\]
-	
+
 	A diferencia del caso Lanczos--Lovelock, la expresión anterior
 	\emph{no se anula identicamente}.
-	
+
 	Para verificarlo sobre la solución concreta, basta encontrar una
 	sola componente no nula.
-	
+
 \end{frame}
 
 
 %================================================
-\begin{frame}
+\MapaDiscusion{2}
+\begin{frame}[label=nav-frame-119]
 	\frametitle{Evaluación sobre el ansatz de la solución}
 	\small
-	
+	\CompactDisplaySpacing
+
 	Consideramos
-	
+
 	\[
 	ds^2
 	=
@@ -4561,13 +5545,13 @@ E^{(0)}_\phi+E^{(\beta)}_\phi=0
 	+
 	\frac{dr^2}{f(r)}
 	+
-	r^2d\varphi^2,
+	r^2d\theta^2,
 	\qquad
-	d\phi=p\,d\varphi.
+	d\phi=p\,d\theta.
 	\]
-	
+
 	Entonces,
-	
+
 	\[
 	u_a=(0,0,p),
 	\qquad
@@ -4580,42 +5564,44 @@ E^{(0)}_\phi+E^{(\beta)}_\phi=0
 		X=\frac{p^2}{r^2}
 	}.
 	\]
-	
+
 	Además, $\Box\phi=0$ por la relación en el ansatz. Pero, $\nabla_a u_b\neq0$, pues, por ejemplo,
-	
+
 	\[
-	\nabla_r u_\varphi
+	\nabla_r u_\theta
 	=
-	-\Gamma^\varphi_{r\varphi}u_\varphi
+	-\Gamma^\theta_{r\theta}u_\theta
 	=
 	-\frac{p}{r}
 	\]
-	
-	Para demostrar que \(\nabla_aP^{abcd}\neq0\), tomamos la componente	
+
+	Para demostrar que \(\nabla_aP^{abcd}\neq0\), tomamos la componente
 	\[
 	(b,c,d)=(t,t,r)
 	\]
-	
-	Como $u^t=u^r=0, g^{tr}=0$, la expresión general se reduce a	
+
+	Como $u^t=u^r=0, g^{tr}=0$, la expresión general se reduce a
 	\[
 	\boxed{
 		\nabla_aP_\beta^{attr}
 		=
-		\frac{L^2\beta_0}{8}
+		\frac{\ell^2\beta_0}{8}
 		g^{tt}\nabla^rX
 	}
 	\]
-	
+
 \end{frame}
 
 
 %================================================
-\begin{frame}
+\MapaDiscusion{3}
+\begin{frame}[label=nav-frame-120]
 	\frametitle{No se cumple la condición de Lanczos--Lovelock}
+\linespread{.96}\selectfont\CompactDisplaySpacing
 	\scriptsize
-	
+
 	Como
-	
+
 	\[
 	g^{tt}=-\frac{1}{f(r)},
 	\qquad
@@ -4630,23 +5616,24 @@ E^{(0)}_\phi+E^{(\beta)}_\phi=0
 	=
 	-\frac{2f(r)p^2}{r^3},
 	\]
-	
+
+
 	obtenemos
-	
+
 	\begin{align*}
 		\nabla_aP_\beta^{attr}
 		&=
-		\frac{L^2\beta_0}{8}
+		\frac{\ell^2\beta_0}{8}
 		\left(-\frac1f\right)
 		\left(-\frac{2fp^2}{r^3}\right)
 		=
 		\boxed{
-			\frac{L^2\beta_0p^2}{4r^3}
+			\frac{\ell^2\beta_0p^2}{4r^3}
 		}
 	\end{align*}
-	
+
 	Por tanto,
-	
+
 	\[
 	\boxed{
 		\nabla_aP^{attr}\neq0
@@ -4654,22 +5641,23 @@ E^{(0)}_\phi+E^{(\beta)}_\phi=0
 		\nabla_aP^{abcd}\neq0.
 	}
 	\]
-	
+
+
 	Notemos que \(f(r)\) se cancela completamente. En consecuencia,
 	sustituir específicamente la solución
-	
+
 	\[
 	f(r)
 	=
 	\frac{
-		r^2/L^2-\lambda
+		r^2/\ell^2-\lambda
 	}{
-		1+\beta_0p^2L^2/r^2
+		1+\beta_0p^2\ell^2/r^2
 	}
 	\]
-	
+
 	no puede producir la cancelación. Para \(r\) finito, $\nabla_aP^{attr}=0$ solo si
-	
+
 	\[
 	\boxed{
 		\beta_0=0
@@ -4679,10 +5667,10 @@ E^{(0)}_\phi+E^{(\beta)}_\phi=0
 		r\longrightarrow \infty
 	}
 	\]
-	
+
 	Los dos primeros corresponden a los casos triviales en los que desaparece
 	la interacción \(Q_\beta\).
-	
+
 \end{frame}
 %================================================
 
@@ -4691,7 +5679,30 @@ E^{(0)}_\phi+E^{(\beta)}_\phi=0
 
 
 
-\begin{frame}{Referencias}
+
+% BEGIN EDITORIAL
+\input{contenido/cierre/componente-radial.tex}
+
+% END EDITORIAL
+
+\MapaDiscusion{4}
+\begin{frame}[label=nav-frame-122]{Resumen del contraste: EQT no es LL en general}
+\small\CompactDisplaySpacing
+Los sectores Einstein--Hilbert, cosmológico y cinético no aportan a $\nabla_aP^{abcd}$. El diagnóstico recae en $Q_\beta$:
+\[
+\nabla_aP^{abcd}=\nabla_aP_\beta^{abcd}.
+\]
+Para $\dd s^2=-f\dd t^2+\dd r^2/f+r^2\dd\theta^2$ y $u_a=(0,0,p)$, el cálculo de la componente $(b,c,d)=(t,t,r)$ dio
+\[
+\boxed{\nabla_aP_\beta^{attr}=\frac{\ell^2\beta_0p^2}{4r^3}.}
+\]
+La dependencia en $f(r)$ se cancela. Para $\beta_0p\ne0$ la expresión es no nula a radio finito: no se satisface la condición LL como identidad de la teoría.
+\begin{block}{Límites y alcance}
+Se anula al apagar el acoplamiento ($\beta_0=0$) o el gradiente ($p=0$), y tiende a cero cuando $r\to\infty$. Un límite o un ansatz especial no prueba una identidad general. Tampoco basta este diagnóstico para decidir por sí solo el orden de todas las ecuaciones reducidas.
+\end{block}
+\end{frame}
+\input{contenido/cierre/sintesis.tex}
+\begin{frame}[label=nav-frame-124]{Referencias}
 \footnotesize
 \begin{thebibliography}{9}
 
@@ -4716,4 +5727,6 @@ Physical Review D \textbf{48}, R3427--R3431 (1993).
 \end{frame}
 
 
+\SetRoadmapStage{0}
+\input{contenido/navegacion/indices.tex}
 \end{document}

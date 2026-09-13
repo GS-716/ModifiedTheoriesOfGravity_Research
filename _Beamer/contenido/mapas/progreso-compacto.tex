@@ -1,0 +1,28 @@
+% Mismo recorrido de los mapas completos, visible durante el desarrollo.
+\newcommand{\MiniStep}[2]{%
+  \ifnum#1>\mapcompletedfooter
+    \ifnum#1=\numexpr\mapcompletedfooter+1\relax
+      \def\MiniBg{structure.fg!15}\def\MiniFg{structure.fg}%
+    \else\def\MiniBg{black!3}\def\MiniFg{black!65}\fi
+    \def\MiniMark{#1.}%
+  \else\def\MiniBg{mapdone!18}\def\MiniFg{mapdone}\def\MiniMark{$\checkmark$}%
+  \fi
+  \setbeamercolor{mini step}{fg=\MiniFg,bg=\MiniBg}%
+  \begin{beamercolorbox}[wd=\dimexpr\paperwidth/\maptotalfooter\relax,ht=7pt,dp=2pt,center]{mini step}%
+  \fontsize{7}{8}\selectfont\MiniMark\ #2\end{beamercolorbox}%
+}
+\newcommand{\MiniProgress}{%
+  \ifnum\roadmapstage>0\relax\ifnum\maptotalfooter>0\relax
+  \hbox to\paperwidth{%
+  \ifcase\roadmapstage
+  \or\MiniStep{1}{Lie escalar}\MiniStep{2}{Simetrías}\MiniStep{3}{Contracción}\MiniStep{4}{Identidad}\MiniStep{5}{Einstein}\MiniStep{6}{Cosmológico}%
+  \or\MiniStep{1}{Palatini}\MiniStep{2}{Volumen/borde}\MiniStep{3}{Bianchi}\MiniStep{4}{Controles}\MiniStep{5}{Noether}\MiniStep{6}{Balance}%
+  \or\MiniStep{1}{Derivadas superiores}\MiniStep{2}{Divergencia nula}\MiniStep{3}{Lagrangiano LL}%
+  \or\MiniStep{1}{Datos de borde}\MiniStep{2}{Campos}\MiniStep{3}{Separación EH}\MiniStep{4}{Momento EH}\MiniStep{5}{Identidad LL}\MiniStep{6}{Controles}%
+  \or\MiniStep{1}{Momentos}\MiniStep{2}{Variación}\MiniStep{3}{Bianchi}\MiniStep{4}{Noether}\MiniStep{5}{Comparación}\MiniStep{6}{Desplazamiento}%
+  \or\MiniStep{1}{Cinético}\MiniStep{2}{Reconstrucción}\MiniStep{3}{Curvatura}\MiniStep{4}{Escalar}\MiniStep{5}{Ecuaciones}\MiniStep{6}{Bianchi}%
+  \or\MiniStep{1}{Hipótesis}\MiniStep{2}{Separación}\MiniStep{3}{Operador}\MiniStep{4}{Identidad}\MiniStep{5}{Superficie}\MiniStep{6}{Control y cierre}%
+  \or\MiniStep{1}{Sector relevante}\MiniStep{2}{Divergencia}\MiniStep{3}{Ansatz}\MiniStep{4}{Resultado}%
+  \fi\hfil}\vskip1pt
+  \fi\fi
+}
